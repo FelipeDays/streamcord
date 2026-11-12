@@ -6,12 +6,12 @@
     <title>StreamCord 1080p • Compartilhamento de Tela Full HD P2P</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- PeerJS CDN para WebRTC P2P sem necessidade de backend (Ideal para GitHub Pages) -->
+    <!-- PeerJS CDN para WebRTC P2P -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -24,11 +24,9 @@
                     },
                     colors: {
                         discord: {
-                            darkest: '#111214',
-                            rail: '#1e1f22',
-                            sidebar: '#2b2d31',
-                            main: '#313338',
-                            card: '#232428',
+                            bg: '#111214',
+                            panel: '#1e1f22',
+                            card: '#2b2d31',
                             hover: '#35373c',
                             blurple: '#5865F2',
                             blurpleHover: '#4752C4',
@@ -39,8 +37,7 @@
                             yellow: '#f0b232',
                             nitro: '#ff73fa',
                             text: '#f2f3f5',
-                            muted: '#949ba4',
-                            border: '#3f4147'
+                            muted: '#949ba4'
                         }
                     }
                 }
@@ -49,23 +46,6 @@
     </script>
 
     <style>
-        /* Custom Scrollbar estilo Discord */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1e1f22;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #111214;
-            border-radius: 9999px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #5865F2;
-        }
-
-        /* Estilização de Sliders */
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;
@@ -73,7 +53,7 @@
             cursor: pointer;
         }
         input[type="range"]::-webkit-slider-runnable-track {
-            background: #1e1f22;
+            background: #111214;
             height: 6px;
             border-radius: 999px;
         }
@@ -86,1671 +66,904 @@
             width: 16px;
             border-radius: 50%;
             border: 2px solid #ffffff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-            transition: transform 0.15s ease, background-color 0.15s ease;
         }
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-            background-color: #ff73fa;
-        }
-
-        /* Animação de pulso para badge AO VIVO */
-        @keyframes pulse-live {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.65; transform: scale(1.08); }
-        }
-        .animate-live {
-            animation: pulse-live 1.8s infinite ease-in-out;
-        }
-
-        /* Gradiente Nitro */
         .nitro-gradient {
-            background: linear-gradient(135deg, #5865F2 0%, #9b59b6 50%, #ff73fa 100%);
-        }
-        .nitro-border {
-            border-image: linear-gradient(to right, #5865F2, #ff73fa) 1;
+            background: linear-gradient(135deg, #5865F2 0%, #ff73fa 100%);
         }
     </style>
 </head>
-<body class="bg-discord-main text-discord-text font-sans antialiased h-screen w-screen overflow-hidden flex select-none">
+<body class="bg-discord-bg text-discord-text font-sans antialiased h-screen w-screen overflow-hidden flex flex-col select-none">
 
-    <!-- ==========================================
-         BARRA LATERAL ESQUERDA (SERVIDORES DISCORD)
-         ========================================== -->
-    <aside class="w-[72px] bg-discord-rail flex flex-col items-center py-3 gap-2 z-20 shrink-0 border-r border-black/20">
-        <!-- Logo Principal StreamCord -->
-        <button onclick="switchTab('stage')" title="StreamCord 1080p Nitro" class="relative group w-12 h-12 rounded-[24px] hover:rounded-[16px] nitro-gradient flex items-center justify-center text-white shadow-lg transition-all duration-200">
-            <span class="absolute -left-3 w-2 h-10 bg-white rounded-r-full"></span>
-            <i class="fa-solid fa-desktop text-xl"></i>
-        </button>
-
-        <div class="w-8 h-[2px] bg-discord-sidebar rounded-full my-1"></div>
-
-        <!-- Botão Atalho Controle Anti-Voz do Discord -->
-        <button onclick="highlightAudioPanel()" title="Filtro Anti-Voz do Discord" class="relative group w-12 h-12 rounded-[24px] hover:rounded-[16px] bg-discord-sidebar hover:bg-discord-blurple text-discord-green hover:text-white flex items-center justify-center transition-all duration-200">
-            <span class="absolute -left-3 w-2 h-0 group-hover:h-5 bg-white rounded-r-full transition-all"></span>
-            <i class="fa-solid fa-ear-deaf text-lg"></i>
-        </button>
-
-        <!-- Botão Modo Simulador 1080p (para testar o filtro sem sair da aba) -->
-        <button onclick="startSimulatedStream()" title="Testar Sinal 1080p 30FPS + Áudio Demo" class="relative group w-12 h-12 rounded-[24px] hover:rounded-[16px] bg-discord-sidebar hover:bg-discord-yellow text-discord-yellow hover:text-black flex items-center justify-center transition-all duration-200">
-            <span class="absolute -left-3 w-2 h-0 group-hover:h-5 bg-white rounded-r-full transition-all"></span>
-            <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
-        </button>
-
-        <!-- Botão Guia Modo Isolado -->
-        <button onclick="toggleModal('guideModal', true)" title="Guia: Como Não Capturar Voz do Discord" class="relative group w-12 h-12 rounded-[24px] hover:rounded-[16px] bg-discord-sidebar hover:bg-discord-green text-discord-muted hover:text-white flex items-center justify-center transition-all duration-200">
-            <span class="absolute -left-3 w-2 h-0 group-hover:h-5 bg-white rounded-r-full transition-all"></span>
-            <i class="fa-solid fa-shield-halved text-lg"></i>
-        </button>
-
-        <!-- Botão Como Hospedar no GitHub Pages -->
-        <button onclick="toggleModal('githubModal', true)" title="Como Publicar no GitHub Pages" class="relative group w-12 h-12 rounded-[24px] hover:rounded-[16px] bg-discord-sidebar hover:bg-white text-discord-muted hover:text-black flex items-center justify-center transition-all duration-200 mt-auto">
-            <span class="absolute -left-3 w-2 h-0 group-hover:h-5 bg-white rounded-r-full transition-all"></span>
-            <i class="fa-brands fa-github text-xl"></i>
-        </button>
-    </aside>
-
-    <!-- ==========================================
-         PAINEL DE CONTROLE P2P & ANTI-VOZ (SIDEBAR)
-         ========================================== -->
-    <aside id="controlSidebar" class="w-80 md:w-[350px] bg-discord-sidebar flex flex-col h-full shrink-0 border-r border-black/30 z-10 transition-all duration-300 overflow-hidden">
-        <!-- Cabeçalho do Servidor -->
-        <div class="h-12 px-4 border-b border-black/30 flex items-center justify-between shadow-sm shrink-0">
-            <div class="flex items-center gap-2">
-                <span class="font-bold text-white tracking-tight text-[15px]">StreamCord</span>
-                <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded nitro-gradient text-white uppercase tracking-wider shadow">1080p 30FPS</span>
+    <!-- =========================================================
+         BARRA SUPERIOR COMPACTA (CONEXÃO RÁPIDA COM PARCEIRO/A)
+         ========================================================= -->
+    <header class="bg-discord-panel border-b border-white/10 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 z-20">
+        <!-- Logo e Status -->
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl nitro-gradient flex items-center justify-center text-white shadow">
+                <i class="fa-solid fa-desktop text-sm"></i>
             </div>
-            <div id="peerStatusPill" class="flex items-center gap-1.5 bg-discord-darkest px-2.5 py-1 rounded-full border border-white/5">
-                <span id="peerStatusDot" class="w-2 h-2 rounded-full bg-discord-yellow animate-pulse"></span>
-                <span id="peerStatusText" class="text-[11px] font-medium text-discord-muted">Iniciando P2P...</span>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-white text-sm tracking-tight">StreamCord</span>
+                    <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-discord-blurple text-white">1080p 30FPS</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-[11px] text-discord-muted">
+                    <span id="peerStatusDot" class="w-2 h-2 rounded-full bg-discord-yellow animate-pulse"></span>
+                    <span id="peerStatusText">Gerando seu código...</span>
+                </div>
             </div>
         </div>
 
-        <!-- Conteúdo Rolável da Sidebar -->
-        <div class="flex-1 overflow-y-auto p-3 space-y-4">
-
-            <!-- SEÇÃO 1: SALA P2P (CONEXÃO COM AMIGO) -->
-            <div class="bg-discord-card rounded-xl p-3.5 border border-white/5 space-y-3 shadow-inner">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-discord-muted flex items-center gap-1.5">
-                        <i class="fa-solid fa-network-wired text-discord-blurple"></i> Conexão P2P Direta
-                    </span>
-                    <button onclick="regeneratePeerId()" title="Gerar novo ID de sala" class="text-xs text-discord-muted hover:text-white transition">
-                        <i class="fa-solid fa-rotate"></i> Novo ID
-                    </button>
-                </div>
-
-                <!-- Seu ID da Sala -->
-                <div>
-                    <label class="text-[11px] text-discord-muted block mb-1">Seu ID da Sala (Envie para seu amigo):</label>
-                    <div class="flex items-center gap-1.5">
-                        <input id="myPeerIdInput" type="text" readonly value="Gerando ID..."
-                            class="w-full bg-discord-darkest text-discord-text font-mono text-xs px-3 py-2 rounded-lg border border-white/10 focus:outline-none select-all">
-                        <button onclick="copyMyId()" id="copyBtn"
-                            class="bg-discord-blurple hover:bg-discord-blurpleHover text-white text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shrink-0 shadow">
-                            <i class="fa-regular fa-copy"></i>
-                            <span>Copiar</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Conectar ao ID do Amigo -->
-                <div class="pt-1 border-t border-white/5">
-                    <label class="text-[11px] text-discord-muted block mb-1">ID do Amigo (Para assistir ou enviar live):</label>
-                    <div class="flex items-center gap-1.5">
-                        <input id="remotePeerIdInput" type="text" placeholder="Ex: sc-9482-live"
-                            class="w-full bg-discord-darkest text-white font-mono text-xs px-3 py-2 rounded-lg border border-white/10 focus:border-discord-blurple focus:outline-none">
-                        <button onclick="connectToFriend()" id="connectFriendBtn"
-                            class="bg-discord-green hover:bg-discord-greenHover text-white text-xs font-semibold px-3 py-2 rounded-lg transition flex items-center gap-1.5 shrink-0 shadow">
-                            <i class="fa-solid fa-plug"></i>
-                            <span>Conectar</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Lista de Peers Conectados -->
-                <div class="bg-discord-darkest/70 rounded-lg p-2.5 flex items-center justify-between text-xs">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-user-group text-discord-muted"></i>
-                        <span class="text-discord-muted">Status da Sala:</span>
-                    </div>
-                    <span id="connectedPeerBadge" class="font-semibold text-discord-yellow">Aguardando amigo</span>
-                </div>
-            </div>
-
-            <!-- SEÇÃO 2: CAPTURA DE TELA FULL HD 1080p 30FPS -->
-            <div class="bg-discord-card rounded-xl p-3.5 border border-white/5 space-y-3">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-discord-muted flex items-center gap-1.5">
-                        <i class="fa-solid fa-tv text-discord-green"></i> Qualidade da Transmissão
-                    </span>
-                    <span class="text-[10px] bg-discord-blurple/20 text-discord-blurple border border-discord-blurple/40 px-2 py-0.5 rounded font-semibold">
-                        WebRTC Nativo
-                    </span>
-                </div>
-
-                <!-- Seletor de Resolução e FPS -->
-                <div>
-                    <label class="text-[11px] text-discord-muted block mb-1">Predefinição de Vídeo (Constraints):</label>
-                    <select id="qualityPreset" onchange="applyQualityConstraints()"
-                        class="w-full bg-discord-darkest text-xs text-white rounded-lg px-3 py-2 border border-white/10 focus:border-discord-blurple focus:outline-none cursor-pointer">
-                        <option value="1080p30" selected>🔥 Full HD 1080p (1920x1080) • 30 FPS (Padrão)</option>
-                        <option value="1080p60">⚡ Full HD 1080p (1920x1080) • 60 FPS (Nitro)</option>
-                        <option value="720p30">🛡️ HD 720p (1280x720) • 30 FPS (Economia)</option>
-                    </select>
-                </div>
-
-                <!-- Seletor de Otimização de Conteúdo (contentHint) -->
-                <div class="grid grid-cols-2 gap-1.5">
-                    <button id="hintMotionBtn" onclick="setContentHint('motion')"
-                        class="text-[11px] py-1.5 px-2 rounded-lg font-medium border border-discord-blurple bg-discord-blurple/20 text-white flex items-center justify-center gap-1.5 transition">
-                        <i class="fa-solid fa-gamepad"></i> Jogos/Vídeo (Fluido)
-                    </button>
-                    <button id="hintDetailBtn" onclick="setContentHint('detail')"
-                        class="text-[11px] py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-discord-darkest text-discord-muted hover:text-white flex items-center justify-center gap-1.5 transition">
-                        <i class="fa-solid fa-code"></i> Texto/Código (Nitidez)
-                    </button>
-                </div>
-
-                <!-- Botões Principais de Iniciar / Parar Compartilhamento -->
-                <div class="pt-1 flex flex-col gap-2">
-                    <button id="startShareBtn" onclick="startScreenShare()"
-                        class="w-full bg-discord-green hover:bg-discord-greenHover text-white font-bold text-xs py-2.5 px-4 rounded-lg shadow-lg transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-display"></i>
-                        <span>Compartilhar Tela (1080p 30FPS)</span>
-                    </button>
-
-                    <button id="stopShareBtn" onclick="stopScreenShare()"
-                        class="hidden w-full bg-discord-red hover:bg-discord-redHover text-white font-bold text-xs py-2.5 px-4 rounded-lg shadow-lg transition flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-circle-stop"></i>
-                        <span>Encerrar Transmissão de Tela</span>
-                    </button>
-                </div>
-
-                <!-- Telemetria em Tempo Real -->
-                <div class="bg-discord-darkest rounded-lg p-2.5 grid grid-cols-3 gap-2 text-center border border-white/5">
-                    <div>
-                        <span class="text-[10px] text-discord-muted block">Resolução</span>
-                        <span id="telemetryRes" class="font-mono text-xs font-bold text-white">-- x --</span>
-                    </div>
-                    <div class="border-x border-white/5">
-                        <span class="text-[10px] text-discord-muted block">Taxa Quadros</span>
-                        <span id="telemetryFps" class="font-mono text-xs font-bold text-discord-green">-- FPS</span>
-                    </div>
-                    <div>
-                        <span class="text-[10px] text-discord-muted block">Bitrate Alvo</span>
-                        <span id="telemetryBitrate" class="font-mono text-xs font-bold text-discord-blurple">6.0 Mbps</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SEÇÃO 3: CONTROLE DE ÁUDIO & ANTI-VOZ DO DISCORD (DESTAQUE) -->
-            <div id="audioAntiVoiceCard" class="bg-discord-card rounded-xl p-3.5 border border-discord-blurple/40 space-y-3 relative overflow-hidden transition-all duration-300">
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
-                        <i class="fa-solid fa-sliders text-discord-nitro"></i> Áudio & Anti-Voz do Discord
-                    </span>
-                    <span id="audioFilterBadge" class="text-[10px] bg-discord-green/20 text-discord-green px-2 py-0.5 rounded font-semibold">
-                        Ativo
-                    </span>
-                </div>
-
-                <p class="text-[11px] text-discord-muted leading-relaxed">
-                    Bloqueie as vozes da call do Discord para que seu amigo não escute eco ou vozes duplicadas durante a transmissão.
-                </p>
-
-                <!-- Botão Rápido: MODO CALL DISCORD (Muta 100% da saída de voz/som na live) -->
-                <div class="grid grid-cols-2 gap-2">
-                    <button id="toggleSystemAudioBtn" onclick="toggleSystemAudio()"
-                        class="bg-discord-darkest hover:bg-discord-hover border border-white/10 rounded-lg p-2.5 flex flex-col items-center justify-center gap-1 transition group">
-                        <div class="flex items-center gap-1.5">
-                            <i id="sysAudioIcon" class="fa-solid fa-volume-high text-discord-green text-sm"></i>
-                            <span id="sysAudioLabel" class="text-xs font-semibold text-white">Som da Tela: ON</span>
-                        </div>
-                        <span class="text-[10px] text-discord-muted">Áudio enviado na live</span>
-                    </button>
-
-                    <button id="toggleMicAudioBtn" onclick="toggleMicAudio()"
-                        class="bg-discord-darkest hover:bg-discord-hover border border-white/10 rounded-lg p-2.5 flex flex-col items-center justify-center gap-1 transition group">
-                        <div class="flex items-center gap-1.5">
-                            <i id="micAudioIcon" class="fa-solid fa-microphone-slash text-discord-red text-sm"></i>
-                            <span id="micAudioLabel" class="text-xs font-semibold text-white">Meu Mic: OFF</span>
-                        </div>
-                        <span class="text-[10px] text-discord-muted">Evita eco com Discord</span>
-                    </button>
-                </div>
-
-                <!-- Botão de Ação Direta: Mutar Vozes/Som para quem já está em Call no Discord -->
-                <button id="discordMuteQuickBtn" onclick="toggleDiscordAntiEchoMode()"
-                    class="w-full bg-discord-blurple/20 hover:bg-discord-blurple/30 border border-discord-blurple text-white rounded-lg p-2.5 text-xs font-semibold flex items-center justify-between transition">
-                    <span class="flex items-center gap-2">
-                        <i class="fa-brands fa-discord text-discord-blurple text-base"></i>
-                        <span>Modo "Já estamos em Call no Discord"</span>
-                    </span>
-                    <span id="discordCallModeStatus" class="text-[10px] bg-discord-darkest px-2 py-0.5 rounded text-discord-muted">OFF</span>
-                </button>
-
-                <!-- Filtro Web Audio API: Supressor de Frequência de Voz (300Hz - 3400Hz) -->
-                <div class="bg-discord-darkest rounded-lg p-3 space-y-2.5 border border-white/5">
-                    <div class="flex items-center justify-between">
-                        <label for="voiceSuppressSlider" class="text-[11px] font-semibold text-white flex items-center gap-1.5">
-                            <i class="fa-solid fa-wave-square text-discord-nitro"></i>
-                            Supressor de Vozes (300Hz–3.4kHz)
-                        </label>
-                        <span id="voiceSuppressValue" class="font-mono text-xs font-bold text-discord-nitro">0%</span>
-                    </div>
-
-                    <input id="voiceSuppressSlider" type="range" min="0" max="100" value="0"
-                        oninput="updateVoiceSuppression(this.value)" class="w-full">
-
-                    <!-- Predefinições Rápidas do Filtro -->
-                    <div class="grid grid-cols-3 gap-1 pt-0.5">
-                        <button onclick="setSuppressionPreset(0)" class="text-[10px] bg-discord-sidebar hover:bg-discord-hover text-discord-muted hover:text-white py-1 rounded transition">
-                            0% (Original)
-                        </button>
-                        <button onclick="setSuppressionPreset(65)" class="text-[10px] bg-discord-sidebar hover:bg-discord-hover text-discord-muted hover:text-white py-1 rounded transition">
-                            65% (Atenuar Voz)
-                        </button>
-                        <button onclick="setSuppressionPreset(100)" class="text-[10px] bg-discord-sidebar hover:bg-discord-hover text-discord-nitro font-semibold py-1 rounded transition">
-                            100% (Corte Max)
-                        </button>
-                    </div>
-
-                    <!-- Volume Geral do Sistema Enviado -->
-                    <div class="pt-2 border-t border-white/5">
-                        <div class="flex items-center justify-between mb-1">
-                            <span class="text-[10px] text-discord-muted">Ganho do Áudio do Jogo/Sistema:</span>
-                            <span id="sysGainValue" class="font-mono text-[10px] text-white">100%</span>
-                        </div>
-                        <input id="sysGainSlider" type="range" min="0" max="150" value="100"
-                            oninput="updateSystemGain(this.value)" class="w-full">
-                    </div>
-
-                    <!-- Mini Visualizador de Espectro Web Audio API -->
-                    <div class="relative h-14 w-full bg-black/60 rounded overflow-hidden border border-white/5">
-                        <canvas id="audioSpectrumCanvas" class="w-full h-full block"></canvas>
-                        <div class="absolute inset-0 pointer-events-none flex items-end justify-between px-2 pb-1 text-[9px] font-mono text-white/50">
-                            <span>Grave (Jogo)</span>
-                            <span class="text-discord-nitro font-semibold">Faixa Voz Discord (300-3.4kHz)</span>
-                            <span>Agudo</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Dica Modo Isolado (100% Zero Voz do Discord) -->
-                <button onclick="toggleModal('guideModal', true)"
-                    class="w-full text-left bg-discord-yellow/10 hover:bg-discord-yellow/15 border border-discord-yellow/30 rounded-lg p-2.5 flex items-start gap-2.5 transition">
-                    <i class="fa-solid fa-lightbulb text-discord-yellow text-sm mt-0.5"></i>
-                    <div class="text-[11px] leading-tight">
-                        <span class="font-bold text-discord-yellow block">Dica: Isolar 100% sem Voz do Discord</span>
-                        <span class="text-discord-muted">Clique para ver como compartilhar apenas o Jogo/Aba ignorando o app do Discord.</span>
-                    </div>
+        <!-- Controles de Código da Sala (Super Simples) -->
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+            <!-- Meu Código -->
+            <div class="flex items-center bg-discord-bg border border-white/10 rounded-xl px-3 py-1.5 gap-2">
+                <span class="text-xs text-discord-muted">Meu Código:</span>
+                <span id="myShortCode" class="font-mono font-bold text-sm text-discord-nitro tracking-wider select-all">-----</span>
+                <button onclick="copyMyCode()" id="copyBtn" class="bg-discord-card hover:bg-discord-hover text-xs text-white px-2.5 py-1 rounded-lg transition flex items-center gap-1.5" title="Copiar meu código">
+                    <i class="fa-regular fa-copy"></i>
+                    <span>Copiar</span>
                 </button>
             </div>
 
-        </div>
-
-        <!-- Rodapé estilo Perfil do Discord -->
-        <div class="h-[54px] bg-discord-card px-3 flex items-center justify-between border-t border-black/30 shrink-0">
-            <div class="flex items-center gap-2 min-w-0">
-                <div class="relative">
-                    <div class="w-8 h-8 rounded-full nitro-gradient flex items-center justify-center text-white font-bold text-xs shadow">
-                        SC
-                    </div>
-                    <span id="profileOnlineDot" class="w-2.5 h-2.5 rounded-full bg-discord-green border-2 border-discord-card absolute -bottom-0.5 -right-0.5"></span>
-                </div>
-                <div class="truncate">
-                    <div class="text-xs font-bold text-white leading-tight truncate">Streamer #1080p</div>
-                    <div id="footerSubStatus" class="text-[10px] text-discord-muted truncate">Pronto para transmitir</div>
-                </div>
+            <!-- Conectar ao Parceiro(a) -->
+            <div id="connectFormWrapper" class="flex items-center bg-discord-bg border border-white/10 rounded-xl p-1 gap-1.5">
+                <input id="partnerCodeInput" type="text" maxlength="20" placeholder="Código dela(e)"
+                    class="bg-transparent text-white font-mono text-xs uppercase px-2.5 py-1 w-28 sm:w-32 focus:outline-none placeholder:normal-case placeholder:font-sans placeholder:text-discord-muted">
+                <button onclick="connectToPartner()" id="connectBtn"
+                    class="bg-discord-blurple hover:bg-discord-blurpleHover text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-link"></i>
+                    <span>Conectar</span>
+                </button>
             </div>
 
-            <div class="flex items-center gap-1">
-                <button onclick="toggleMicAudio()" id="footerMicBtn" title="Mutar/Ativar Microfone" class="w-8 h-8 rounded-lg hover:bg-discord-hover text-discord-red flex items-center justify-center transition">
-                    <i class="fa-solid fa-microphone-slash text-sm"></i>
+            <!-- Badge Conectado + Botão Sincronizar -->
+            <div id="connectedBanner" class="hidden items-center bg-discord-green/15 border border-discord-green/40 rounded-xl px-3 py-1.5 gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-discord-green animate-ping"></span>
+                <span id="connectedPartnerLabel" class="text-xs font-bold text-white">Conectado</span>
+                <button onclick="manualSyncStreams()" title="Forçar reenvio de vídeo" class="text-xs bg-discord-card hover:bg-discord-hover text-white px-2 py-1 rounded-lg transition flex items-center gap-1">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span class="hidden sm:inline">Sincronizar</span>
                 </button>
-                <button onclick="toggleSystemAudio()" id="footerDeafBtn" title="Mutar/Ativar Áudio da Live" class="w-8 h-8 rounded-lg hover:bg-discord-hover text-discord-muted hover:text-white flex items-center justify-center transition">
-                    <i class="fa-solid fa-headphones text-sm"></i>
-                </button>
-                <button onclick="toggleModal('guideModal', true)" title="Ajuda de Áudio" class="w-8 h-8 rounded-lg hover:bg-discord-hover text-discord-muted hover:text-white flex items-center justify-center transition">
-                    <i class="fa-solid fa-gear text-sm"></i>
+                <button onclick="disconnectPartner()" title="Desconectar da sala" class="text-xs text-discord-red hover:text-white px-1.5 py-0.5 rounded transition">
+                    <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
         </div>
-    </aside>
+    </header>
 
-    <!-- ==========================================
-         PALCO PRINCIPAL DE VÍDEO (STAGE)
-         ========================================== -->
-    <main class="flex-1 flex flex-col bg-discord-main h-full overflow-hidden relative">
+    <!-- =========================================================
+         PALCO DE VÍDEO PRINCIPAL (TELA LIMPA E AMPLA)
+         ========================================================= -->
+    <main class="flex-1 p-3 sm:p-4 flex flex-col overflow-hidden relative">
+        <div id="videoStageContainer" class="relative flex-1 w-full h-full bg-[#090a0c] rounded-2xl border border-white/10 overflow-hidden flex items-center justify-center shadow-2xl">
 
-        <!-- Barra Superior do Canal de Voz/Vídeo -->
-        <header class="h-12 bg-discord-main border-b border-black/30 px-4 flex items-center justify-between shrink-0 z-10">
-            <div class="flex items-center gap-2.5 min-w-0">
-                <button onclick="toggleMobileSidebar()" class="md:hidden text-discord-muted hover:text-white mr-1">
-                    <i class="fa-solid fa-bars text-lg"></i>
+            <!-- Barra Flutuante Superior Esquerda: Alternar entre Tela do Parceiro(a) e Minha Prévia -->
+            <div class="absolute top-3.5 left-3.5 z-20 flex items-center gap-1.5 bg-discord-panel/90 backdrop-blur-md p-1 rounded-xl border border-white/10 shadow-lg">
+                <button id="tabRemoteBtn" onclick="switchView('remote')"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition bg-discord-blurple text-white">
+                    <i class="fa-solid fa-tv"></i>
+                    <span>Tela Conectada</span>
+                    <span id="remoteLiveDot" class="hidden w-2 h-2 rounded-full bg-discord-green animate-ping"></span>
                 </button>
-                <i class="fa-solid fa-volume-high text-discord-green text-sm"></i>
-                <h1 class="font-bold text-white text-sm md:text-base truncate">Sala de Transmissão • Full HD</h1>
-
-                <!-- Badge AO VIVO 1080p 30FPS -->
-                <div id="liveHeaderBadge" class="hidden items-center gap-1.5 bg-discord-red px-2.5 py-0.5 rounded text-[11px] font-extrabold text-white tracking-wider uppercase shadow animate-live">
-                    <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
-                    <span id="liveHeaderBadgeText">AO VIVO • 1080p 30FPS</span>
-                </div>
-            </div>
-
-            <!-- Ações Rápidas do Topo -->
-            <div class="flex items-center gap-2">
-                <!-- Alternar visualização entre Minha Tela e Tela do Amigo -->
-                <div class="bg-discord-darkest p-1 rounded-lg border border-white/5 flex items-center text-xs">
-                    <button id="viewModeAutoBtn" onclick="switchVideoSource('auto')" class="px-2.5 py-1 rounded bg-discord-blurple text-white font-semibold transition">
-                        Principal
-                    </button>
-                    <button id="viewModeLocalBtn" onclick="switchVideoSource('local')" class="px-2.5 py-1 rounded text-discord-muted hover:text-white transition">
-                        Minha Captura
-                    </button>
-                    <button id="viewModeRemoteBtn" onclick="switchVideoSource('remote')" class="px-2.5 py-1 rounded text-discord-muted hover:text-white transition">
-                        Tela do Amigo
-                    </button>
-                </div>
-
-                <!-- Botão Abrir Chat Lateral -->
-                <button onclick="toggleChatPanel()" title="Mostrar/Ocultar Chat da Sala" class="w-8 h-8 rounded-lg bg-discord-sidebar hover:bg-discord-hover text-discord-muted hover:text-white flex items-center justify-center transition relative">
-                    <i class="fa-solid fa-message text-xs"></i>
-                    <span id="chatUnreadDot" class="hidden w-2 h-2 rounded-full bg-discord-red absolute top-1 right-1"></span>
+                <button id="tabLocalBtn" onclick="switchView('local')"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition text-discord-muted hover:text-white">
+                    <i class="fa-solid fa-eye"></i>
+                    <span>Minha Tela</span>
+                    <span id="localLiveDot" class="hidden w-2 h-2 rounded-full bg-discord-red"></span>
                 </button>
             </div>
-        </header>
 
-        <!-- Área Central: Palco de Vídeo + Chat Opcional -->
-        <div class="flex-1 flex overflow-hidden relative">
-
-            <!-- Container do Player de Vídeo -->
-            <div class="flex-1 bg-discord-darkest flex flex-col justify-between p-3 md:p-5 relative overflow-hidden">
-
-                <!-- Moldura do Player -->
-                <div id="videoStageContainer" class="relative flex-1 w-full h-full bg-[#090a0b] rounded-2xl overflow-hidden border border-white/10 shadow-2xl flex items-center justify-center group">
-
-                    <!-- Elemento de Vídeo Principal (Recebe ou Mostra a Live 1080p) -->
-                    <video id="mainVideo" autoplay playsinline class="w-full h-full object-contain hidden"></video>
-
-                    <!-- Miniatura PiP Secundária (quando ambos compartilham ou para prévia local) -->
-                    <div id="pipPreviewWrapper" class="hidden absolute bottom-16 right-4 w-56 aspect-video bg-discord-sidebar rounded-xl overflow-hidden border-2 border-discord-blurple shadow-2xl z-20">
-                        <video id="secondaryVideo" autoplay playsinline muted class="w-full h-full object-cover"></video>
-                        <div class="absolute bottom-1 left-2 bg-black/70 px-2 py-0.5 rounded text-[10px] font-semibold text-white">
-                            Sua Prévia Local
-                        </div>
-                    </div>
-
-                    <!-- Estado Vazio (Quando nenhuma tela está ativa ainda) -->
-                    <div id="emptyStagePlaceholder" class="max-w-lg text-center p-6 space-y-5">
-                        <div class="w-20 h-20 mx-auto rounded-3xl nitro-gradient flex items-center justify-center text-white text-3xl shadow-2xl">
-                            <i class="fa-solid fa-satellite-dish"></i>
-                        </div>
-                        <div class="space-y-2">
-                            <h2 class="text-xl md:text-2xl font-extrabold text-white tracking-tight">
-                                Compartilhamento de Tela 1080p 30FPS
-                            </h2>
-                            <p class="text-xs md:text-sm text-discord-muted leading-relaxed">
-                                Transmita sua tela, jogo ou janela em <span class="text-white font-semibold">Full HD (1920x1080 a 30 FPS)</span> diretamente para seu amigo via P2P, com <span class="text-discord-nitro font-semibold">bloqueador de vozes do Discord</span> integrado.
-                            </p>
-                        </div>
-
-                        <!-- Botões de Ação Rápida no Centro -->
-                        <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
-                            <button onclick="startScreenShare()"
-                                class="bg-discord-blurple hover:bg-discord-blurpleHover text-white font-bold text-xs md:text-sm px-5 py-3 rounded-xl shadow-lg transition flex items-center gap-2">
-                                <i class="fa-solid fa-desktop"></i>
-                                <span>Compartilhar Minha Tela</span>
-                            </button>
-
-                            <button onclick="startSimulatedStream()"
-                                class="bg-discord-sidebar hover:bg-discord-hover text-discord-text font-semibold text-xs md:text-sm px-4 py-3 rounded-xl border border-white/10 transition flex items-center gap-2">
-                                <i class="fa-solid fa-flask text-discord-yellow"></i>
-                                <span>Testar Sinal 1080p + Filtro de Voz</span>
-                            </button>
-                        </div>
-
-                        <!-- Cards informativos rápidos -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-left pt-3">
-                            <div class="bg-discord-sidebar/70 p-3 rounded-xl border border-white/5">
-                                <div class="text-discord-blurple text-xs font-bold mb-1"><i class="fa-solid fa-bolt mr-1"></i> 1. Copie seu ID</div>
-                                <p class="text-[11px] text-discord-muted">Envie o ID da sala para seu amigo colar no navegador dele.</p>
-                            </div>
-                            <div class="bg-discord-sidebar/70 p-3 rounded-xl border border-white/5">
-                                <div class="text-discord-green text-xs font-bold mb-1"><i class="fa-solid fa-film mr-1"></i> 2. 1080p 30FPS</div>
-                                <p class="text-[11px] text-discord-muted">Constraints cravadas em 1920x1080 @ 30fps com alto bitrate.</p>
-                            </div>
-                            <div class="bg-discord-sidebar/70 p-3 rounded-xl border border-white/5">
-                                <div class="text-discord-nitro text-xs font-bold mb-1"><i class="fa-solid fa-volume-xmark mr-1"></i> 3. Zero Voz Discord</div>
-                                <p class="text-[11px] text-discord-muted">Mute o som da live ou ative o filtro Web Audio (300-3400Hz).</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Overlay Superior do Vídeo (Badges de Qualidade e Status do Filtro) -->
-                    <div id="videoTopOverlay" class="hidden absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
-                        <div class="flex items-center gap-2">
-                            <span class="bg-discord-red text-white text-xs font-extrabold px-2.5 py-1 rounded-md shadow-lg flex items-center gap-1.5">
-                                <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                                AO VIVO
-                            </span>
-                            <span id="overlayResolutionTag" class="bg-black/80 backdrop-blur-md text-white font-mono text-xs font-semibold px-2.5 py-1 rounded-md border border-white/10">
-                                1080p • 30 FPS
-                            </span>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <span id="overlayAudioStatusTag" class="bg-black/80 backdrop-blur-md text-discord-green text-xs font-semibold px-3 py-1 rounded-md border border-white/10 flex items-center gap-1.5">
-                                <i class="fa-solid fa-shield-cat"></i>
-                                <span>Áudio da Live Ativo</span>
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Barra de Controles do Player de Vídeo (Flutuante estilo Discord) -->
-                    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-discord-sidebar/95 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 shadow-2xl flex items-center gap-3 z-20">
-                        <!-- Play/Share rápida -->
-                        <button onclick="startScreenShare()" title="Iniciar ou Trocar Tela Compartilhada"
-                            class="w-9 h-9 rounded-xl bg-discord-blurple hover:bg-discord-blurpleHover text-white flex items-center justify-center transition shadow">
-                            <i class="fa-solid fa-display text-sm"></i>
-                        </button>
-
-                        <!-- Botão Rápido: Mutar Som que eu Escuto Localmente (Para quem está assistindo) -->
-                        <div class="flex items-center gap-2 bg-discord-darkest px-3 py-1.5 rounded-xl border border-white/5">
-                            <button onclick="toggleLocalPlayerMute()" id="localVolumeBtn" title="Mutar/Desmutar som do Player para mim" class="text-white hover:text-discord-blurple transition">
-                                <i id="localVolumeIcon" class="fa-solid fa-volume-high text-xs"></i>
-                            </button>
-                            <input id="localVolumeSlider" type="range" min="0" max="100" value="100"
-                                oninput="changeLocalPlayerVolume(this.value)" class="w-20" title="Volume local da transmissão">
-                        </div>
-
-                        <!-- Alternar Ajuste de Tela (Conter / Preencher) -->
-                        <button onclick="toggleVideoFit()" title="Ajustar ou Preencher Tela"
-                            class="w-9 h-9 rounded-xl bg-discord-darkest hover:bg-discord-hover text-discord-muted hover:text-white flex items-center justify-center transition">
-                            <i class="fa-solid fa-up-right-and-down-left-from-center text-xs"></i>
-                        </button>
-
-                        <!-- Botão Picture-in-Picture (PiP) -->
-                        <button onclick="togglePiP()" title="Modo Picture-in-Picture (Janela Flutuante)"
-                            class="w-9 h-9 rounded-xl bg-discord-darkest hover:bg-discord-hover text-discord-muted hover:text-white flex items-center justify-center transition">
-                            <i class="fa-solid fa-clone text-xs"></i>
-                        </button>
-
-                        <!-- Botão Tela Cheia (Fullscreen) -->
-                        <button onclick="toggleFullscreen()" title="Tela Cheia (Fullscreen)"
-                            class="w-9 h-9 rounded-xl bg-discord-darkest hover:bg-discord-hover text-discord-muted hover:text-white flex items-center justify-center transition">
-                            <i class="fa-solid fa-expand text-xs"></i>
-                        </button>
-                    </div>
-
-                </div>
+            <!-- Badges Flutuantes Superiores Direitas (Resolução & Status de Áudio) -->
+            <div id="streamInfoBadges" class="hidden absolute top-3.5 right-3.5 z-20 items-center gap-2 pointer-events-none">
+                <span id="resFpsBadge" class="bg-black/80 backdrop-blur-md text-white font-mono text-xs font-bold px-2.5 py-1 rounded-lg border border-white/10">
+                    1080p • 30 FPS
+                </span>
+                <span id="audioStateBadge" class="bg-black/80 backdrop-blur-md text-discord-green text-xs font-semibold px-2.5 py-1 rounded-lg border border-white/10">
+                    Som Ativo
+                </span>
             </div>
 
-            <!-- ==========================================
-                 PAINEL LATERAL DIREITO: CHAT P2P DA SALA
-                 ========================================== -->
-            <aside id="chatPanel" class="hidden lg:flex w-72 bg-discord-sidebar border-l border-black/30 flex-col h-full shrink-0">
-                <div class="h-10 px-3.5 border-b border-black/20 flex items-center justify-between text-xs font-bold text-discord-muted uppercase tracking-wider">
-                    <span><i class="fa-solid fa-comments mr-1.5 text-discord-blurple"></i> Chat P2P da Live</span>
-                    <button onclick="toggleChatPanel()" class="lg:hidden text-discord-muted hover:text-white">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
+            <!-- Botão de Desbloqueio de Autoplay com Áudio (Caso o navegador bloqueie o som inicial) -->
+            <button id="unmuteAutoplayBtn" onclick="forceUnmuteRemoteVideo()"
+                class="hidden absolute top-16 left-1/2 -translate-x-1/2 z-30 bg-discord-blurple hover:bg-discord-blurpleHover text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full shadow-2xl border border-white/20 items-center gap-2 animate-bounce">
+                <i class="fa-solid fa-volume-high"></i>
+                <span>Clique aqui para ativar o som da transmissão</span>
+            </button>
 
-                <!-- Lista de Mensagens -->
-                <div id="chatMessages" class="flex-1 overflow-y-auto p-3 space-y-2.5 text-xs">
-                    <div class="bg-discord-card p-2.5 rounded-lg border border-white/5 text-discord-muted">
-                        <span class="text-discord-blurple font-bold block mb-0.5">🤖 Sistema StreamCord</span>
-                        Conecte-se ao ID do seu amigo para conversar e transmitir em 1080p 30FPS sem atrasos.
-                    </div>
-                </div>
+            <!-- VÍDEO 1: TELA DO PARCEIRO(A) -->
+            <video id="remoteVideo" autoplay playsinline class="w-full h-full object-contain hidden"></video>
 
-                <!-- Input de Mensagem -->
-                <form onsubmit="sendChatMessage(event)" class="p-2.5 border-t border-black/20 flex items-center gap-1.5">
-                    <input id="chatInput" type="text" placeholder="Enviar mensagem na sala..."
-                        class="w-full bg-discord-darkest text-white text-xs px-3 py-2 rounded-lg border border-white/10 focus:border-discord-blurple focus:outline-none">
-                    <button type="submit" class="bg-discord-blurple hover:bg-discord-blurpleHover text-white px-3 py-2 rounded-lg text-xs transition">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </button>
-                </form>
-            </aside>
+            <!-- VÍDEO 2: MINHA PRÉVIA LOCAL (Sempre mutado para você não se ouvir dobrado) -->
+            <video id="localVideo" autoplay playsinline muted class="w-full h-full object-contain hidden"></video>
+
+            <!-- ESTADO VAZIO (Instruções curtas e diretas) -->
+            <div id="emptyStage" class="max-w-md text-center p-6 space-y-4">
+                <div class="w-16 h-16 mx-auto rounded-2xl bg-discord-card border border-white/10 flex items-center justify-center text-discord-blurple text-2xl shadow-inner">
+                    <i class="fa-solid fa-display"></i>
+                </div>
+                <div class="space-y-1.5">
+                    <h2 id="emptyStageTitle" class="text-lg font-bold text-white">Nenhuma tela transmitindo agora</h2>
+                    <p id="emptyStageDesc" class="text-xs text-discord-muted leading-relaxed">
+                        1. Digite o código de 5 letras no topo e clique em <strong>Conectar</strong>.<br>
+                        2. Clique em <strong>Compartilhar Tela</strong> abaixo para transmitir em <strong>1080p 30FPS</strong>.
+                    </p>
+                </div>
+            </div>
 
         </div>
     </main>
 
-    <!-- ==========================================
-         MODAL 1: GUIA MODO ISOLADO (ZERO VOZ DO DISCORD)
-         ========================================== -->
-    <div id="guideModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-discord-sidebar border border-white/10 rounded-2xl max-w-xl w-full p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between border-b border-white/10 pb-3">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-discord-blurple/20 text-discord-blurple flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-ear-deaf"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-white text-base">Como Mutar as Vozes e Sons Vindos do Discord</h3>
-                        <p class="text-xs text-discord-muted">3 métodos integrados no StreamCord 1080p</p>
-                    </div>
-                </div>
-                <button onclick="toggleModal('guideModal', false)" class="text-discord-muted hover:text-white text-lg">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+    <!-- =========================================================
+         BARRA INFERIOR DE CONTROLES (ESTILO CALL DO DISCORD)
+         ========================================================= -->
+    <footer class="bg-discord-panel border-t border-white/10 px-4 py-3 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 shrink-0 z-20">
 
-            <div class="space-y-3 text-xs leading-relaxed text-discord-text">
-                <div class="bg-discord-card p-3.5 rounded-xl border border-discord-green/30">
-                    <div class="font-bold text-discord-green mb-1 flex items-center gap-1.5">
-                        <i class="fa-solid fa-check-circle"></i>
-                        Método 1: Botão "Já estamos em Call no Discord" (Mais usado)
-                    </div>
-                    <p class="text-discord-muted">
-                        Se você e seu amigo já estão conversando pelo Discord e só querem usar o <strong>StreamCord</strong> pela qualidade 1080p gratuitamente, clique no botão <strong>"Modo Já estamos em Call no Discord"</strong> ou <strong>"Som da Tela: OFF"</strong>. Isso corta 100% do áudio enviado na transmissão para que seu amigo não escute a própria voz duplicada.
-                    </p>
-                </div>
+        <!-- 1. Botão Compartilhar / Parar Tela -->
+        <button id="shareScreenBtn" onclick="toggleScreenShare()"
+            class="bg-discord-green hover:bg-discord-greenHover text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2">
+            <i id="shareScreenIcon" class="fa-solid fa-desktop"></i>
+            <span id="shareScreenText">Compartilhar Tela (1080p)</span>
+        </button>
 
-                <div class="bg-discord-card p-3.5 rounded-xl border border-discord-blurple/30">
-                    <div class="font-bold text-discord-blurple mb-1 flex items-center gap-1.5">
-                        <i class="fa-solid fa-window-restore"></i>
-                        Método 2: Capturar "Janela" ou "Aba" em vez de "Tela Inteira"
-                    </div>
-                    <p class="text-discord-muted">
-                        Ao clicar em <strong>Compartilhar Tela</strong>, o navegador abre um seletor. Se você escolher a aba específica ou a janela do jogo, o sistema operacional isola o som daquela aplicação e <strong>ignora completamente o áudio das vozes do Discord</strong> que rodam em segundo plano.
-                    </p>
-                </div>
+        <!-- 2. Botão Mutar Som Enviado na Live (Evita Eco de Vozes do Discord) -->
+        <button id="muteOutgoingAudioBtn" onclick="toggleOutgoingAudioMute()"
+            class="bg-discord-card hover:bg-discord-hover text-white font-semibold text-xs px-4 py-2.5 rounded-xl border border-white/10 transition flex items-center gap-2"
+            title="Corta 100% do som enviado na sua transmissão para não dar eco nas vozes do Discord">
+            <i id="muteOutgoingIcon" class="fa-solid fa-ear-deaf text-discord-green"></i>
+            <span id="muteOutgoingText">Mutar Som do Discord/Live: OFF</span>
+        </button>
 
-                <div class="bg-discord-card p-3.5 rounded-xl border border-discord-nitro/30">
-                    <div class="font-bold text-discord-nitro mb-1 flex items-center gap-1.5">
-                        <i class="fa-solid fa-wave-square"></i>
-                        Método 3: Supressor Web Audio API (300Hz a 3400Hz)
-                    </div>
-                    <p class="text-discord-muted">
-                        Se você precisa compartilhar a <strong>Tela Inteira com som do sistema</strong>, aumente o slider <strong>"Supressor de Vozes"</strong> na barra lateral. Ele aplica filtros Biquad Notch/Peaking em tempo real exatamente na faixa da voz humana (300Hz–3.4kHz), mantendo os graves (explosões/passos do jogo) e agudos.
-                    </p>
-                </div>
-            </div>
+        <!-- 3. Botão Filtro Anti-Voz (300Hz-3400Hz) para quando quiser manter som do jogo e abafar vozes -->
+        <button id="voiceFilterBtn" onclick="toggleVoiceBandFilter()"
+            class="bg-discord-card hover:bg-discord-hover text-discord-muted hover:text-white font-semibold text-xs px-4 py-2.5 rounded-xl border border-white/10 transition flex items-center gap-2"
+            title="Atenua frequências de voz humana (300Hz-3.4kHz) mantendo graves e agudos do jogo">
+            <i class="fa-solid fa-wave-square"></i>
+            <span id="voiceFilterText">Filtro Anti-Voz: OFF</span>
+        </button>
 
-            <div class="flex justify-end pt-2">
-                <button onclick="toggleModal('guideModal', false)" class="bg-discord-blurple hover:bg-discord-blurpleHover text-white font-semibold text-xs px-5 py-2.5 rounded-lg transition">
-                    Entendi, Voltar para a Sala
-                </button>
-            </div>
+        <div class="h-6 w-[1px] bg-white/10 hidden sm:block"></div>
+
+        <!-- 4. Volume da Transmissão Recebida -->
+        <div class="flex items-center gap-2 bg-discord-bg px-3 py-2 rounded-xl border border-white/10">
+            <button onclick="toggleRemoteVolumeMute()" class="text-discord-muted hover:text-white transition" title="Mutar som que eu escuto">
+                <i id="remoteVolIcon" class="fa-solid fa-volume-high text-xs"></i>
+            </button>
+            <input id="remoteVolSlider" type="range" min="0" max="100" value="100"
+                oninput="changeRemoteVolume(this.value)" class="w-20" title="Volume da tela conectada">
         </div>
-    </div>
 
-    <!-- ==========================================
-         MODAL 2: COMO PUBLICAR NO GITHUB PAGES
-         ========================================== -->
-    <div id="githubModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-discord-sidebar border border-white/10 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between border-b border-white/10 pb-3">
-                <div class="flex items-center gap-2.5">
-                    <i class="fa-brands fa-github text-2xl text-white"></i>
-                    <div>
-                        <h3 class="font-bold text-white text-base">Pronto para GitHub Pages</h3>
-                        <p class="text-xs text-discord-muted">Hospede gratuitamente em menos de 1 minuto</p>
-                    </div>
-                </div>
-                <button onclick="toggleModal('githubModal', false)" class="text-discord-muted hover:text-white text-lg">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+        <!-- 5. Botão Tela Cheia -->
+        <button onclick="toggleFullscreen()" title="Tela Cheia"
+            class="bg-discord-card hover:bg-discord-hover text-discord-muted hover:text-white px-3.5 py-2.5 rounded-xl border border-white/10 transition">
+            <i class="fa-solid fa-expand text-xs"></i>
+        </button>
 
-            <ol class="space-y-2.5 text-xs text-discord-muted list-decimal list-inside">
-                <li>Crie um repositório público no seu <span class="text-white font-semibold">GitHub</span> (ex: <code class="bg-discord-darkest px-1.5 py-0.5 rounded text-discord-blurple">streamcord-1080p</code>).</li>
-                <li>Salve este código em um arquivo chamado <code class="bg-discord-darkest px-1.5 py-0.5 rounded text-discord-green">index.html</code> e envie para o repositório.</li>
-                <li>No GitHub, vá em <strong>Settings &rarr; Pages</strong> e em <em>Branch</em> selecione <code class="bg-discord-darkest px-1.5 py-0.5 rounded text-white">main</code> e clique em <strong>Save</strong>.</li>
-                <li>Pronto! Seu link HTTPS estará no ar com WebRTC P2P e captura Full HD 1080p 30FPS liberados para você e seu amigo.</li>
-            </ol>
+    </footer>
 
-            <div class="flex justify-end pt-2">
-                <button onclick="toggleModal('githubModal', false)" class="bg-discord-green hover:bg-discord-greenHover text-white font-semibold text-xs px-5 py-2.5 rounded-lg transition">
-                    Perfeito!
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Container de Notificações Rápidas (Toasts) -->
+    <div id="toastContainer" class="fixed bottom-20 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- ==========================================
-         TOAST NOTIFICATION (SUBSTITUI ALERT)
-         ========================================== -->
-    <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
-
-    <!-- ==========================================
-         LÓGICA JAVASCRIPT: WEBRTC, PEERJS & WEB AUDIO API
-         ========================================== -->
+    <!-- =========================================================
+         LÓGICA P2P BIDIRECIONAL + WEB AUDIO API
+         ========================================================= -->
     <script>
-        // --- Estado Global da Aplicação ---
+        const PEER_PREFIX = 'sc1080p-';
+
         let peer = null;
-        let myPeerId = '';
-        let currentCall = null;
+        let myCode = '';
+        let connectedPeerId = null;
         let dataConn = null;
+        let outgoingCall = null;
+        let incomingCall = null;
 
-        // Streams de Mídia
-        let rawDisplayStream = null;     // Stream original capturado do navegador
-        let rawMicStream = null;         // Stream opcional do microfone
-        let processedStream = null;      // Stream final (Vídeo 1080p + Áudio filtrado pelo Web Audio API)
-        let remoteStream = null;         // Stream recebido do amigo
+        // Streams
+        let rawDisplayStream = null;
+        let outboundStream = null;
+        let remoteStream = null;
 
-        // Controles de Estado de Áudio/Vídeo
-        let isSystemAudioEnabled = true;
-        let isMicAudioEnabled = false;
-        let isDiscordCallMode = false;
-        let currentContentHint = 'motion';
-        let currentViewSource = 'auto'; // 'auto', 'local', 'remote'
+        // Estados de visualização e áudio
+        let activeTab = 'remote'; // 'remote' ou 'local'
+        let isSharing = false;
+        let isOutgoingAudioMuted = false; // Quando TRUE, corta o som enviado na live para não vazar vozes do Discord
+        let isVoiceFilterActive = false;  // Quando TRUE, ativa Biquad Notch na faixa de voz (300Hz-3.4kHz)
 
-        // Nós da Web Audio API (Para supressão de vozes do Discord 300Hz-3400Hz)
+        // Web Audio API
         let audioCtx = null;
-        let systemSourceNode = null;
-        let micSourceNode = null;
-        let voiceNotchFilter1 = null;    // Atenuação em ~500Hz (Fundamental vocal)
-        let voiceNotchFilter2 = null;    // Atenuação em ~1200Hz (Formante central de voz no Discord)
-        let voiceNotchFilter3 = null;    // Atenuação em ~2600Hz (Presença vocal)
-        let systemGainNode = null;
-        let micGainNode = null;
-        let analyserNode = null;
-        let audioDestination = null;
+        let outGainNode = null;
+        let filterBand1 = null;
+        let filterBand2 = null;
+        let filterBand3 = null;
 
-        // Intervalos de Telemetria e Simulador
-        let telemetryInterval = null;
-        let simCanvasInterval = null;
-        let simOscillator = null;
+        let statsTimer = null;
 
-        // ==========================================
-        // 1. INICIALIZAÇÃO DO PEERJS (P2P)
-        // ==========================================
-        window.onload = function () {
-            initPeerConnection();
-            initSpectrumVisualizer();
+        window.onload = () => {
+            initPeer();
         };
 
-        function generateCleanId() {
-            const randomNum = Math.floor(1000 + Math.random() * 9000);
-            return `sc-1080p-${randomNum}`;
-        }
-
-        function initPeerConnection(customId = null) {
-            try {
-                if (peer) {
-                    peer.destroy();
-                }
-
-                const targetId = customId || generateCleanId();
-                updatePeerStatus('Conectando P2P...', 'yellow');
-
-                peer = new Peer(targetId, {
-                    debug: 1,
-                    config: {
-                        iceServers: [
-                            { urls: 'stun:stun.l.google.com:19302' },
-                            { urls: 'stun:stun1.l.google.com:19302' },
-                            { urls: 'stun:stun2.l.google.com:19302' }
-                        ]
-                    }
-                });
-
-                peer.on('open', (id) => {
-                    myPeerId = id;
-                    document.getElementById('myPeerIdInput').value = id;
-                    updatePeerStatus('Online • P2P Pronto', 'green');
-                    showToast(`Sala criada com sucesso! ID: ${id}`, 'success');
-                });
-
-                // Recebendo conexão de chat/dados do amigo
-                peer.on('connection', (conn) => {
-                    setupDataConnection(conn);
-                });
-
-                // Recebendo chamada de vídeo (Quando o amigo compartilha a tela ou pede para assistir)
-                peer.on('call', (call) => {
-                    currentCall = call;
-                    // Se já estivermos transmitindo nossa tela, respondemos com nosso stream 1080p processado
-                    if (processedStream) {
-                        call.answer(processedStream);
-                        optimizeSenderBitrate(call.peerConnection);
-                    } else {
-                        call.answer();
-                    }
-                    handleMediaCall(call);
-                });
-
-                peer.on('error', (err) => {
-                    console.warn('Aviso PeerJS:', err.type);
-                    if (err.type === 'unavailable-id') {
-                        initPeerConnection(generateCleanId());
-                    } else if (err.type === 'peer-unavailable') {
-                        showToast('ID do amigo não encontrado ou offline. Verifique o código.', 'error');
-                    } else {
-                        updatePeerStatus('Modo Local Ativo', 'yellow');
-                    }
-                });
-
-            } catch (e) {
-                console.error('Erro ao iniciar PeerJS:', e);
-                updatePeerStatus('Erro P2P', 'red');
+        // Gera código curto de 5 caracteres (ex: 7K9P2) fácil de digitar
+        function generateShortCode() {
+            const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+            let code = '';
+            for (let i = 0; i < 5; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
             }
+            return code;
         }
 
-        function regeneratePeerId() {
-            initPeerConnection(generateCleanId());
-        }
-
-        function updatePeerStatus(text, color) {
-            const dot = document.getElementById('peerStatusDot');
-            const label = document.getElementById('peerStatusText');
-            label.textContent = text;
-
-            dot.className = 'w-2 h-2 rounded-full ';
-            if (color === 'green') dot.className += 'bg-discord-green';
-            else if (color === 'red') dot.className += 'bg-discord-red animate-ping';
-            else dot.className += 'bg-discord-yellow animate-pulse';
-        }
-
-        // ==========================================
-        // 2. CONECTAR AO AMIGO & SINALIZAÇÃO P2P
-        // ==========================================
-        function connectToFriend() {
-            const friendId = document.getElementById('remotePeerIdInput').value.trim();
-            if (!friendId) {
-                showToast('Digite o ID da Sala do seu amigo primeiro!', 'warning');
-                return;
+        function cleanInputCode(raw) {
+            if (!raw) return '';
+            let cleaned = raw.trim().toUpperCase();
+            if (cleaned.startsWith('SC1080P-')) {
+                cleaned = cleaned.replace('SC1080P-', '');
             }
-            if (friendId === myPeerId) {
-                showToast('Esse é o seu próprio ID! Envie-o para seu amigo.', 'warning');
-                return;
-            }
-
-            showToast(`Conectando à sala ${friendId}...`, 'info');
-            document.getElementById('connectedPeerBadge').textContent = 'Conectando...';
-
-            // 1. Abre canal de dados P2P (Chat e sincronização)
-            const conn = peer.connect(friendId, { reliable: true });
-            setupDataConnection(conn);
-
-            // 2. Se já estivermos compartilhando a tela, inicia envio de vídeo 1080p imediatamente
-            if (processedStream) {
-                const call = peer.call(friendId, processedStream);
-                currentCall = call;
-                handleMediaCall(call);
-                optimizeSenderBitrate(call.peerConnection);
-            } else {
-                // Caso estejamos apenas entrando para assistir a tela do amigo, criamos um stream vazio de sinalização
-                const dummyCanvas = document.createElement('canvas');
-                dummyCanvas.width = 2;
-                dummyCanvas.height = 2;
-                const dummyStream = dummyCanvas.captureStream(1);
-                const call = peer.call(friendId, dummyStream);
-                currentCall = call;
-                handleMediaCall(call);
-            }
+            return cleaned;
         }
 
-        function setupDataConnection(conn) {
-            dataConn = conn;
-            conn.on('open', () => {
-                document.getElementById('connectedPeerBadge').textContent = `Conectado (${conn.peer})`;
-                document.getElementById('connectedPeerBadge').className = 'font-semibold text-discord-green';
-                showToast(`Conectado com ${conn.peer}!`, 'success');
-                appendChatMessage('Sistema', `Amigo (${conn.peer}) entrou na sala.`, true);
+        // =========================================================
+        // 1. INICIALIZAÇÃO DO PEERJS E SERVIDORES STUN
+        // =========================================================
+        function initPeer() {
+            myCode = generateShortCode();
+            const fullPeerId = PEER_PREFIX + myCode;
 
-                // Se estivermos com tela ativa quando o amigo conectar, liga para ele automaticamente
-                if (processedStream) {
-                    const call = peer.call(conn.peer, processedStream);
-                    currentCall = call;
-                    handleMediaCall(call);
-                    optimizeSenderBitrate(call.peerConnection);
+            peer = new Peer(fullPeerId, {
+                debug: 1,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun.cloudflare.com:3478' }
+                    ]
                 }
             });
 
+            peer.on('open', () => {
+                document.getElementById('myShortCode').textContent = myCode;
+                setPeerStatus('Online • Pronto para conectar', 'green');
+            });
+
+            // Quando o parceiro(a) conecta via código
+            peer.on('connection', (conn) => {
+                setupDataChannel(conn);
+            });
+
+            // Quando o parceiro(a) envia a transmissão de vídeo dele(a)
+            peer.on('call', (call) => {
+                incomingCall = call;
+                // Sempre salvamos o ID de quem ligou para garantir comunicação nos dois sentidos
+                if (!connectedPeerId) {
+                    connectedPeerId = call.peer;
+                    updateConnectedUI(call.peer.replace(PEER_PREFIX, ''));
+                }
+
+                // Respondemos sem passar stream na resposta (cada direção usa sua própria chamada independente!)
+                call.answer();
+
+                call.on('stream', (incStream) => {
+                    receiveRemoteStream(incStream);
+                });
+
+                call.on('close', () => {
+                    clearRemoteStream();
+                });
+
+                call.on('error', () => {
+                    clearRemoteStream();
+                });
+            });
+
+            peer.on('error', (err) => {
+                console.warn('PeerJS Error:', err.type);
+                if (err.type === 'unavailable-id') {
+                    initPeer();
+                } else if (err.type === 'peer-unavailable') {
+                    showToast('Código não encontrado! Verifique se sua namorada(o) está com a página aberta.', 'error');
+                    resetConnectionBtn();
+                }
+            });
+        }
+
+        function setPeerStatus(text, color) {
+            const dot = document.getElementById('peerStatusDot');
+            const label = document.getElementById('peerStatusText');
+            label.textContent = text;
+            dot.className = 'w-2 h-2 rounded-full ' + (color === 'green' ? 'bg-discord-green' : 'bg-discord-yellow animate-pulse');
+        }
+
+        // =========================================================
+        // 2. CONEXÃO BIDIRECIONAL ENTRE VOCÊ E SUA NAMORADA
+        // =========================================================
+        function connectToPartner() {
+            const rawInput = document.getElementById('partnerCodeInput').value;
+            const partnerCode = cleanInputCode(rawInput);
+
+            if (!partnerCode) {
+                showToast('Digite o código de 5 letras primeiro!', 'warning');
+                return;
+            }
+            if (partnerCode === myCode) {
+                showToast('Esse é o seu próprio código! Digite o código dela(e).', 'warning');
+                return;
+            }
+
+            const targetPeerId = PEER_PREFIX + partnerCode;
+            connectedPeerId = targetPeerId;
+
+            const btn = document.getElementById('connectBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Conectando...</span>';
+
+            const conn = peer.connect(targetPeerId, { reliable: true });
+            setupDataChannel(conn);
+
+            // Se já estivermos compartilhando tela antes mesmo do canal de dados abrir, já empuxamos o vídeo
+            if (isSharing && outboundStream) {
+                pushStreamToPartner();
+            }
+        }
+
+        function setupDataChannel(conn) {
+            dataConn = conn;
+            connectedPeerId = conn.peer;
+
+            conn.on('open', () => {
+                const shortPartner = conn.peer.replace(PEER_PREFIX, '');
+                updateConnectedUI(shortPartner);
+                showToast(`Conectado com ${shortPartner}!`, 'success');
+
+                // Se EU já estou compartilhando tela, envio imediatamente para o parceiro(a)
+                if (isSharing && outboundStream) {
+                    pushStreamToPartner();
+                }
+
+                // Pede para o parceiro(a) também enviar a tela dele(a) caso já esteja compartilhando
+                conn.send({ type: 'SYNC_REQUEST' });
+            });
+
             conn.on('data', (data) => {
-                if (data && data.type === 'chat') {
-                    appendChatMessage('Amigo', data.message, false);
-                } else if (data && data.type === 'request-stream' && processedStream) {
-                    const call = peer.call(conn.peer, processedStream);
-                    currentCall = call;
-                    handleMediaCall(call);
-                    optimizeSenderBitrate(call.peerConnection);
+                if (!data) return;
+
+                if (data.type === 'SYNC_REQUEST') {
+                    // O parceiro pediu sincronização: se estamos transmitindo, enviamos a chamada agora
+                    if (isSharing && outboundStream) {
+                        pushStreamToPartner();
+                    }
+                } else if (data.type === 'STREAM_STOPPED') {
+                    clearRemoteStream();
+                    showToast('O parceiro(a) encerrou o compartilhamento de tela.', 'info');
                 }
             });
 
             conn.on('close', () => {
-                document.getElementById('connectedPeerBadge').textContent = 'Amigo desconectou';
-                document.getElementById('connectedPeerBadge').className = 'font-semibold text-discord-yellow';
-                showToast('O amigo saiu da sala.', 'warning');
+                disconnectPartner();
             });
         }
 
-        function handleMediaCall(call) {
-            call.on('stream', (incomingStream) => {
-                // Verifica se o stream recebido possui vídeo real
-                const videoTracks = incomingStream.getVideoTracks();
-                if (videoTracks.length > 0 && videoTracks[0].getSettings().width > 10) {
-                    remoteStream = incomingStream;
-                    updateStageVideos();
-                    showToast('Recebendo transmissão do seu amigo ao vivo!', 'success');
-                }
-            });
-
-            call.on('close', () => {
-                remoteStream = null;
-                updateStageVideos();
-            });
+        function updateConnectedUI(partnerShortCode) {
+            document.getElementById('connectFormWrapper').classList.add('hidden');
+            const banner = document.getElementById('connectedBanner');
+            banner.classList.remove('hidden');
+            banner.classList.add('flex');
+            document.getElementById('connectedPartnerLabel').textContent = `Conectado: ${partnerShortCode}`;
+            resetConnectionBtn();
         }
 
-        // Força alto Bitrate (até 6 Mbps) no WebRTC para manter 1080p 30FPS cristalino
-        function optimizeSenderBitrate(peerConnection) {
-            if (!peerConnection || !peerConnection.getSenders) return;
-            setTimeout(() => {
-                peerConnection.getSenders().forEach((sender) => {
-                    if (sender.track && sender.track.kind === 'video') {
-                        const params = sender.getParameters();
-                        if (!params.encodings) params.encodings = [{}];
-                        params.encodings[0].maxBitrate = 6000000; // 6 Mbps para 1080p 30fps nítido
-                        params.encodings[0].maxFramerate = getSelectedConstraints().fps;
-                        sender.setParameters(params).catch(() => {});
-                    }
-                });
-            }, 1000);
+        function resetConnectionBtn() {
+            const btn = document.getElementById('connectBtn');
+            btn.innerHTML = '<i class="fa-solid fa-link"></i><span>Conectar</span>';
         }
 
-        // ==========================================
-        // 3. CAPTURA DE TELA FULL HD 1080p 30FPS
-        // ==========================================
-        function getSelectedConstraints() {
-            const preset = document.getElementById('qualityPreset').value;
-            if (preset === '1080p60') {
-                return { width: 1920, height: 1080, fps: 60, bitrateLabel: '8.5 Mbps' };
-            } else if (preset === '720p30') {
-                return { width: 1280, height: 720, fps: 30, bitrateLabel: '3.5 Mbps' };
+        function manualSyncStreams() {
+            if (isSharing && outboundStream && connectedPeerId) {
+                pushStreamToPartner();
             }
-            // Padrão Exato Solicitado: 1920x1080 @ 30 FPS
-            return { width: 1920, height: 1080, fps: 30, bitrateLabel: '6.0 Mbps' };
+            if (dataConn && dataConn.open) {
+                dataConn.send({ type: 'SYNC_REQUEST' });
+            }
+            showToast('Sincronizando transmissão de vídeo...', 'info');
+        }
+
+        function disconnectPartner() {
+            if (outgoingCall) { outgoingCall.close(); outgoingCall = null; }
+            if (incomingCall) { incomingCall.close(); incomingCall = null; }
+            if (dataConn) { dataConn.close(); dataConn = null; }
+            connectedPeerId = null;
+
+            clearRemoteStream();
+            document.getElementById('connectedBanner').classList.add('hidden');
+            document.getElementById('connectedBanner').classList.remove('flex');
+            document.getElementById('connectFormWrapper').classList.remove('hidden');
+            showToast('Desconectado da sala.', 'info');
+        }
+
+        // Envia nosso stream 1080p para o parceiro(a) conectado
+        function pushStreamToPartner() {
+            if (!peer || !connectedPeerId || !outboundStream) return;
+
+            try {
+                if (outgoingCall) {
+                    outgoingCall.close();
+                }
+                outgoingCall = peer.call(connectedPeerId, outboundStream);
+                if (outgoingCall && outgoingCall.peerConnection) {
+                    boostWebRTCBitrate(outgoingCall.peerConnection);
+                }
+            } catch (e) {
+                console.error('Erro ao enviar stream para parceiro:', e);
+            }
+        }
+
+        // Recebe e exibe imediatamente o vídeo do parceiro(a)
+        function receiveRemoteStream(stream) {
+            remoteStream = stream;
+            const remoteVideo = document.getElementById('remoteVideo');
+            remoteVideo.srcObject = stream;
+
+            document.getElementById('remoteLiveDot').classList.remove('hidden');
+
+            // Muda automaticamente para a aba "Tela Conectada" assim que o vídeo chega
+            switchView('remote');
+            playRemoteVideoSafely();
+            startTelemetry();
+            showToast('Recebendo transmissão ao vivo!', 'success');
+
+            // Detecta se as tracks remotas encerrarem
+            stream.getVideoTracks().forEach(track => {
+                track.onended = () => clearRemoteStream();
+            });
+        }
+
+        // Garante que o vídeo toque mesmo se o navegador bloquear Autoplay com som
+        function playRemoteVideoSafely() {
+            const remoteVideo = document.getElementById('remoteVideo');
+            const unmuteBtn = document.getElementById('unmuteAutoplayBtn');
+
+            remoteVideo.muted = false;
+            const playPromise = remoteVideo.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    unmuteBtn.classList.add('hidden');
+                    unmuteBtn.classList.remove('flex');
+                }).catch(() => {
+                    // Navegador bloqueou reprodução com áudio sem clique prévio -> toca mutado e exibe botão
+                    remoteVideo.muted = true;
+                    remoteVideo.play().catch(() => {});
+                    unmuteBtn.classList.remove('hidden');
+                    unmuteBtn.classList.add('flex');
+                });
+            }
+        }
+
+        function forceUnmuteRemoteVideo() {
+            const remoteVideo = document.getElementById('remoteVideo');
+            const unmuteBtn = document.getElementById('unmuteAutoplayBtn');
+            remoteVideo.muted = false;
+            remoteVideo.volume = document.getElementById('remoteVolSlider').value / 100;
+            remoteVideo.play().catch(() => {});
+            unmuteBtn.classList.add('hidden');
+            unmuteBtn.classList.remove('flex');
+        }
+
+        function clearRemoteStream() {
+            remoteStream = null;
+            const remoteVideo = document.getElementById('remoteVideo');
+            remoteVideo.srcObject = null;
+            document.getElementById('remoteLiveDot').classList.add('hidden');
+            document.getElementById('unmuteAutoplayBtn').classList.add('hidden');
+            document.getElementById('unmuteAutoplayBtn').classList.remove('flex');
+
+            if (isSharing) {
+                switchView('local');
+            } else {
+                refreshStageVisibility();
+            }
+        }
+
+        // =========================================================
+        // 3. CAPTURA DE TELA 1080p 30FPS + ANTI-VOZ DO DISCORD
+        // =========================================================
+        function toggleScreenShare() {
+            if (isSharing) {
+                stopScreenShare();
+            } else {
+                startScreenShare();
+            }
         }
 
         async function startScreenShare() {
-            stopSimulatedStream();
-            const cfg = getSelectedConstraints();
-
             try {
-                // Constraints exatas solicitadas para 1080p 30FPS + Captura de Áudio do Sistema
-                const displayConstraints = {
+                rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
                     video: {
-                        width: { ideal: cfg.width, max: cfg.width },
-                        height: { ideal: cfg.height, max: cfg.height },
-                        frameRate: { ideal: cfg.fps, max: cfg.fps },
+                        width: { ideal: 1920, max: 1920 },
+                        height: { ideal: 1080, max: 1080 },
+                        frameRate: { ideal: 30, max: 30 },
                         cursor: 'always'
                     },
                     audio: {
                         echoCancellation: false,
                         noiseSuppression: false,
-                        autoGainControl: false,
-                        suppressLocalAudioPlayback: false
+                        autoGainControl: false
                     }
-                };
+                });
 
-                rawDisplayStream = await navigator.mediaDevices.getDisplayMedia(displayConstraints);
-
-                // Aplica contentHint ('motion' ou 'detail') na faixa de vídeo
                 const videoTrack = rawDisplayStream.getVideoTracks()[0];
                 if (videoTrack && 'contentHint' in videoTrack) {
-                    videoTrack.contentHint = currentContentHint;
+                    videoTrack.contentHint = 'motion';
                 }
 
-                // Detecta quando o usuário clica em "Parar compartilhamento" na barra do navegador
                 videoTrack.onended = () => {
                     stopScreenShare();
                 };
 
-                // Constrói o pipeline Web Audio API (Filtro Anti-Voz do Discord + Mixagem)
-                await buildAudioPipeline(rawDisplayStream);
+                // Monta o stream de saída com segurança (funciona COM ou SEM áudio compartilhado)
+                await setupOutboundStream(rawDisplayStream);
 
-                // Atualiza botões e status de UI
-                document.getElementById('startShareBtn').classList.add('hidden');
-                document.getElementById('stopShareBtn').classList.remove('hidden');
-                document.getElementById('liveHeaderBadge').classList.remove('hidden');
-                document.getElementById('liveHeaderBadge').classList.add('flex');
-                document.getElementById('footerSubStatus').textContent = `Transmitindo ${cfg.width}x${cfg.height} @ ${cfg.fps}fps`;
+                isSharing = true;
+                const localVideo = document.getElementById('localVideo');
+                localVideo.srcObject = outboundStream;
+                localVideo.play().catch(() => {});
 
-                updateStageVideos();
-                startTelemetryLoop();
+                document.getElementById('localLiveDot').classList.remove('hidden');
+                updateShareButtonUI(true);
 
-                // Se já houver um amigo conectado na sala, envia o novo stream 1080p imediatamente
-                if (dataConn && dataConn.open) {
-                    const call = peer.call(dataConn.peer, processedStream);
-                    currentCall = call;
-                    handleMediaCall(call);
-                    optimizeSenderBitrate(call.peerConnection);
+                // Se o parceiro não estiver transmitindo, mostra nossa prévia; se estiver, mantém na tela dele
+                if (!remoteStream) {
+                    switchView('local');
+                } else {
+                    refreshStageVisibility();
                 }
 
-                showToast('Transmissão Full HD 1080p 30FPS iniciada!', 'success');
+                startTelemetry();
+
+                // Se já estamos conectados com o parceiro(a), envia o vídeo imediatamente!
+                if (connectedPeerId) {
+                    pushStreamToPartner();
+                    showToast('Transmitindo sua tela em 1080p 30FPS para o parceiro(a)!', 'success');
+                } else {
+                    showToast('Tela capturada! Conecte ao código do parceiro(a) no topo.', 'info');
+                }
 
             } catch (err) {
-                console.warn('Captura de tela cancelada ou bloqueada pelo preview:', err);
-                showToast('Permissão de tela cancelada ou restrita neste preview. Você pode clicar em "Testar Sinal 1080p" ou abrir no GitHub Pages!', 'warning');
+                console.warn('Compartilhamento cancelado:', err);
             }
         }
 
-        // Aplicar mudança de resolução/FPS em tempo real mesmo durante a live
-        async function applyQualityConstraints() {
-            const cfg = getSelectedConstraints();
-            document.getElementById('telemetryBitrate').textContent = cfg.bitrateLabel;
+        async function setupOutboundStream(sourceStream) {
+            const audioTracks = sourceStream.getAudioTracks();
 
-            if (rawDisplayStream) {
-                const videoTrack = rawDisplayStream.getVideoTracks()[0];
-                if (videoTrack && videoTrack.applyConstraints) {
-                    try {
-                        await videoTrack.applyConstraints({
-                            width: { ideal: cfg.width, max: cfg.width },
-                            height: { ideal: cfg.height, max: cfg.height },
-                            frameRate: { ideal: cfg.fps, max: cfg.fps }
-                        });
-                        showToast(`Qualidade alterada para ${cfg.width}x${cfg.height} @ ${cfg.fps}FPS`, 'info');
-                    } catch (e) {
-                        console.warn('Não foi possível alterar constraint dinamicamente:', e);
-                    }
-                }
-            }
-        }
-
-        function setContentHint(hint) {
-            currentContentHint = hint;
-            const motionBtn = document.getElementById('hintMotionBtn');
-            const detailBtn = document.getElementById('hintDetailBtn');
-
-            if (hint === 'motion') {
-                motionBtn.className = 'text-[11px] py-1.5 px-2 rounded-lg font-medium border border-discord-blurple bg-discord-blurple/20 text-white flex items-center justify-center gap-1.5 transition';
-                detailBtn.className = 'text-[11px] py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-discord-darkest text-discord-muted hover:text-white flex items-center justify-center gap-1.5 transition';
-            } else {
-                detailBtn.className = 'text-[11px] py-1.5 px-2 rounded-lg font-medium border border-discord-blurple bg-discord-blurple/20 text-white flex items-center justify-center gap-1.5 transition';
-                motionBtn.className = 'text-[11px] py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-discord-darkest text-discord-muted hover:text-white flex items-center justify-center gap-1.5 transition';
+            // Se o usuário não marcou "Compartilhar áudio do sistema", envia o vídeo direto sem erro!
+            if (audioTracks.length === 0) {
+                outboundStream = new MediaStream([sourceStream.getVideoTracks()[0]]);
+                updateAudioBadgeUI(false);
+                return;
             }
 
-            if (rawDisplayStream) {
-                const videoTrack = rawDisplayStream.getVideoTracks()[0];
-                if (videoTrack && 'contentHint' in videoTrack) {
-                    videoTrack.contentHint = hint;
-                }
-            }
-            showToast(hint === 'motion' ? 'Otimizado para Jogos e Movimento (30/60 FPS fluido)' : 'Otimizado para Nitidez de Texto e Código', 'info');
-        }
-
-        function stopScreenShare() {
-            stopSimulatedStream();
-
-            if (rawDisplayStream) {
-                rawDisplayStream.getTracks().forEach(t => t.stop());
-                rawDisplayStream = null;
-            }
-            if (processedStream) {
-                processedStream.getTracks().forEach(t => t.stop());
-                processedStream = null;
-            }
-            if (telemetryInterval) {
-                clearInterval(telemetryInterval);
-                telemetryInterval = null;
-            }
-
-            document.getElementById('startShareBtn').classList.remove('hidden');
-            document.getElementById('stopShareBtn').classList.add('hidden');
-            document.getElementById('liveHeaderBadge').classList.add('hidden');
-            document.getElementById('liveHeaderBadge').classList.remove('flex');
-            document.getElementById('telemetryRes').textContent = '-- x --';
-            document.getElementById('telemetryFps').textContent = '-- FPS';
-            document.getElementById('footerSubStatus').textContent = 'Pronto para transmitir';
-
-            updateStageVideos();
-            showToast('Compartilhamento de tela encerrado.', 'info');
-        }
-
-        // ==========================================
-        // 4. MOTOR WEB AUDIO API: SUPRESSOR DE VOZES DO DISCORD (300Hz a 3400Hz)
-        // ==========================================
-        async function buildAudioPipeline(sourceStream) {
             try {
                 if (!audioCtx) {
-                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                    audioCtx = new AudioContextClass();
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioCtx();
                 }
                 if (audioCtx.state === 'suspended') {
                     await audioCtx.resume();
                 }
 
-                // Destino de áudio que irá gerar a faixa filtrada enviada pelo PeerJS
-                audioDestination = audioCtx.createMediaStreamDestination();
+                const dest = audioCtx.createMediaStreamDestination();
+                const src = audioCtx.createMediaStreamSource(new MediaStream([audioTracks[0]]));
 
-                // Analisador de espectro em tempo real
-                analyserNode = audioCtx.createAnalyser();
-                analyserNode.fftSize = 128;
+                // 3 Filtros Biquad cirúrgicos na faixa de voz humana do Discord (300Hz a 3400Hz)
+                filterBand1 = audioCtx.createBiquadFilter();
+                filterBand1.type = 'peaking';
+                filterBand1.frequency.value = 500;
+                filterBand1.Q.value = 1.2;
 
-                // Criamos 3 filtros Biquad (Peaking/Notch cirúrgicos na banda vocal humana 300Hz - 3400Hz)
-                // Isso permite abafar as vozes vindas do Discord preservando graves (<250Hz) e agudos (>4kHz) do jogo!
-                voiceNotchFilter1 = audioCtx.createBiquadFilter();
-                voiceNotchFilter1.type = 'peaking';
-                voiceNotchFilter1.frequency.value = 500; // Fundamental de voz masculina/feminina
-                voiceNotchFilter1.Q.value = 1.2;
-                voiceNotchFilter1.gain.value = 0;
+                filterBand2 = audioCtx.createBiquadFilter();
+                filterBand2.type = 'peaking';
+                filterBand2.frequency.value = 1350;
+                filterBand2.Q.value = 0.9;
 
-                voiceNotchFilter2 = audioCtx.createBiquadFilter();
-                voiceNotchFilter2.type = 'peaking';
-                voiceNotchFilter2.frequency.value = 1350; // Centro da voz no codec Opus do Discord
-                voiceNotchFilter2.Q.value = 0.9;
-                voiceNotchFilter2.gain.value = 0;
+                filterBand3 = audioCtx.createBiquadFilter();
+                filterBand3.type = 'peaking';
+                filterBand3.frequency.value = 2700;
+                filterBand3.Q.value = 1.2;
 
-                voiceNotchFilter3 = audioCtx.createBiquadFilter();
-                voiceNotchFilter3.type = 'peaking';
-                voiceNotchFilter3.frequency.value = 2700; // Clareza/articulação de fala
-                voiceNotchFilter3.Q.value = 1.2;
-                voiceNotchFilter3.gain.value = 0;
+                outGainNode = audioCtx.createGain();
 
-                // Nó de ganho do áudio do sistema (Permite mutar 100% ou ajustar volume da live)
-                systemGainNode = audioCtx.createGain();
-                systemGainNode.gain.value = isSystemAudioEnabled ? (document.getElementById('sysGainSlider').value / 100) : 0;
+                src.connect(filterBand1);
+                filterBand1.connect(filterBand2);
+                filterBand2.connect(filterBand3);
+                filterBand3.connect(outGainNode);
+                outGainNode.connect(dest);
 
-                // Conecta a cadeia de filtros: Filtros -> Ganho do Sistema -> Analisador -> Destino WebRTC
-                voiceNotchFilter1.connect(voiceNotchFilter2);
-                voiceNotchFilter2.connect(voiceNotchFilter3);
-                voiceNotchFilter3.connect(systemGainNode);
-                systemGainNode.connect(analyserNode);
-                analyserNode.connect(audioDestination);
+                applyAudioFilterStates();
 
-                // Se a captura de tela trouxe faixa de áudio do sistema, conectamos na entrada do filtro
-                const sysAudioTracks = sourceStream.getAudioTracks();
-                if (sysAudioTracks.length > 0) {
-                    const sysOnlyStream = new MediaStream([sysAudioTracks[0]]);
-                    systemSourceNode = audioCtx.createMediaStreamSource(sysOnlyStream);
-                    systemSourceNode.connect(voiceNotchFilter1);
-                }
-
-                // Aplica o valor atual do slider de supressão de voz
-                const currentSuppression = document.getElementById('voiceSuppressSlider').value;
-                updateVoiceSuppression(currentSuppression);
-
-                // Monta o MediaStream final combinando o Vídeo 1080p + Áudio Processado
-                const finalTracks = [
-                    ...sourceStream.getVideoTracks(),
-                    ...audioDestination.stream.getAudioTracks()
-                ];
-                processedStream = new MediaStream(finalTracks);
+                outboundStream = new MediaStream([
+                    sourceStream.getVideoTracks()[0],
+                    ...dest.stream.getAudioTracks()
+                ]);
+                updateAudioBadgeUI(true);
 
             } catch (e) {
-                console.error('Erro ao montar pipeline Web Audio API:', e);
-                processedStream = sourceStream;
+                console.warn('Fallback de áudio direto:', e);
+                outboundStream = sourceStream;
+                updateAudioBadgeUI(true);
             }
         }
 
-        // Atualiza a intensidade do filtro Supressor de Vozes (0% a 100%)
-        function updateVoiceSuppression(percent) {
-            const val = Number(percent);
-            document.getElementById('voiceSuppressSlider').value = val;
-            document.getElementById('voiceSuppressValue').textContent = `${val}%`;
-
-            // Até -36dB de atenuação nas frequências vocais (300Hz a 3400Hz)
-            const attenuationDb = -(val * 0.36);
-
-            if (voiceNotchFilter1 && voiceNotchFilter2 && voiceNotchFilter3 && audioCtx) {
-                const now = audioCtx.currentTime;
-                voiceNotchFilter1.gain.setTargetAtTime(attenuationDb, now, 0.03);
-                voiceNotchFilter2.gain.setTargetAtTime(attenuationDb * 1.15, now, 0.03);
-                voiceNotchFilter3.gain.setTargetAtTime(attenuationDb, now, 0.03);
+        function applyAudioFilterStates() {
+            // 1. Mute total da live (Anti-Eco para quem já está em Call no Discord)
+            if (outGainNode && audioCtx) {
+                outGainNode.gain.setTargetAtTime(isOutgoingAudioMuted ? 0 : 1, audioCtx.currentTime, 0.02);
             }
-
-            updateAudioStatusBadges();
-        }
-
-        function setSuppressionPreset(val) {
-            updateVoiceSuppression(val);
-            if (val === 0) showToast('Filtro de voz desativado (Áudio original)', 'info');
-            else if (val === 65) showToast('Filtro Anti-Voz em 65%: Vozes do Discord atenuadas!', 'success');
-            else if (val === 100) showToast('Supressão Máxima (300Hz–3.4kHz) ativada!', 'success');
-        }
-
-        function updateSystemGain(percent) {
-            const val = Number(percent);
-            document.getElementById('sysGainValue').textContent = `${val}%`;
-            if (systemGainNode && isSystemAudioEnabled && audioCtx) {
-                systemGainNode.gain.setTargetAtTime(val / 100, audioCtx.currentTime, 0.02);
-            }
-        }
-
-        // Mutar / Desmutar todo o Áudio do Sistema enviado na transmissão
-        function toggleSystemAudio() {
-            isSystemAudioEnabled = !isSystemAudioEnabled;
-
-            if (systemGainNode && audioCtx) {
-                const targetGain = isSystemAudioEnabled ? (document.getElementById('sysGainSlider').value / 100) : 0;
-                systemGainNode.gain.setTargetAtTime(targetGain, audioCtx.currentTime, 0.02);
-            }
-
-            // Também habilita/desabilita a track de saída caso necessário
-            if (processedStream) {
-                processedStream.getAudioTracks().forEach(t => {
-                    t.enabled = isSystemAudioEnabled || isMicAudioEnabled;
+            if (outboundStream) {
+                outboundStream.getAudioTracks().forEach(t => {
+                    t.enabled = !isOutgoingAudioMuted;
                 });
             }
 
-            const icon = document.getElementById('sysAudioIcon');
-            const label = document.getElementById('sysAudioLabel');
-            const footerDeaf = document.getElementById('footerDeafBtn');
+            // 2. Filtro Notch de Vozes (300Hz - 3400Hz)
+            if (filterBand1 && filterBand2 && filterBand3 && audioCtx) {
+                const db = isVoiceFilterActive ? -34 : 0;
+                const now = audioCtx.currentTime;
+                filterBand1.gain.setTargetAtTime(db, now, 0.03);
+                filterBand2.gain.setTargetAtTime(db * 1.15, now, 0.03);
+                filterBand3.gain.setTargetAtTime(db, now, 0.03);
+            }
 
-            if (isSystemAudioEnabled) {
-                icon.className = 'fa-solid fa-volume-high text-discord-green text-sm';
-                label.textContent = 'Som da Tela: ON';
-                footerDeaf.innerHTML = '<i class="fa-solid fa-headphones text-sm text-discord-muted"></i>';
-                showToast('Áudio do sistema ativado na transmissão.', 'success');
+            updateAudioBadgeUI(rawDisplayStream && rawDisplayStream.getAudioTracks().length > 0);
+        }
+
+        // Botão 2: Mutar Som da Live (Ideal quando estão conversando no Discord)
+        function toggleOutgoingAudioMute() {
+            isOutgoingAudioMuted = !isOutgoingAudioMuted;
+            applyAudioFilterStates();
+
+            const btn = document.getElementById('muteOutgoingAudioBtn');
+            const icon = document.getElementById('muteOutgoingIcon');
+            const text = document.getElementById('muteOutgoingText');
+
+            if (isOutgoingAudioMuted) {
+                btn.className = 'bg-discord-red/20 border border-discord-red text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2';
+                icon.className = 'fa-solid fa-volume-xmark text-discord-red';
+                text.textContent = 'Mutar Som do Discord/Live: ON (Sem Eco)';
+                showToast('Áudio da transmissão mutado! Vocês não ouvirão vozes duplicadas do Discord.', 'success');
             } else {
-                icon.className = 'fa-solid fa-volume-xmark text-discord-red text-sm';
-                label.textContent = 'Som da Tela: MUTADO';
-                footerDeaf.innerHTML = '<i class="fa-solid fa-ear-deaf text-sm text-discord-red"></i>';
-                showToast('Som da tela mutado! Seu amigo não ouvirá vozes nem sons do seu PC.', 'warning');
+                btn.className = 'bg-discord-card hover:bg-discord-hover text-white font-semibold text-xs px-4 py-2.5 rounded-xl border border-white/10 transition flex items-center gap-2';
+                icon.className = 'fa-solid fa-ear-deaf text-discord-green';
+                text.textContent = 'Mutar Som do Discord/Live: OFF';
+                showToast('Áudio da transmissão ativado.', 'info');
             }
-
-            updateAudioStatusBadges();
         }
 
-        // Botão Exclusivo: Modo "Já estamos em Call no Discord" (Corta eco de voz e som duplicado)
-        function toggleDiscordAntiEchoMode() {
-            isDiscordCallMode = !isDiscordCallMode;
-            const statusPill = document.getElementById('discordCallModeStatus');
-            const btn = document.getElementById('discordMuteQuickBtn');
+        // Botão 3: Filtro Anti-Voz (300Hz-3400Hz)
+        function toggleVoiceBandFilter() {
+            isVoiceFilterActive = !isVoiceFilterActive;
+            applyAudioFilterStates();
 
-            if (isDiscordCallMode) {
-                // Desativa som do sistema e microfone na live para zero eco com a call do Discord
-                if (isSystemAudioEnabled) toggleSystemAudio();
-                if (isMicAudioEnabled) toggleMicAudio();
+            const btn = document.getElementById('voiceFilterBtn');
+            const text = document.getElementById('voiceFilterText');
 
-                statusPill.textContent = 'ATIVO (SEM ECO)';
-                statusPill.className = 'text-[10px] bg-discord-green px-2 py-0.5 rounded text-white font-bold';
-                btn.className = 'w-full bg-discord-green/20 border border-discord-green text-white rounded-lg p-2.5 text-xs font-semibold flex items-center justify-between transition';
-                showToast('Modo Call Discord Ativo: Vozes e áudio da live mutados para evitar eco!', 'success');
+            if (isVoiceFilterActive) {
+                btn.className = 'bg-discord-nitro/20 border border-discord-nitro text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2';
+                text.textContent = 'Filtro Anti-Voz: ON (300-3.4kHz)';
+                showToast('Filtro Anti-Voz ativado: Frequências vocais reduzidas!', 'success');
             } else {
-                if (!isSystemAudioEnabled) toggleSystemAudio();
-                statusPill.textContent = 'OFF';
-                statusPill.className = 'text-[10px] bg-discord-darkest px-2 py-0.5 rounded text-discord-muted';
-                btn.className = 'w-full bg-discord-blurple/20 hover:bg-discord-blurple/30 border border-discord-blurple text-white rounded-lg p-2.5 text-xs font-semibold flex items-center justify-between transition';
+                btn.className = 'bg-discord-card hover:bg-discord-hover text-discord-muted hover:text-white font-semibold text-xs px-4 py-2.5 rounded-xl border border-white/10 transition flex items-center gap-2';
+                text.textContent = 'Filtro Anti-Voz: OFF';
+                showToast('Filtro Anti-Voz desativado.', 'info');
             }
         }
 
-        // Mutar / Desmutar Microfone próprio na Live
-        async function toggleMicAudio() {
-            isMicAudioEnabled = !isMicAudioEnabled;
-            const icon = document.getElementById('micAudioIcon');
-            const label = document.getElementById('micAudioLabel');
-            const footerBtn = document.getElementById('footerMicBtn');
+        function stopScreenShare() {
+            isSharing = false;
 
-            if (isMicAudioEnabled) {
-                try {
-                    if (!rawMicStream) {
-                        rawMicStream = await navigator.mediaDevices.getUserMedia({
-                            audio: { echoCancellation: true, noiseSuppression: true }
-                        });
-                    }
-                    if (audioCtx && audioDestination) {
-                        micSourceNode = audioCtx.createMediaStreamSource(rawMicStream);
-                        micGainNode = audioCtx.createGain();
-                        micGainNode.gain.value = 1.0;
-                        micSourceNode.connect(micGainNode);
-                        micGainNode.connect(audioDestination);
-                    }
-                    icon.className = 'fa-solid fa-microphone text-discord-green text-sm';
-                    label.textContent = 'Meu Mic: ON';
-                    footerBtn.className = 'w-8 h-8 rounded-lg hover:bg-discord-hover text-discord-green flex items-center justify-center transition';
-                    footerBtn.innerHTML = '<i class="fa-solid fa-microphone text-sm"></i>';
-                    showToast('Microfone incluído na transmissão!', 'success');
-                } catch (e) {
-                    isMicAudioEnabled = false;
-                    showToast('Permissão de microfone negada.', 'error');
-                }
-            } else {
-                if (micGainNode && audioCtx) {
-                    micGainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.02);
-                }
-                icon.className = 'fa-solid fa-microphone-slash text-discord-red text-sm';
-                label.textContent = 'Meu Mic: OFF';
-                footerBtn.className = 'w-8 h-8 rounded-lg hover:bg-discord-hover text-discord-red flex items-center justify-center transition';
-                footerBtn.innerHTML = '<i class="fa-solid fa-microphone-slash text-sm"></i>';
-                showToast('Microfone mutado na live (ideal quando já está no Discord).', 'info');
+            if (rawDisplayStream) {
+                rawDisplayStream.getTracks().forEach(t => t.stop());
+                rawDisplayStream = null;
             }
-            updateAudioStatusBadges();
-        }
-
-        function updateAudioStatusBadges() {
-            const overlayTag = document.getElementById('overlayAudioStatusTag');
-            const cardBadge = document.getElementById('audioFilterBadge');
-            const suppressVal = Number(document.getElementById('voiceSuppressSlider').value);
-
-            if (!isSystemAudioEnabled) {
-                overlayTag.innerHTML = '<i class="fa-solid fa-volume-xmark text-discord-red"></i> <span>Vozes/Som da Live Mutados</span>';
-                overlayTag.className = 'bg-black/80 backdrop-blur-md text-discord-red text-xs font-semibold px-3 py-1 rounded-md border border-discord-red/30 flex items-center gap-1.5';
-                cardBadge.textContent = 'Live Mutada';
-                cardBadge.className = 'text-[10px] bg-discord-red/20 text-discord-red px-2 py-0.5 rounded font-semibold';
-            } else if (suppressVal > 0) {
-                overlayTag.innerHTML = `<i class="fa-solid fa-filter text-discord-nitro"></i> <span>Anti-Voz Discord: ${suppressVal}%</span>`;
-                overlayTag.className = 'bg-black/80 backdrop-blur-md text-discord-nitro text-xs font-semibold px-3 py-1 rounded-md border border-discord-nitro/30 flex items-center gap-1.5';
-                cardBadge.textContent = `Filtro ${suppressVal}%`;
-                cardBadge.className = 'text-[10px] bg-discord-nitro/20 text-discord-nitro px-2 py-0.5 rounded font-semibold';
-            } else {
-                overlayTag.innerHTML = '<i class="fa-solid fa-volume-high text-discord-green"></i> <span>Áudio Original Ativo</span>';
-                overlayTag.className = 'bg-black/80 backdrop-blur-md text-discord-green text-xs font-semibold px-3 py-1 rounded-md border border-white/10 flex items-center gap-1.5';
-                cardBadge.textContent = 'Ativo';
-                cardBadge.className = 'text-[10px] bg-discord-green/20 text-discord-green px-2 py-0.5 rounded font-semibold';
+            if (outboundStream) {
+                outboundStream.getTracks().forEach(t => t.stop());
+                outboundStream = null;
             }
-        }
-
-        // ==========================================
-        // 5. VISUALIZADOR DE ESPECTRO DE ÁUDIO (CANVAS)
-        // ==========================================
-        function initSpectrumVisualizer() {
-            const canvas = document.getElementById('audioSpectrumCanvas');
-            const ctx = canvas.getContext('2d');
-
-            function renderFrame() {
-                requestAnimationFrame(renderFrame);
-                const width = canvas.width = canvas.clientWidth;
-                const height = canvas.height = canvas.clientHeight;
-
-                ctx.clearRect(0, 0, width, height);
-
-                // Desenha a faixa destacada de voz do Discord (meio do espectro: 300Hz-3.4kHz)
-                const suppressVal = Number(document.getElementById('voiceSuppressSlider').value);
-                ctx.fillStyle = `rgba(255, 115, 250, ${0.05 + (suppressVal / 500)})`;
-                ctx.fillRect(width * 0.25, 0, width * 0.5, height);
-
-                if (analyserNode && isSystemAudioEnabled) {
-                    const bufferLength = analyserNode.frequencyBinCount;
-                    const dataArray = new Uint8Array(bufferLength);
-                    analyserNode.getByteFrequencyData(dataArray);
-
-                    const barWidth = (width / bufferLength) * 1.8;
-                    let x = 0;
-
-                    for (let i = 0; i < bufferLength; i++) {
-                        const barHeight = (dataArray[i] / 255) * height * 0.85;
-                        // Cor muda na região central (frequência de voz)
-                        const isVoiceBand = i > bufferLength * 0.18 && i < bufferLength * 0.65;
-                        ctx.fillStyle = isVoiceBand ? '#ff73fa' : '#5865F2';
-                        ctx.fillRect(x, height - barHeight, barWidth - 1, barHeight);
-                        x += barWidth;
-                    }
-                } else {
-                    // Linha sutil quando em silêncio
-                    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-                    ctx.beginPath();
-                    ctx.moveTo(0, height / 2);
-                    ctx.lineTo(width, height / 2);
-                    ctx.stroke();
-                }
+            if (outgoingCall) {
+                outgoingCall.close();
+                outgoingCall = null;
             }
-            renderFrame();
-        }
-
-        // ==========================================
-        // 6. SIMULADOR DE SINAL 1080P 30FPS + VOZ SINTÉTICA
-        //    (Para testar no Preview ou demonstrar o Filtro)
-        // ==========================================
-        async function startSimulatedStream() {
-            stopScreenShare();
-
-            const canvas = document.createElement('canvas');
-            canvas.width = 1920;
-            canvas.height = 1080;
-            const ctx = canvas.getContext('2d');
-
-            let frame = 0;
-            simCanvasInterval = setInterval(() => {
-                frame++;
-                // Fundo estilo Gameplay / Benchmark 1080p
-                const grad = ctx.createLinearGradient(0, 0, 1920, 1080);
-                grad.addColorStop(0, '#111214');
-                grad.addColorStop(0.5, '#1e1f22');
-                grad.addColorStop(1, '#2b2d31');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, 1920, 1080);
-
-                // Grade de movimento 30FPS
-                ctx.strokeStyle = 'rgba(88, 101, 242, 0.22)';
-                ctx.lineWidth = 2;
-                const offset = (frame * 6) % 120;
-                for (let x = offset; x < 1920; x += 120) {
-                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 1080); ctx.stroke();
-                }
-                for (let y = offset; y < 1080; y += 120) {
-                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1920, y); ctx.stroke();
-                }
-
-                // Círculo animado de teste de fluidez 30FPS
-                const ballX = 960 + Math.cos(frame * 0.08) * 520;
-                const ballY = 540 + Math.sin(frame * 0.12) * 260;
-                ctx.beginPath();
-                ctx.arc(ballX, ballY, 55, 0, Math.PI * 2);
-                ctx.fillStyle = '#23a55a';
-                ctx.fill();
-
-                // Texto HUD 1080p
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 54px Inter, sans-serif';
-                ctx.fillText('STREAMCORD • SINAL FULL HD 1920x1080 @ 30 FPS', 120, 150);
-
-                ctx.fillStyle = '#ff73fa';
-                ctx.font = 'bold 34px JetBrains Mono, monospace';
-                const sup = document.getElementById('voiceSuppressSlider').value;
-                ctx.fillText(`FILTRO ANTI-VOZ DO DISCORD (300Hz-3400Hz): ${sup}% ATIVO`, 120, 220);
-
-                ctx.fillStyle = '#949ba4';
-                ctx.font = '28px Inter, sans-serif';
-                ctx.fillText(`Quadro #${frame} • Teste o Slider "Supressor de Vozes" na barra esquerda!`, 120, 980);
-            }, 1000 / 30);
-
-            const canvasStream = canvas.captureStream(30);
-
-            // Gera um áudio sintético contendo Grave de Jogo (110Hz) + Tom de Voz Simulada (1000Hz)
-            if (!audioCtx) {
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContextClass();
-            }
-            if (audioCtx.state === 'suspended') await audioCtx.resume();
-
-            const synthDest = audioCtx.createMediaStreamDestination();
-            const bassOsc = audioCtx.createOscillator();
-            const voiceOsc = audioCtx.createOscillator();
-            const synthGain = audioCtx.createGain();
-
-            bassOsc.type = 'triangle';
-            bassOsc.frequency.value = 110; // Som do jogo (preservado)
-            voiceOsc.type = 'sawtooth';
-            voiceOsc.frequency.value = 950; // Frequência na faixa da voz humana (atenuada pelo filtro!)
-
-            synthGain.gain.value = 0.08;
-            bassOsc.connect(synthGain);
-            voiceOsc.connect(synthGain);
-            synthGain.connect(synthDest);
-
-            bassOsc.start();
-            voiceOsc.start();
-            simOscillator = { bassOsc, voiceOsc };
-
-            rawDisplayStream = new MediaStream([
-                ...canvasStream.getVideoTracks(),
-                ...synthDest.stream.getAudioTracks()
-            ]);
-
-            await buildAudioPipeline(rawDisplayStream);
-
-            document.getElementById('startShareBtn').classList.add('hidden');
-            document.getElementById('stopShareBtn').classList.remove('hidden');
-            document.getElementById('liveHeaderBadge').classList.remove('hidden');
-            document.getElementById('liveHeaderBadge').classList.add('flex');
-
-            updateStageVideos();
-            startTelemetryLoop();
-
             if (dataConn && dataConn.open) {
-                const call = peer.call(dataConn.peer, processedStream);
-                currentCall = call;
-                handleMediaCall(call);
+                dataConn.send({ type: 'STREAM_STOPPED' });
             }
 
-            showToast('Simulador 1080p 30FPS iniciado! Mova o slider "Supressor de Vozes" para testar o filtro.', 'info');
-        }
+            const localVideo = document.getElementById('localVideo');
+            localVideo.srcObject = null;
+            document.getElementById('localLiveDot').classList.add('hidden');
 
-        function stopSimulatedStream() {
-            if (simCanvasInterval) {
-                clearInterval(simCanvasInterval);
-                simCanvasInterval = null;
-            }
-            if (simOscillator) {
-                try {
-                    simOscillator.bassOsc.stop();
-                    simOscillator.voiceOsc.stop();
-                } catch (e) {}
-                simOscillator = null;
-            }
-        }
+            updateShareButtonUI(false);
 
-        // ==========================================
-        // 7. GERENCIAMENTO DO PALCO DE VÍDEO & TELEMETRIA
-        // ==========================================
-        function updateStageVideos() {
-            const mainVideo = document.getElementById('mainVideo');
-            const secondaryVideo = document.getElementById('secondaryVideo');
-            const pipWrapper = document.getElementById('pipPreviewWrapper');
-            const placeholder = document.getElementById('emptyStagePlaceholder');
-            const topOverlay = document.getElementById('videoTopOverlay');
-
-            let primaryStream = null;
-            let isViewingSelf = false;
-
-            if (currentViewSource === 'remote' && remoteStream) {
-                primaryStream = remoteStream;
-                isViewingSelf = false;
-            } else if (currentViewSource === 'local' && processedStream) {
-                primaryStream = processedStream;
-                isViewingSelf = true;
+            if (remoteStream) {
+                switchView('remote');
             } else {
-                // Modo Auto: Prioriza mostrar a tela do amigo se existir; senão mostra nossa captura
+                refreshStageVisibility();
+            }
+        }
+
+        function updateShareButtonUI(sharing) {
+            const btn = document.getElementById('shareScreenBtn');
+            const icon = document.getElementById('shareScreenIcon');
+            const text = document.getElementById('shareScreenText');
+
+            if (sharing) {
+                btn.className = 'bg-discord-red hover:bg-discord-redHover text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2';
+                icon.className = 'fa-solid fa-circle-stop';
+                text.textContent = 'Parar Transmissão';
+            } else {
+                btn.className = 'bg-discord-green hover:bg-discord-greenHover text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2';
+                icon.className = 'fa-solid fa-desktop';
+                text.textContent = 'Compartilhar Tela (1080p)';
+            }
+        }
+
+        function updateAudioBadgeUI(hasAudioTrack) {
+            const badge = document.getElementById('audioStateBadge');
+            if (!hasAudioTrack) {
+                badge.textContent = 'Vídeo (Sem Áudio)';
+                badge.className = 'bg-black/80 backdrop-blur-md text-discord-muted text-xs font-semibold px-2.5 py-1 rounded-lg border border-white/10';
+            } else if (isOutgoingAudioMuted) {
+                badge.textContent = 'Som da Live Mutado';
+                badge.className = 'bg-black/80 backdrop-blur-md text-discord-red text-xs font-semibold px-2.5 py-1 rounded-lg border border-discord-red/30';
+            } else if (isVoiceFilterActive) {
+                badge.textContent = 'Anti-Voz Ativo';
+                badge.className = 'bg-black/80 backdrop-blur-md text-discord-nitro text-xs font-semibold px-2.5 py-1 rounded-lg border border-discord-nitro/30';
+            } else {
+                badge.textContent = 'Som Ativo';
+                badge.className = 'bg-black/80 backdrop-blur-md text-discord-green text-xs font-semibold px-2.5 py-1 rounded-lg border border-white/10';
+            }
+        }
+
+        // Aumenta o Bitrate WebRTC para 6 Mbps (Full HD 1080p 30FPS cristalino)
+        function boostWebRTCBitrate(pc) {
+            if (!pc || !pc.getSenders) return;
+            setTimeout(() => {
+                pc.getSenders().forEach(sender => {
+                    if (sender.track && sender.track.kind === 'video') {
+                        const params = sender.getParameters();
+                        if (!params.encodings) params.encodings = [{}];
+                        params.encodings[0].maxBitrate = 6000000;
+                        params.encodings[0].maxFramerate = 30;
+                        sender.setParameters(params).catch(() => {});
+                    }
+                });
+            }, 800);
+        }
+
+        // =========================================================
+        // 4. CONTROLE DO PALCO DE VÍDEO E INTERFACE
+        // =========================================================
+        function switchView(tab) {
+            activeTab = tab;
+            const tabRemoteBtn = document.getElementById('tabRemoteBtn');
+            const tabLocalBtn = document.getElementById('tabLocalBtn');
+
+            if (tab === 'remote') {
+                tabRemoteBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition bg-discord-blurple text-white';
+                tabLocalBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition text-discord-muted hover:text-white';
+            } else {
+                tabLocalBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition bg-discord-blurple text-white';
+                tabRemoteBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition text-discord-muted hover:text-white';
+            }
+
+            refreshStageVisibility();
+        }
+
+        function refreshStageVisibility() {
+            const remoteVideo = document.getElementById('remoteVideo');
+            const localVideo = document.getElementById('localVideo');
+            const emptyStage = document.getElementById('emptyStage');
+            const badges = document.getElementById('streamInfoBadges');
+
+            if (activeTab === 'remote') {
+                localVideo.classList.add('hidden');
                 if (remoteStream) {
-                    primaryStream = remoteStream;
-                    isViewingSelf = false;
-                } else if (processedStream) {
-                    primaryStream = processedStream;
-                    isViewingSelf = true;
-                }
-            }
-
-            if (primaryStream) {
-                mainVideo.srcObject = primaryStream;
-                // Se estivermos vendo nossa própria captura real, mutamos o player local para não dar microfonia,
-                // exceto quando no modo Simulador para o usuário poder ouvir o filtro funcionando!
-                mainVideo.muted = isViewingSelf && !simCanvasInterval;
-                mainVideo.classList.remove('hidden');
-                placeholder.classList.add('hidden');
-                topOverlay.classList.remove('hidden');
-                topOverlay.classList.add('flex');
-
-                // Se tivermos ambos (transmitindo e assistindo amigo), mostra nossa prévia no PiP
-                if (remoteStream && processedStream && !isViewingSelf) {
-                    secondaryVideo.srcObject = processedStream;
-                    pipWrapper.classList.remove('hidden');
+                    remoteVideo.classList.remove('hidden');
+                    emptyStage.classList.add('hidden');
+                    badges.classList.remove('hidden');
+                    badges.classList.add('flex');
                 } else {
-                    pipWrapper.classList.add('hidden');
+                    remoteVideo.classList.add('hidden');
+                    emptyStage.classList.remove('hidden');
+                    badges.classList.add('hidden');
+                    badges.classList.remove('flex');
+                    document.getElementById('emptyStageTitle').textContent = connectedPeerId
+                        ? 'Aguardando seu parceiro(a) clicar em "Compartilhar Tela"...'
+                        : 'Nenhuma tela conectada ainda';
                 }
             } else {
-                mainVideo.srcObject = null;
-                mainVideo.classList.add('hidden');
-                pipWrapper.classList.add('hidden');
-                placeholder.classList.remove('hidden');
-                topOverlay.classList.add('hidden');
-                topOverlay.classList.remove('flex');
+                remoteVideo.classList.add('hidden');
+                if (isSharing && outboundStream) {
+                    localVideo.classList.remove('hidden');
+                    emptyStage.classList.add('hidden');
+                    badges.classList.remove('hidden');
+                    badges.classList.add('flex');
+                } else {
+                    localVideo.classList.add('hidden');
+                    emptyStage.classList.remove('hidden');
+                    badges.classList.add('hidden');
+                    badges.classList.remove('flex');
+                    document.getElementById('emptyStageTitle').textContent = 'Você ainda não está compartilhando sua tela';
+                }
             }
         }
 
-        function switchVideoSource(mode) {
-            currentViewSource = mode;
-            ['Auto', 'Local', 'Remote'].forEach(m => {
-                const btn = document.getElementById(`viewMode${m}Btn`);
-                if (m.toLowerCase() === mode) {
-                    btn.className = 'px-2.5 py-1 rounded bg-discord-blurple text-white font-semibold transition';
-                } else {
-                    btn.className = 'px-2.5 py-1 rounded text-discord-muted hover:text-white transition';
-                }
-            });
-            updateStageVideos();
-        }
-
-        function startTelemetryLoop() {
-            if (telemetryInterval) clearInterval(telemetryInterval);
-            telemetryInterval = setInterval(() => {
-                const activeStream = processedStream || remoteStream;
-                if (!activeStream) return;
-
-                const videoTrack = activeStream.getVideoTracks()[0];
-                if (videoTrack) {
-                    const settings = videoTrack.getSettings();
-                    const w = settings.width || 1920;
-                    const h = settings.height || 1080;
-                    const fps = Math.round(settings.frameRate || 30);
-
-                    document.getElementById('telemetryRes').textContent = `${w}x${h}`;
-                    document.getElementById('telemetryFps').textContent = `${fps} FPS`;
-                    document.getElementById('overlayResolutionTag').textContent = `${h}p • ${fps} FPS`;
-                    document.getElementById('liveHeaderBadgeText').textContent = `AO VIVO • ${h}p ${fps}FPS`;
+        function startTelemetry() {
+            if (statsTimer) clearInterval(statsTimer);
+            statsTimer = setInterval(() => {
+                const videoEl = activeTab === 'remote' ? document.getElementById('remoteVideo') : document.getElementById('localVideo');
+                if (videoEl && videoEl.videoWidth > 0) {
+                    document.getElementById('resFpsBadge').textContent = `${videoEl.videoWidth}x${videoEl.videoHeight} • 30 FPS`;
                 }
             }, 1000);
         }
 
-        // Controles do Player (Fullscreen, PiP, Volume Local, Fit)
+        function changeRemoteVolume(val) {
+            const remoteVideo = document.getElementById('remoteVideo');
+            remoteVideo.volume = val / 100;
+            remoteVideo.muted = (Number(val) === 0);
+            document.getElementById('remoteVolIcon').className = Number(val) === 0
+                ? 'fa-solid fa-volume-xmark text-discord-red text-xs'
+                : 'fa-solid fa-volume-high text-xs';
+        }
+
+        function toggleRemoteVolumeMute() {
+            const remoteVideo = document.getElementById('remoteVideo');
+            remoteVideo.muted = !remoteVideo.muted;
+            document.getElementById('remoteVolIcon').className = remoteVideo.muted
+                ? 'fa-solid fa-volume-xmark text-discord-red text-xs'
+                : 'fa-solid fa-volume-high text-xs';
+        }
+
         function toggleFullscreen() {
-            const container = document.getElementById('videoStageContainer');
+            const stage = document.getElementById('videoStageContainer');
             if (!document.fullscreenElement) {
-                container.requestFullscreen().catch(() => {});
+                stage.requestFullscreen().catch(() => {});
             } else {
                 document.exitFullscreen().catch(() => {});
             }
         }
 
-        async function togglePiP() {
-            const mainVideo = document.getElementById('mainVideo');
-            try {
-                if (document.pictureInPictureElement) {
-                    await document.exitPictureInPicture();
-                } else if (mainVideo.srcObject) {
-                    await mainVideo.requestPictureInPicture();
-                } else {
-                    showToast('Inicie uma transmissão primeiro para ativar o Picture-in-Picture.', 'warning');
-                }
-            } catch (e) {
-                showToast('Picture-in-Picture não suportado ou sem vídeo ativo.', 'warning');
-            }
+        function copyMyCode() {
+            if (!myCode) return;
+            const temp = document.createElement('input');
+            temp.value = myCode;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            temp.remove();
+
+            const btn = document.getElementById('copyBtn');
+            btn.innerHTML = '<i class="fa-solid fa-check text-discord-green"></i><span>Copiado!</span>';
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fa-regular fa-copy"></i><span>Copiar</span>';
+            }, 2000);
+            showToast(`Código ${myCode} copiado! Envie para sua namorada(o).`, 'success');
         }
 
-        function toggleVideoFit() {
-            const mainVideo = document.getElementById('mainVideo');
-            if (mainVideo.classList.contains('object-contain')) {
-                mainVideo.classList.remove('object-contain');
-                mainVideo.classList.add('object-cover');
-                showToast('Modo Preencher Tela ativado', 'info');
-            } else {
-                mainVideo.classList.remove('object-cover');
-                mainVideo.classList.add('object-contain');
-                showToast('Modo Ajustar Proporção (16:9 Original) ativado', 'info');
-            }
-        }
-
-        function changeLocalPlayerVolume(val) {
-            const mainVideo = document.getElementById('mainVideo');
-            mainVideo.volume = val / 100;
-            mainVideo.muted = (Number(val) === 0);
-            const icon = document.getElementById('localVolumeIcon');
-            icon.className = Number(val) === 0 ? 'fa-solid fa-volume-xmark text-discord-red text-xs' : 'fa-solid fa-volume-high text-xs';
-        }
-
-        function toggleLocalPlayerMute() {
-            const mainVideo = document.getElementById('mainVideo');
-            mainVideo.muted = !mainVideo.muted;
-            const icon = document.getElementById('localVolumeIcon');
-            if (mainVideo.muted) {
-                icon.className = 'fa-solid fa-volume-xmark text-discord-red text-xs';
-                showToast('Áudio do player mutado para você.', 'info');
-            } else {
-                icon.className = 'fa-solid fa-volume-high text-xs';
-                showToast('Áudio do player ativado para você.', 'info');
-            }
-        }
-
-        // ==========================================
-        // 8. UTILITÁRIOS DE UI (COPIAR ID, CHAT, MODAIS, TOAST)
-        // ==========================================
-        function copyMyId() {
-            const input = document.getElementById('myPeerIdInput');
-            input.select();
-            input.setSelectionRange(0, 99999);
-            try {
-                document.execCommand('copy');
-                const btn = document.getElementById('copyBtn');
-                btn.innerHTML = '<i class="fa-solid fa-check"></i><span>Copiado!</span>';
-                setTimeout(() => {
-                    btn.innerHTML = '<i class="fa-regular fa-copy"></i><span>Copiar</span>';
-                }, 2000);
-                showToast('ID da sala copiado! Envie para seu amigo.', 'success');
-            } catch (e) {
-                showToast('Selecione e copie o ID manualmente.', 'info');
-            }
-        }
-
-        function sendChatMessage(e) {
-            e.preventDefault();
-            const input = document.getElementById('chatInput');
-            const text = input.value.trim();
-            if (!text) return;
-
-            appendChatMessage('Você', text, false);
-            if (dataConn && dataConn.open) {
-                dataConn.send({ type: 'chat', message: text });
-            }
-            input.value = '';
-        }
-
-        function appendChatMessage(sender, text, isSystem) {
-            const container = document.getElementById('chatMessages');
-            const div = document.createElement('div');
-            div.className = 'bg-discord-card p-2.5 rounded-lg border border-white/5 break-words';
-
-            const nameColor = isSystem ? 'text-discord-yellow' : (sender === 'Você' ? 'text-discord-green' : 'text-discord-blurple');
-            div.innerHTML = `<span class="${nameColor} font-bold block mb-0.5">${sender}</span><span class="text-discord-text">${escapeHtml(text)}</span>`;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function escapeHtml(str) {
-            return str.replace(/[&<>"']/g, function(m) {
-                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[m];
-            });
-        }
-
-        function highlightAudioPanel() {
-            const card = document.getElementById('audioAntiVoiceCard');
-            card.scrollIntoView({ behavior: 'smooth' });
-            card.classList.add('ring-2', 'ring-discord-nitro');
-            setTimeout(() => card.classList.remove('ring-2', 'ring-discord-nitro'), 2200);
-        }
-
-        function toggleModal(id, show) {
-            const el = document.getElementById(id);
-            if (show) el.classList.remove('hidden');
-            else el.classList.add('hidden');
-        }
-
-        function toggleChatPanel() {
-            const panel = document.getElementById('chatPanel');
-            panel.classList.toggle('hidden');
-            panel.classList.toggle('flex');
-        }
-
-        function toggleMobileSidebar() {
-            const sb = document.getElementById('controlSidebar');
-            sb.classList.toggle('hidden');
-        }
-
-        function showToast(message, type = 'info') {
+        function showToast(msg, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-
-            let borderColor = 'border-discord-blurple';
-            let icon = 'fa-circle-info text-discord-blurple';
-            if (type === 'success') { borderColor = 'border-discord-green'; icon = 'fa-circle-check text-discord-green'; }
-            else if (type === 'warning') { borderColor = 'border-discord-yellow'; icon = 'fa-triangle-exclamation text-discord-yellow'; }
-            else if (type === 'error') { borderColor = 'border-discord-red'; icon = 'fa-circle-xmark text-discord-red'; }
-
-            toast.className = `bg-discord-card border-l-4 ${borderColor} text-white px-4 py-3 rounded-lg shadow-2xl flex items-center gap-3 max-w-xs text-xs pointer-events-auto transition-all duration-300`;
-            toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i><span class="leading-snug">${message}</span>`;
-
+            const colors = {
+                success: 'border-discord-green text-discord-green',
+                warning: 'border-discord-yellow text-discord-yellow',
+                error: 'border-discord-red text-discord-red',
+                info: 'border-discord-blurple text-discord-blurple'
+            };
+            toast.className = `bg-discord-card border-l-4 ${colors[type]} text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-medium pointer-events-auto transition-opacity duration-300`;
+            toast.textContent = msg;
             container.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
-            }, 4000);
+            }, 3500);
         }
     </script>
 </body>
