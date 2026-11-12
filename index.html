@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamCord 1080p • Compartilhamento de Tela Full HD P2P</title>
+    <title>MONO // STREAM — 1080P 30FPS MULTI-SCREEN P2P</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PeerJS CDN para WebRTC P2P -->
@@ -11,7 +11,7 @@
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google Fonts: Inter & JetBrains Mono -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -23,21 +23,17 @@
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        discord: {
-                            bg: '#111214',
-                            panel: '#1e1f22',
-                            card: '#2b2d31',
-                            hover: '#35373c',
-                            blurple: '#5865F2',
-                            blurpleHover: '#4752C4',
-                            green: '#23a55a',
-                            greenHover: '#1d8a4a',
-                            red: '#da373c',
-                            redHover: '#b82d31',
-                            yellow: '#f0b232',
-                            nitro: '#ff73fa',
-                            text: '#f2f3f5',
-                            muted: '#949ba4'
+                        mono: {
+                            black: '#000000',
+                            bg: '#050505',
+                            panel: '#0a0a0a',
+                            card: '#111111',
+                            hover: '#1a1a1a',
+                            border: '#242424',
+                            borderLight: '#3a3a3a',
+                            muted: '#737373',
+                            silver: '#a3a3a3',
+                            white: '#ffffff'
                         }
                     }
                 }
@@ -46,6 +42,10 @@
     </script>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+        /* Minimalist Monochromatic Range Slider */
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;
@@ -53,142 +53,181 @@
             cursor: pointer;
         }
         input[type="range"]::-webkit-slider-runnable-track {
-            background: #111214;
-            height: 6px;
-            border-radius: 999px;
+            background: #262626;
+            height: 2px;
         }
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
             margin-top: -5px;
-            background-color: #5865F2;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            border: 2px solid #ffffff;
+            background-color: #ffffff;
+            height: 12px;
+            width: 12px;
+            border-radius: 0px;
+            border: 1px solid #000000;
+            transition: transform 0.15s ease;
         }
-        .nitro-gradient {
-            background: linear-gradient(135deg, #5865F2 0%, #ff73fa 100%);
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+        /* Custom subtle scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #050505;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #262626;
+        }
+        /* Grid layout transitions */
+        .video-tile {
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+        .video-tile:hover {
+            border-color: #525252;
         }
     </style>
 </head>
-<body class="bg-discord-bg text-discord-text font-sans antialiased h-screen w-screen overflow-hidden flex flex-col select-none">
+<body class="bg-mono-bg text-mono-white font-sans antialiased h-screen w-screen overflow-hidden flex flex-col select-none">
 
     <!-- =========================================================
-         BARRA SUPERIOR COMPACTA (CONEXÃO RÁPIDA COM PARCEIRO/A)
+         HEADER MINIMALISTA MONOCROMÁTICO (SALA + MULTI-CONEXÃO)
          ========================================================= -->
-    <header class="bg-discord-panel border-b border-white/10 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 z-20">
-        <!-- Logo e Status -->
+    <header class="bg-mono-panel border-b border-mono-border px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 z-30">
+        <!-- Identidade Minimalista -->
         <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl nitro-gradient flex items-center justify-center text-white shadow">
-                <i class="fa-solid fa-desktop text-sm"></i>
+            <div class="w-8 h-8 border border-mono-white bg-mono-black flex items-center justify-center text-mono-white">
+                <span class="font-mono text-xs font-bold tracking-tighter">M//S</span>
             </div>
-            <div>
+            <div class="flex flex-col">
                 <div class="flex items-center gap-2">
-                    <span class="font-bold text-white text-sm tracking-tight">StreamCord</span>
-                    <span class="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-discord-blurple text-white">1080p 30FPS</span>
+                    <span class="font-mono text-xs font-bold tracking-widest uppercase text-mono-white">MONO//STREAM</span>
+                    <span class="font-mono text-[10px] px-1.5 py-0.5 border border-mono-borderLight text-mono-silver uppercase">1080P • 30FPS</span>
                 </div>
-                <div class="flex items-center gap-1.5 text-[11px] text-discord-muted">
-                    <span id="peerStatusDot" class="w-2 h-2 rounded-full bg-discord-yellow animate-pulse"></span>
-                    <span id="peerStatusText">Gerando seu código...</span>
+                <div class="flex items-center gap-2 text-[10px] font-mono text-mono-muted">
+                    <span id="peerStatusDot" class="w-1.5 h-1.5 bg-mono-muted"></span>
+                    <span id="peerStatusText">INICIALIZANDO NÓ P2P...</span>
                 </div>
             </div>
         </div>
 
-        <!-- Controles de Código da Sala (Super Simples) -->
-        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <!-- Seletor de Modo de Visualização (Grade Simultânea vs Foco Único) -->
+        <div class="flex items-center gap-1 bg-mono-black border border-mono-border p-1 overflow-x-auto max-w-full">
+            <button id="modeGridBtn" onclick="setLayoutMode('grid')"
+                class="px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 bg-mono-white text-mono-black font-semibold">
+                <i class="fa-solid fa-table-cells-large text-[10px]"></i>
+                <span>GRADE (<span id="activeScreensCount">0</span>)</span>
+            </button>
+
+            <button id="modeFocusBtn" onclick="setLayoutMode('focus')"
+                class="px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 text-mono-silver hover:text-mono-white">
+                <i class="fa-regular fa-square text-[10px]"></i>
+                <span>FOCO</span>
+            </button>
+
+            <div class="h-4 w-[1px] bg-mono-border mx-1"></div>
+
+            <!-- Mostrar/Ocultar Minha Própria Tela no Palco -->
+            <button id="toggleSelfPreviewBtn" onclick="toggleSelfView()"
+                class="px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 text-mono-white border border-transparent hover:border-mono-border"
+                title="Exibir ou ocultar sua própria tela na grade">
+                <i id="selfPreviewIcon" class="fa-regular fa-eye text-[10px]"></i>
+                <span class="hidden md:inline">MINHA TELA: ON</span>
+            </button>
+        </div>
+
+        <!-- Controles de Conexão Multi-Amigos -->
+        <div class="flex flex-wrap items-center gap-2">
             <!-- Meu Código -->
-            <div class="flex items-center bg-discord-bg border border-white/10 rounded-xl px-3 py-1.5 gap-2">
-                <span class="text-xs text-discord-muted">Meu Código:</span>
-                <span id="myShortCode" class="font-mono font-bold text-sm text-discord-nitro tracking-wider select-all">-----</span>
-                <button onclick="copyMyCode()" id="copyBtn" class="bg-discord-card hover:bg-discord-hover text-xs text-white px-2.5 py-1 rounded-lg transition flex items-center gap-1.5" title="Copiar meu código">
-                    <i class="fa-regular fa-copy"></i>
-                    <span>Copiar</span>
+            <div class="flex items-center bg-mono-black border border-mono-border px-3 py-1 gap-2.5">
+                <span class="font-mono text-[10px] uppercase text-mono-muted">MEU ID</span>
+                <span id="myShortCode" class="font-mono font-bold text-xs text-mono-white tracking-widest select-all">-----</span>
+                <button onclick="copyMyCode()" id="copyBtn"
+                    class="border border-mono-border hover:border-mono-white bg-mono-card text-mono-white font-mono text-[10px] uppercase px-2 py-0.5 transition">
+                    COPIAR
                 </button>
             </div>
 
-            <!-- Conectar ao Parceiro(a) -->
-            <div id="connectFormWrapper" class="flex items-center bg-discord-bg border border-white/10 rounded-xl p-1 gap-1.5">
-                <input id="partnerCodeInput" type="text" maxlength="20" placeholder="Código dela(e)"
-                    class="bg-transparent text-white font-mono text-xs uppercase px-2.5 py-1 w-28 sm:w-32 focus:outline-none placeholder:normal-case placeholder:font-sans placeholder:text-discord-muted">
+            <!-- Adicionar Amigo (Suporta vários amigos!) -->
+            <div class="flex items-center bg-mono-black border border-mono-border p-0.5 gap-1">
+                <input id="partnerCodeInput" type="text" maxlength="20" placeholder="ID DO AMIGO"
+                    onkeydown="if(event.key==='Enter') connectToPartner()"
+                    class="bg-transparent text-mono-white font-mono text-xs uppercase px-2.5 py-1 w-28 sm:w-32 focus:outline-none placeholder:text-mono-muted">
                 <button onclick="connectToPartner()" id="connectBtn"
-                    class="bg-discord-blurple hover:bg-discord-blurpleHover text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-link"></i>
-                    <span>Conectar</span>
+                    class="bg-mono-white hover:bg-mono-silver text-mono-black font-mono text-[10px] font-bold uppercase px-3 py-1.5 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-plus text-[9px]"></i>
+                    <span>ADICIONAR</span>
                 </button>
             </div>
 
-            <!-- Badge Conectado + Botão Sincronizar -->
-            <div id="connectedBanner" class="hidden items-center bg-discord-green/15 border border-discord-green/40 rounded-xl px-3 py-1.5 gap-2.5">
-                <span class="w-2 h-2 rounded-full bg-discord-green animate-ping"></span>
-                <span id="connectedPartnerLabel" class="text-xs font-bold text-white">Conectado</span>
-                <button onclick="manualSyncStreams()" title="Forçar reenvio de vídeo" class="text-xs bg-discord-card hover:bg-discord-hover text-white px-2 py-1 rounded-lg transition flex items-center gap-1">
-                    <i class="fa-solid fa-rotate"></i>
-                    <span class="hidden sm:inline">Sincronizar</span>
-                </button>
-                <button onclick="disconnectPartner()" title="Desconectar da sala" class="text-xs text-discord-red hover:text-white px-1.5 py-0.5 rounded transition">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+            <!-- Sincronizar Todas as Telas -->
+            <button onclick="manualSyncStreams()" title="Sincronizar vídeo com todos os amigos conectados"
+                class="bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white border border-mono-border px-2.5 py-1.5 font-mono text-[10px] uppercase transition flex items-center gap-1.5">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                <span class="hidden lg:inline">SYNC</span>
+            </button>
         </div>
     </header>
 
     <!-- =========================================================
-         PALCO DE VÍDEO PRINCIPAL (TELA LIMPA E AMPLA)
+         BARRA SECUNDÁRIA DE CONEXÕES & ABAS RÁPIDAS DE TELAS
          ========================================================= -->
-    <main class="flex-1 p-3 sm:p-4 flex flex-col overflow-hidden relative">
-        <div id="videoStageContainer" class="relative flex-1 w-full h-full bg-[#090a0c] rounded-2xl border border-white/10 overflow-hidden flex items-center justify-center shadow-2xl">
+    <div id="subHeaderBar" class="bg-mono-black border-b border-mono-border px-4 py-1.5 flex items-center justify-between gap-4 overflow-x-auto shrink-0 z-20">
+        <!-- Lista de Telas para Foco Rápido -->
+        <div class="flex items-center gap-1.5 overflow-x-auto" id="screenTabsContainer">
+            <span class="font-mono text-[10px] uppercase text-mono-muted mr-1">TELAS:</span>
+            <button onclick="setLayoutMode('grid')" id="tabAllGrid"
+                class="px-2 py-0.5 font-mono text-[10px] uppercase border border-mono-white bg-mono-white text-mono-black font-semibold transition">
+                TODAS (GRADE)
+            </button>
+            <!-- Abas dinâmicas de cada amigo e da tela local entram aqui -->
+        </div>
 
-            <!-- Barra Flutuante Superior Esquerda: Alternar entre Tela do Parceiro(a) e Minha Prévia -->
-            <div class="absolute top-3.5 left-3.5 z-20 flex items-center gap-1.5 bg-discord-panel/90 backdrop-blur-md p-1 rounded-xl border border-white/10 shadow-lg">
-                <button id="tabRemoteBtn" onclick="switchView('remote')"
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition bg-discord-blurple text-white">
-                    <i class="fa-solid fa-tv"></i>
-                    <span>Tela Conectada</span>
-                    <span id="remoteLiveDot" class="hidden w-2 h-2 rounded-full bg-discord-green animate-ping"></span>
-                </button>
-                <button id="tabLocalBtn" onclick="switchView('local')"
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition text-discord-muted hover:text-white">
-                    <i class="fa-solid fa-eye"></i>
-                    <span>Minha Tela</span>
-                    <span id="localLiveDot" class="hidden w-2 h-2 rounded-full bg-discord-red"></span>
-                </button>
-            </div>
+        <!-- Lista de Amigos Conectados na Malha (Mesh) -->
+        <div class="flex items-center gap-2 shrink-0" id="connectedPeersPills">
+            <span class="font-mono text-[10px] uppercase text-mono-muted">CONECTADOS: 0</span>
+        </div>
+    </div>
 
-            <!-- Badges Flutuantes Superiores Direitas (Resolução & Status de Áudio) -->
-            <div id="streamInfoBadges" class="hidden absolute top-3.5 right-3.5 z-20 items-center gap-2 pointer-events-none">
-                <span id="resFpsBadge" class="bg-black/80 backdrop-blur-md text-white font-mono text-xs font-bold px-2.5 py-1 rounded-lg border border-white/10">
-                    1080p • 30 FPS
-                </span>
-                <span id="audioStateBadge" class="bg-black/80 backdrop-blur-md text-discord-green text-xs font-semibold px-2.5 py-1 rounded-lg border border-white/10">
-                    Som Ativo
-                </span>
-            </div>
+    <!-- =========================================================
+         PALCO PRINCIPAL DE VÍDEO (GRADE SIMULTÂNEA OU FOCO ÚNICO)
+         ========================================================= -->
+    <main class="flex-1 p-3 sm:p-4 flex flex-col overflow-hidden relative bg-mono-bg">
+        <div id="videoStageContainer" class="relative flex-1 w-full h-full bg-mono-black border border-mono-border overflow-hidden flex flex-col">
 
-            <!-- Botão de Desbloqueio de Autoplay com Áudio (Caso o navegador bloqueie o som inicial) -->
-            <button id="unmuteAutoplayBtn" onclick="forceUnmuteRemoteVideo()"
-                class="hidden absolute top-16 left-1/2 -translate-x-1/2 z-30 bg-discord-blurple hover:bg-discord-blurpleHover text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full shadow-2xl border border-white/20 items-center gap-2 animate-bounce">
+            <!-- Alerta Minimalista de Autoplay de Áudio Bloqueado -->
+            <button id="unmuteAutoplayBtn" onclick="forceUnmuteAllRemoteVideos()"
+                class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-40 bg-mono-white text-mono-black font-mono font-bold text-xs uppercase px-5 py-2.5 border border-mono-black shadow-2xl items-center gap-2 hover:bg-mono-silver transition">
                 <i class="fa-solid fa-volume-high"></i>
-                <span>Clique aqui para ativar o som da transmissão</span>
+                <span>CLIQUE PARA LIBERAR O ÁUDIO DAS TRANSMISSÕES</span>
             </button>
 
-            <!-- VÍDEO 1: TELA DO PARCEIRO(A) -->
-            <video id="remoteVideo" autoplay playsinline class="w-full h-full object-contain hidden"></video>
+            <!-- CONTAINER DINÂMICO DE TELAS (GRID / FOCO) -->
+            <div id="screensGrid" class="w-full h-full grid gap-2 p-2 overflow-auto place-items-stretch">
+                <!-- Os cards de vídeo (remotos e local) são renderizados e gerenciados aqui -->
+            </div>
 
-            <!-- VÍDEO 2: MINHA PRÉVIA LOCAL (Sempre mutado para você não se ouvir dobrado) -->
-            <video id="localVideo" autoplay playsinline muted class="w-full h-full object-contain hidden"></video>
-
-            <!-- ESTADO VAZIO (Instruções curtas e diretas) -->
-            <div id="emptyStage" class="max-w-md text-center p-6 space-y-4">
-                <div class="w-16 h-16 mx-auto rounded-2xl bg-discord-card border border-white/10 flex items-center justify-center text-discord-blurple text-2xl shadow-inner">
-                    <i class="fa-solid fa-display"></i>
-                </div>
-                <div class="space-y-1.5">
-                    <h2 id="emptyStageTitle" class="text-lg font-bold text-white">Nenhuma tela transmitindo agora</h2>
-                    <p id="emptyStageDesc" class="text-xs text-discord-muted leading-relaxed">
-                        1. Digite o código de 5 letras no topo e clique em <strong>Conectar</strong>.<br>
-                        2. Clique em <strong>Compartilhar Tela</strong> abaixo para transmitir em <strong>1080p 30FPS</strong>.
-                    </p>
+            <!-- ESTADO VAZIO (MINIMALISTA E ARTE TÉCNICA) -->
+            <div id="emptyStage" class="absolute inset-0 flex items-center justify-center p-6 pointer-events-none">
+                <div class="max-w-md w-full border border-mono-border bg-mono-panel p-8 text-center space-y-5">
+                    <div class="w-12 h-12 mx-auto border border-mono-borderLight flex items-center justify-center text-mono-white">
+                        <i class="fa-solid fa-expand text-sm"></i>
+                    </div>
+                    <div class="space-y-2">
+                        <h2 id="emptyStageTitle" class="font-mono text-xs font-bold uppercase tracking-widest text-mono-white">
+                            NENHUM SINAL DE VÍDEO ATIVO
+                        </h2>
+                        <p class="font-mono text-[11px] text-mono-muted leading-relaxed">
+                            [01] ENVIE SEU ID OU ADICIONE OS IDS DOS SEUS AMIGOS ACIMA.<br>
+                            [02] TRANSMITA EM 1080P 30FPS OU ASSISTA VÁRIAS TELAS SIMULTANEAMENTE.
+                        </p>
+                    </div>
+                    <div class="pt-2 border-t border-mono-border flex items-center justify-between text-[10px] font-mono text-mono-muted">
+                        <span>MODO: MULTI-PEER MESH</span>
+                        <span>CODEC: WEBRTC 6MBPS</span>
+                    </div>
                 </div>
             </div>
 
@@ -196,93 +235,120 @@
     </main>
 
     <!-- =========================================================
-         BARRA INFERIOR DE CONTROLES (ESTILO CALL DO DISCORD)
+         BARRA INFERIOR DE CONTROLES (ESTÉTICA INDUSTRIAL/MINIMALISTA)
          ========================================================= -->
-    <footer class="bg-discord-panel border-t border-white/10 px-4 py-3 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 shrink-0 z-20">
+    <footer class="bg-mono-panel border-t border-mono-border px-4 py-3 flex flex-wrap items-center justify-between gap-3 shrink-0 z-30">
 
-        <!-- 1. Botão Compartilhar / Parar Tela -->
-        <button id="shareScreenBtn" onclick="toggleScreenShare()"
-            class="bg-discord-green hover:bg-discord-greenHover text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2">
-            <i id="shareScreenIcon" class="fa-solid fa-desktop"></i>
-            <span id="shareScreenText">Compartilhar Tela (1080p)</span>
-        </button>
-
-        <!-- 2. Botão Mutar Som Enviado na Live (Evita Eco de Vozes do Discord) -->
-        <button id="muteOutgoingAudioBtn" onclick="toggleOutgoingAudioMute()"
-            class="bg-discord-card hover:bg-discord-hover text-white font-semibold text-xs px-4 py-2.5 rounded-xl border border-white/10 transition flex items-center gap-2"
-            title="Corta 100% do som enviado na sua transmissão para não dar eco nas vozes do Discord">
-            <i id="muteOutgoingIcon" class="fa-solid fa-ear-deaf text-discord-green"></i>
-            <span id="muteOutgoingText">Mutar Som do Discord/Live: OFF</span>
-        </button>
-
-        <!-- 3. Botão Filtro Anti-Voz (300Hz-3400Hz) para quando quiser manter som do jogo e abafar vozes -->
-        <button id="voiceFilterBtn" onclick="toggleVoiceBandFilter()"
-            class="bg-discord-card hover:bg-discord-hover text-discord-muted hover:text-white font-semibold text-xs px-4 py-2.5 rounded-xl border border-white/10 transition flex items-center gap-2"
-            title="Atenua frequências de voz humana (300Hz-3.4kHz) mantendo graves e agudos do jogo">
-            <i class="fa-solid fa-wave-square"></i>
-            <span id="voiceFilterText">Filtro Anti-Voz: OFF</span>
-        </button>
-
-        <div class="h-6 w-[1px] bg-white/10 hidden sm:block"></div>
-
-        <!-- 4. Volume da Transmissão Recebida -->
-        <div class="flex items-center gap-2 bg-discord-bg px-3 py-2 rounded-xl border border-white/10">
-            <button onclick="toggleRemoteVolumeMute()" class="text-discord-muted hover:text-white transition" title="Mutar som que eu escuto">
-                <i id="remoteVolIcon" class="fa-solid fa-volume-high text-xs"></i>
-            </button>
-            <input id="remoteVolSlider" type="range" min="0" max="100" value="100"
-                oninput="changeRemoteVolume(this.value)" class="w-20" title="Volume da tela conectada">
+        <!-- Esquerda: Status de Transmissão Local -->
+        <div class="hidden sm:flex items-center gap-3 font-mono text-[11px]">
+            <div class="flex items-center gap-2 border border-mono-border bg-mono-black px-3 py-1.5">
+                <span id="localBroadcastDot" class="w-1.5 h-1.5 bg-mono-muted"></span>
+                <span id="localBroadcastStatus" class="text-mono-silver uppercase">TX: INATIVO</span>
+            </div>
+            <div id="audioStateBadge" class="border border-mono-border bg-mono-black px-3 py-1.5 text-mono-muted uppercase">
+                ÁUDIO TX: STANDBY
+            </div>
         </div>
 
-        <!-- 5. Botão Tela Cheia -->
-        <button onclick="toggleFullscreen()" title="Tela Cheia"
-            class="bg-discord-card hover:bg-discord-hover text-discord-muted hover:text-white px-3.5 py-2.5 rounded-xl border border-white/10 transition">
-            <i class="fa-solid fa-expand text-xs"></i>
-        </button>
+        <!-- Centro: Controles Principais de Tela e Isolamento do Discord -->
+        <div class="flex flex-wrap items-center justify-center gap-2 mx-auto sm:mx-0">
+
+            <!-- 1. Botão Compartilhar / Parar Tela -->
+            <button id="shareScreenBtn" onclick="toggleScreenShare()"
+                class="bg-mono-white hover:bg-mono-silver text-mono-black font-mono font-bold text-xs uppercase px-5 py-2.5 border border-mono-white transition flex items-center gap-2">
+                <i id="shareScreenIcon" class="fa-solid fa-display text-[11px]"></i>
+                <span id="shareScreenText">TRANSMITIR TELA [1080P]</span>
+            </button>
+
+            <!-- 2. Botão Mutar Som Enviado na Live (Evita Eco de Vozes do Discord) -->
+            <button id="muteOutgoingAudioBtn" onclick="toggleOutgoingAudioMute()"
+                class="bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase px-4 py-2.5 border border-mono-border transition flex items-center gap-2"
+                title="Corta 100% do som enviado na sua transmissão para não dar eco nas vozes do Discord">
+                <i id="muteOutgoingIcon" class="fa-solid fa-volume-high text-[11px]"></i>
+                <span id="muteOutgoingText">MUTAR SOM DISCORD/LIVE: OFF</span>
+            </button>
+
+            <!-- 3. Botão Filtro Anti-Voz (300Hz-3400Hz) -->
+            <button id="voiceFilterBtn" onclick="toggleVoiceBandFilter()"
+                class="bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase px-4 py-2.5 border border-mono-border transition flex items-center gap-2"
+                title="Atenua frequências de voz humana (300Hz-3.4kHz) mantendo graves e agudos do sistema/jogo">
+                <i class="fa-solid fa-wave-square text-[11px]"></i>
+                <span id="voiceFilterText">FILTRO ANTI-VOZ: OFF</span>
+            </button>
+        </div>
+
+        <!-- Direita: Volume Mestre e Tela Cheia do Palco -->
+        <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2.5 bg-mono-black px-3 py-2 border border-mono-border" title="Volume geral de todas as telas">
+                <button onclick="toggleMasterMute()" class="text-mono-silver hover:text-mono-white transition">
+                    <i id="masterVolIcon" class="fa-solid fa-volume-high text-xs"></i>
+                </button>
+                <input id="masterVolSlider" type="range" min="0" max="100" value="100"
+                    oninput="changeMasterVolume(this.value)" class="w-20">
+            </div>
+
+            <button onclick="toggleStageFullscreen()" title="Tela Cheia do Palco"
+                class="bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white px-3.5 py-2 border border-mono-border transition">
+                <i class="fa-solid fa-expand text-xs"></i>
+            </button>
+        </div>
 
     </footer>
 
-    <!-- Container de Notificações Rápidas (Toasts) -->
-    <div id="toastContainer" class="fixed bottom-20 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+    <!-- Container Minimalista de Notificações (Toasts) -->
+    <div id="toastContainer" class="fixed bottom-16 right-4 z-50 flex flex-col gap-1.5 pointer-events-none"></div>
 
     <!-- =========================================================
-         LÓGICA P2P BIDIRECIONAL + WEB AUDIO API
+         ARQUITETURA MULTI-PEER (MESH) + GRADE/FOCO + WEB AUDIO API
          ========================================================= -->
     <script>
         const PEER_PREFIX = 'sc1080p-';
 
         let peer = null;
         let myCode = '';
-        let connectedPeerId = null;
-        let dataConn = null;
-        let outgoingCall = null;
-        let incomingCall = null;
 
-        // Streams
+        /**
+         * Mapa de todos os amigos conectados:
+         * key: fullPeerId (ex: 'sc1080p-AB12C')
+         * value: {
+         *   peerId, shortCode, dataConn, outgoingCall, incomingCall,
+         *   remoteStream, videoEl, muted, volume
+         * }
+         */
+        const peersMap = new Map();
+
+        // Streams locais
         let rawDisplayStream = null;
         let outboundStream = null;
-        let remoteStream = null;
 
-        // Estados de visualização e áudio
-        let activeTab = 'remote'; // 'remote' ou 'local'
+        // Estado de Visualização (Multi-Telas)
+        let layoutMode = 'grid';      // 'grid' (todas simultaneamente) ou 'focus' (uma tela em destaque)
+        let focusedScreenId = null;   // 'local' ou fullPeerId de um amigo
+        let showSelfInStage = true;   // permite exibir ou ocultar a própria tela na grade
         let isSharing = false;
-        let isOutgoingAudioMuted = false; // Quando TRUE, corta o som enviado na live para não vazar vozes do Discord
-        let isVoiceFilterActive = false;  // Quando TRUE, ativa Biquad Notch na faixa de voz (300Hz-3.4kHz)
 
-        // Web Audio API
+        // Estado de Áudio / Isolamento do Discord
+        let isOutgoingAudioMuted = false;
+        let isVoiceFilterActive = false;
+        let masterVolume = 1.0;
+        let isMasterMuted = false;
+
+        // Web Audio API Nodes
         let audioCtx = null;
         let outGainNode = null;
         let filterBand1 = null;
         let filterBand2 = null;
         let filterBand3 = null;
 
-        let statsTimer = null;
+        let telemetryInterval = null;
 
         window.onload = () => {
             initPeer();
+            startTelemetryLoop();
+            renderStage();
         };
 
-        // Gera código curto de 5 caracteres (ex: 7K9P2) fácil de digitar
+        // Gera código curto de 5 caracteres
         function generateShortCode() {
             const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
             let code = '';
@@ -301,8 +367,12 @@
             return cleaned;
         }
 
+        function getShortCode(fullPeerId) {
+            return fullPeerId ? fullPeerId.replace(PEER_PREFIX, '') : '';
+        }
+
         // =========================================================
-        // 1. INICIALIZAÇÃO DO PEERJS E SERVIDORES STUN
+        // 1. INICIALIZAÇÃO DO NÓ PEERJS
         // =========================================================
         function initPeer() {
             myCode = generateShortCode();
@@ -322,36 +392,33 @@
 
             peer.on('open', () => {
                 document.getElementById('myShortCode').textContent = myCode;
-                setPeerStatus('Online • Pronto para conectar', 'green');
+                setPeerStatus('ONLINE // REDE MESH PRONTA', true);
             });
 
-            // Quando o parceiro(a) conecta via código
+            // Recebe conexão de dados de qualquer amigo
             peer.on('connection', (conn) => {
-                setupDataChannel(conn);
+                registerDataConnection(conn);
             });
 
-            // Quando o parceiro(a) envia a transmissão de vídeo dele(a)
+            // Recebe chamada de vídeo (1080p) de qualquer amigo
             peer.on('call', (call) => {
-                incomingCall = call;
-                // Sempre salvamos o ID de quem ligou para garantir comunicação nos dois sentidos
-                if (!connectedPeerId) {
-                    connectedPeerId = call.peer;
-                    updateConnectedUI(call.peer.replace(PEER_PREFIX, ''));
-                }
+                const remotePeerId = call.peer;
+                const entry = ensurePeerEntry(remotePeerId);
+                entry.incomingCall = call;
 
-                // Respondemos sem passar stream na resposta (cada direção usa sua própria chamada independente!)
+                // Atende a chamada (cada direção usa sua própria chamada independente para máxima estabilidade)
                 call.answer();
 
                 call.on('stream', (incStream) => {
-                    receiveRemoteStream(incStream);
+                    handleIncomingRemoteStream(remotePeerId, incStream);
                 });
 
                 call.on('close', () => {
-                    clearRemoteStream();
+                    removeRemoteStream(remotePeerId);
                 });
 
                 call.on('error', () => {
-                    clearRemoteStream();
+                    removeRemoteStream(remotePeerId);
                 });
             });
 
@@ -360,210 +427,668 @@
                 if (err.type === 'unavailable-id') {
                     initPeer();
                 } else if (err.type === 'peer-unavailable') {
-                    showToast('Código não encontrado! Verifique se sua namorada(o) está com a página aberta.', 'error');
-                    resetConnectionBtn();
+                    showToast('ID NÃO ENCONTRADO OU OFFLINE.');
+                    resetConnectButton();
                 }
             });
         }
 
-        function setPeerStatus(text, color) {
+        function setPeerStatus(text, isOnline) {
             const dot = document.getElementById('peerStatusDot');
             const label = document.getElementById('peerStatusText');
             label.textContent = text;
-            dot.className = 'w-2 h-2 rounded-full ' + (color === 'green' ? 'bg-discord-green' : 'bg-discord-yellow animate-pulse');
+            dot.className = isOnline ? 'w-1.5 h-1.5 bg-mono-white' : 'w-1.5 h-1.5 bg-mono-muted animate-pulse';
+        }
+
+        function ensurePeerEntry(fullPeerId) {
+            if (!peersMap.has(fullPeerId)) {
+                peersMap.set(fullPeerId, {
+                    peerId: fullPeerId,
+                    shortCode: getShortCode(fullPeerId),
+                    dataConn: null,
+                    outgoingCall: null,
+                    incomingCall: null,
+                    remoteStream: null,
+                    muted: false,
+                    volume: 100
+                });
+            }
+            return peersMap.get(fullPeerId);
         }
 
         // =========================================================
-        // 2. CONEXÃO BIDIRECIONAL ENTRE VOCÊ E SUA NAMORADA
+        // 2. CONEXÃO MULTI-AMIGOS E DESCOBERTA EM MALHA (MESH)
         // =========================================================
-        function connectToPartner() {
-            const rawInput = document.getElementById('partnerCodeInput').value;
-            const partnerCode = cleanInputCode(rawInput);
+        function connectToPartner(optionalCode) {
+            const inputEl = document.getElementById('partnerCodeInput');
+            const rawCode = optionalCode || inputEl.value;
+            const partnerCode = cleanInputCode(rawCode);
 
             if (!partnerCode) {
-                showToast('Digite o código de 5 letras primeiro!', 'warning');
+                showToast('DIGITE O ID DE 5 CARACTERES DO AMIGO.');
                 return;
             }
             if (partnerCode === myCode) {
-                showToast('Esse é o seu próprio código! Digite o código dela(e).', 'warning');
+                showToast('ESTE É O SEU PRÓPRIO ID.');
                 return;
             }
 
             const targetPeerId = PEER_PREFIX + partnerCode;
-            connectedPeerId = targetPeerId;
+            const existing = peersMap.get(targetPeerId);
+            if (existing && existing.dataConn && existing.dataConn.open) {
+                showToast(`JÁ CONECTADO COM ${partnerCode}.`);
+                if (!optionalCode) inputEl.value = '';
+                return;
+            }
 
-            const btn = document.getElementById('connectBtn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Conectando...</span>';
+            if (!optionalCode) {
+                const btn = document.getElementById('connectBtn');
+                btn.innerHTML = '<span>...</span>';
+                inputEl.value = '';
+            }
 
+            ensurePeerEntry(targetPeerId);
             const conn = peer.connect(targetPeerId, { reliable: true });
-            setupDataChannel(conn);
+            registerDataConnection(conn);
 
-            // Se já estivermos compartilhando tela antes mesmo do canal de dados abrir, já empuxamos o vídeo
             if (isSharing && outboundStream) {
-                pushStreamToPartner();
+                pushStreamToSinglePeer(targetPeerId);
             }
         }
 
-        function setupDataChannel(conn) {
-            dataConn = conn;
-            connectedPeerId = conn.peer;
+        function registerDataConnection(conn) {
+            const remotePeerId = conn.peer;
+            const entry = ensurePeerEntry(remotePeerId);
+            entry.dataConn = conn;
 
             conn.on('open', () => {
-                const shortPartner = conn.peer.replace(PEER_PREFIX, '');
-                updateConnectedUI(shortPartner);
-                showToast(`Conectado com ${shortPartner}!`, 'success');
+                resetConnectButton();
+                updateConnectedPeersUI();
+                showToast(`CONECTADO AO NÓ [${entry.shortCode}]`);
 
-                // Se EU já estou compartilhando tela, envio imediatamente para o parceiro(a)
+                // 1. Se já estamos transmitindo tela, enviamos imediatamente para este amigo
                 if (isSharing && outboundStream) {
-                    pushStreamToPartner();
+                    pushStreamToSinglePeer(remotePeerId);
                 }
 
-                // Pede para o parceiro(a) também enviar a tela dele(a) caso já esteja compartilhando
+                // 2. Solicita sincronização caso o amigo já esteja transmitindo
                 conn.send({ type: 'SYNC_REQUEST' });
+
+                // 3. Descoberta em malha (Mesh): envia lista de outros amigos conectados na sala
+                broadcastMeshPeerList();
             });
 
             conn.on('data', (data) => {
                 if (!data) return;
 
                 if (data.type === 'SYNC_REQUEST') {
-                    // O parceiro pediu sincronização: se estamos transmitindo, enviamos a chamada agora
                     if (isSharing && outboundStream) {
-                        pushStreamToPartner();
+                        pushStreamToSinglePeer(remotePeerId);
                     }
                 } else if (data.type === 'STREAM_STOPPED') {
-                    clearRemoteStream();
-                    showToast('O parceiro(a) encerrou o compartilhamento de tela.', 'info');
+                    removeRemoteStream(remotePeerId);
+                    showToast(`[${entry.shortCode}] ENCERROU A TRANSMISSÃO.`);
+                } else if (data.type === 'MESH_PEERS' && Array.isArray(data.peers)) {
+                    // Conecta automaticamente aos outros amigos que estão na mesma sala!
+                    data.peers.forEach(otherPeerId => {
+                        const otherShort = getShortCode(otherPeerId);
+                        if (otherShort && otherShort !== myCode && !peersMap.has(otherPeerId)) {
+                            connectToPartner(otherShort);
+                        }
+                    });
                 }
             });
 
             conn.on('close', () => {
-                disconnectPartner();
+                disconnectSpecificPeer(remotePeerId);
+            });
+
+            conn.on('error', () => {
+                resetConnectButton();
             });
         }
 
-        function updateConnectedUI(partnerShortCode) {
-            document.getElementById('connectFormWrapper').classList.add('hidden');
-            const banner = document.getElementById('connectedBanner');
-            banner.classList.remove('hidden');
-            banner.classList.add('flex');
-            document.getElementById('connectedPartnerLabel').textContent = `Conectado: ${partnerShortCode}`;
-            resetConnectionBtn();
+        function broadcastMeshPeerList() {
+            const allActivePeerIds = Array.from(peersMap.keys());
+            peersMap.forEach(entry => {
+                if (entry.dataConn && entry.dataConn.open) {
+                    entry.dataConn.send({
+                        type: 'MESH_PEERS',
+                        peers: allActivePeerIds
+                    });
+                }
+            });
         }
 
-        function resetConnectionBtn() {
+        function resetConnectButton() {
             const btn = document.getElementById('connectBtn');
-            btn.innerHTML = '<i class="fa-solid fa-link"></i><span>Conectar</span>';
+            btn.innerHTML = '<i class="fa-solid fa-plus text-[9px]"></i><span>ADICIONAR</span>';
+        }
+
+        function disconnectSpecificPeer(fullPeerId) {
+            const entry = peersMap.get(fullPeerId);
+            if (!entry) return;
+
+            if (entry.outgoingCall) { try { entry.outgoingCall.close(); } catch(e){} }
+            if (entry.incomingCall) { try { entry.incomingCall.close(); } catch(e){} }
+            if (entry.dataConn) { try { entry.dataConn.close(); } catch(e){} }
+
+            const tile = document.getElementById(`tile-${fullPeerId}`);
+            if (tile) tile.remove();
+
+            peersMap.delete(fullPeerId);
+
+            if (focusedScreenId === fullPeerId) {
+                focusedScreenId = null;
+                layoutMode = 'grid';
+            }
+
+            updateConnectedPeersUI();
+            renderStage();
+            showToast(`DESCONECTADO DE [${entry.shortCode}]`);
         }
 
         function manualSyncStreams() {
-            if (isSharing && outboundStream && connectedPeerId) {
-                pushStreamToPartner();
-            }
-            if (dataConn && dataConn.open) {
-                dataConn.send({ type: 'SYNC_REQUEST' });
-            }
-            showToast('Sincronizando transmissão de vídeo...', 'info');
+            peersMap.forEach((entry, peerId) => {
+                if (isSharing && outboundStream) {
+                    pushStreamToSinglePeer(peerId);
+                }
+                if (entry.dataConn && entry.dataConn.open) {
+                    entry.dataConn.send({ type: 'SYNC_REQUEST' });
+                }
+            });
+            showToast('SINCRONIZANDO TODAS AS TELAS ATIVAS...');
         }
 
-        function disconnectPartner() {
-            if (outgoingCall) { outgoingCall.close(); outgoingCall = null; }
-            if (incomingCall) { incomingCall.close(); incomingCall = null; }
-            if (dataConn) { dataConn.close(); dataConn = null; }
-            connectedPeerId = null;
-
-            clearRemoteStream();
-            document.getElementById('connectedBanner').classList.add('hidden');
-            document.getElementById('connectedBanner').classList.remove('flex');
-            document.getElementById('connectFormWrapper').classList.remove('hidden');
-            showToast('Desconectado da sala.', 'info');
-        }
-
-        // Envia nosso stream 1080p para o parceiro(a) conectado
-        function pushStreamToPartner() {
-            if (!peer || !connectedPeerId || !outboundStream) return;
+        // Envia nosso stream 1080p para 1 amigo específico
+        function pushStreamToSinglePeer(targetPeerId) {
+            if (!peer || !outboundStream) return;
+            const entry = ensurePeerEntry(targetPeerId);
 
             try {
-                if (outgoingCall) {
-                    outgoingCall.close();
+                if (entry.outgoingCall) {
+                    entry.outgoingCall.close();
                 }
-                outgoingCall = peer.call(connectedPeerId, outboundStream);
-                if (outgoingCall && outgoingCall.peerConnection) {
-                    boostWebRTCBitrate(outgoingCall.peerConnection);
+                const call = peer.call(targetPeerId, outboundStream);
+                entry.outgoingCall = call;
+                if (call && call.peerConnection) {
+                    boostWebRTCBitrate(call.peerConnection);
                 }
             } catch (e) {
-                console.error('Erro ao enviar stream para parceiro:', e);
+                console.warn('Erro ao enviar stream para:', targetPeerId, e);
             }
         }
 
-        // Recebe e exibe imediatamente o vídeo do parceiro(a)
-        function receiveRemoteStream(stream) {
-            remoteStream = stream;
-            const remoteVideo = document.getElementById('remoteVideo');
-            remoteVideo.srcObject = stream;
-
-            document.getElementById('remoteLiveDot').classList.remove('hidden');
-
-            // Muda automaticamente para a aba "Tela Conectada" assim que o vídeo chega
-            switchView('remote');
-            playRemoteVideoSafely();
-            startTelemetry();
-            showToast('Recebendo transmissão ao vivo!', 'success');
-
-            // Detecta se as tracks remotas encerrarem
-            stream.getVideoTracks().forEach(track => {
-                track.onended = () => clearRemoteStream();
+        // Envia nosso stream 1080p para TODOS os amigos conectados
+        function pushStreamToAllPeers() {
+            peersMap.forEach((_, peerId) => {
+                pushStreamToSinglePeer(peerId);
             });
         }
 
-        // Garante que o vídeo toque mesmo se o navegador bloquear Autoplay com som
-        function playRemoteVideoSafely() {
-            const remoteVideo = document.getElementById('remoteVideo');
+        // =========================================================
+        // 3. RECEBIMENTO E GERENCIAMENTO DE MÚLTIPLAS TELAS
+        // =========================================================
+        function handleIncomingRemoteStream(remotePeerId, stream) {
+            const entry = ensurePeerEntry(remotePeerId);
+            entry.remoteStream = stream;
+
+            // Observa encerramento da faixa de vídeo
+            stream.getVideoTracks().forEach(track => {
+                track.onended = () => removeRemoteStream(remotePeerId);
+            });
+
+            updateConnectedPeersUI();
+            renderStage();
+            showToast(`SINAL RECEBIDO DE [${entry.shortCode}]`);
+        }
+
+        function removeRemoteStream(remotePeerId) {
+            const entry = peersMap.get(remotePeerId);
+            if (!entry) return;
+            entry.remoteStream = null;
+
+            const tile = document.getElementById(`tile-${remotePeerId}`);
+            if (tile) tile.remove();
+
+            if (focusedScreenId === remotePeerId) {
+                focusedScreenId = null;
+                layoutMode = 'grid';
+            }
+
+            updateConnectedPeersUI();
+            renderStage();
+        }
+
+        // =========================================================
+        // 4. RENDERIZAÇÃO DO PALCO (GRADE SIMULTÂNEA vs MODO FOCO)
+        // =========================================================
+        function setLayoutMode(mode, targetScreenId = null) {
+            layoutMode = mode;
+
+            if (mode === 'focus') {
+                if (targetScreenId) {
+                    focusedScreenId = targetScreenId;
+                } else if (!focusedScreenId) {
+                    // Escolhe a primeira tela disponível para focar
+                    const firstRemote = Array.from(peersMap.values()).find(p => p.remoteStream);
+                    if (firstRemote) {
+                        focusedScreenId = firstRemote.peerId;
+                    } else if (isSharing && outboundStream) {
+                        focusedScreenId = 'local';
+                    }
+                }
+            }
+
+            renderStage();
+        }
+
+        function focusOnScreen(screenId) {
+            if (layoutMode === 'focus' && focusedScreenId === screenId) {
+                // Clicar novamente no botão Foco volta para a Grade Simultânea
+                setLayoutMode('grid');
+            } else {
+                setLayoutMode('focus', screenId);
+            }
+        }
+
+        function toggleSelfView() {
+            showSelfInStage = !showSelfInStage;
+            const btn = document.getElementById('toggleSelfPreviewBtn');
+            if (showSelfInStage) {
+                btn.className = 'px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 text-mono-white border border-transparent hover:border-mono-border';
+                btn.innerHTML = '<i class="fa-regular fa-eye text-[10px]"></i><span class="hidden md:inline">MINHA TELA: ON</span>';
+            } else {
+                btn.className = 'px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 text-mono-muted border border-transparent hover:border-mono-border';
+                btn.innerHTML = '<i class="fa-regular fa-eye-slash text-[10px]"></i><span class="hidden md:inline">MINHA TELA: OFF</span>';
+                if (focusedScreenId === 'local') {
+                    focusedScreenId = null;
+                    layoutMode = 'grid';
+                }
+            }
+            renderStage();
+        }
+
+        function renderStage() {
+            const grid = document.getElementById('screensGrid');
+            const emptyStage = document.getElementById('emptyStage');
+
+            // Coleta todas as telas ativas que devem aparecer
+            const activeScreens = [];
+
+            // 1. Telas dos amigos conectados
+            peersMap.forEach((entry) => {
+                if (entry.remoteStream) {
+                    activeScreens.push({
+                        id: entry.peerId,
+                        type: 'remote',
+                        label: `AMIGO // ${entry.shortCode}`,
+                        shortCode: entry.shortCode,
+                        stream: entry.remoteStream,
+                        entry: entry
+                    });
+                }
+            });
+
+            // 2. Minha própria tela (se estiver transmitindo e visível)
+            if (isSharing && outboundStream && (showSelfInStage || (layoutMode === 'focus' && focusedScreenId === 'local'))) {
+                activeScreens.push({
+                    id: 'local',
+                    type: 'local',
+                    label: `MINHA TELA // ${myCode}`,
+                    shortCode: myCode,
+                    stream: outboundStream,
+                    entry: null
+                });
+            }
+
+            // Atualiza contador no botão Grade
+            document.getElementById('activeScreensCount').textContent = activeScreens.length;
+
+            // Atualiza estilo dos botões Grade vs Foco no Header
+            const modeGridBtn = document.getElementById('modeGridBtn');
+            const modeFocusBtn = document.getElementById('modeFocusBtn');
+            if (layoutMode === 'grid') {
+                modeGridBtn.className = 'px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 bg-mono-white text-mono-black font-semibold';
+                modeFocusBtn.className = 'px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 text-mono-silver hover:text-mono-white';
+            } else {
+                modeFocusBtn.className = 'px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 bg-mono-white text-mono-black font-semibold';
+                modeGridBtn.className = 'px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 text-mono-silver hover:text-mono-white';
+            }
+
+            // Atualiza barra de abas rápidas no subHeader
+            renderQuickTabs(activeScreens);
+
+            // Se não há nenhuma tela ativa, exibe o estado vazio minimalista
+            if (activeScreens.length === 0) {
+                grid.innerHTML = '';
+                emptyStage.classList.remove('hidden');
+                return;
+            }
+
+            emptyStage.classList.add('hidden');
+
+            // Se estivermos em modo foco mas a tela focada não existe mais, escolhe a primeira disponível
+            if (layoutMode === 'focus' && !activeScreens.some(s => s.id === focusedScreenId)) {
+                focusedScreenId = activeScreens[0].id;
+            }
+
+            // Determina quais telas serão visíveis agora
+            const visibleScreens = layoutMode === 'focus'
+                ? activeScreens.filter(s => s.id === focusedScreenId)
+                : activeScreens;
+
+            // Calcula colunas e linhas ideais do Grid Responsivo (1, 2, 3, 4, 6+ telas simultâneas)
+            const count = visibleScreens.length;
+            let gridClasses = 'w-full h-full grid gap-2 p-2 overflow-auto ';
+            if (count === 1) {
+                gridClasses += 'grid-cols-1 grid-rows-1';
+            } else if (count === 2) {
+                gridClasses += 'grid-cols-1 lg:grid-cols-2 grid-rows-2 lg:grid-rows-1';
+            } else if (count <= 4) {
+                gridClasses += 'grid-cols-1 md:grid-cols-2 grid-rows-2';
+            } else {
+                gridClasses += 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr';
+            }
+            grid.className = gridClasses;
+
+            // Remove tiles de telas que saíram
+            const currentTileIds = new Set(activeScreens.map(s => `tile-${s.id}`));
+            Array.from(grid.children).forEach(child => {
+                if (!currentTileIds.has(child.id)) {
+                    child.remove();
+                }
+            });
+
+            // Cria ou atualiza cada tile de vídeo sem interromper o playback!
+            activeScreens.forEach(screen => {
+                let tile = document.getElementById(`tile-${screen.id}`);
+                if (!tile) {
+                    tile = createVideoTileElement(screen);
+                    grid.appendChild(tile);
+                } else {
+                    updateVideoTileControls(tile, screen);
+                }
+
+                // Mostra ou oculta conforme Modo Grade vs Modo Foco
+                const isVisible = layoutMode === 'grid' || screen.id === focusedScreenId;
+                if (isVisible) {
+                    tile.classList.remove('hidden');
+                    tile.classList.add('flex');
+                } else {
+                    tile.classList.add('hidden');
+                    tile.classList.remove('flex');
+                }
+            });
+        }
+
+        function createVideoTileElement(screen) {
+            const tile = document.createElement('div');
+            tile.id = `tile-${screen.id}`;
+            tile.className = 'video-tile relative w-full h-full bg-[#030303] border border-mono-border flex flex-col justify-between overflow-hidden group';
+
+            // Elemento <video>
+            const video = document.createElement('video');
+            video.id = `video-${screen.id}`;
+            video.autoplay = true;
+            video.playsInline = true;
+            video.className = 'w-full h-full object-contain bg-mono-black cursor-pointer';
+            video.srcObject = screen.stream;
+
+            // Clique duplo na tela alterna entre Foco e Grade
+            video.ondblclick = () => focusOnScreen(screen.id);
+
+            if (screen.type === 'local') {
+                video.muted = true;
+                video.play().catch(() => {});
+            } else {
+                playRemoteVideoElementSafely(video, screen.entry);
+            }
+
+            // Topo Flutuante Minimalista (Identificação + Resolução)
+            const topBar = document.createElement('div');
+            topBar.className = 'absolute top-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between pointer-events-none';
+            topBar.innerHTML = `
+                <div class="flex items-center gap-2 bg-mono-black/90 border border-mono-border px-2.5 py-1">
+                    <span class="w-1.5 h-1.5 bg-mono-white"></span>
+                    <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-mono-white">${screen.label}</span>
+                </div>
+                <div id="res-${screen.id}" class="bg-mono-black/90 border border-mono-border px-2 py-1 font-mono text-[10px] text-mono-silver uppercase">
+                    1080P • LIVE
+                </div>
+            `;
+
+            // Barra Inferior do Card (Focar, Volume Individual, Tela Cheia)
+            const bottomBar = document.createElement('div');
+            bottomBar.className = 'absolute bottom-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between bg-mono-black/90 border border-mono-border px-3 py-1.5 opacity-95 group-hover:opacity-100 transition';
+
+            const leftControls = document.createElement('div');
+            leftControls.className = 'flex items-center gap-2';
+
+            if (screen.type === 'remote') {
+                leftControls.innerHTML = `
+                    <button onclick="togglePeerMute('${screen.id}')" id="muteBtn-${screen.id}"
+                        class="text-mono-silver hover:text-mono-white transition font-mono text-xs" title="Mutar/Desmutar este amigo">
+                        <i class="fa-solid fa-volume-high text-[11px]"></i>
+                    </button>
+                    <input type="range" min="0" max="100" value="${screen.entry.volume}"
+                        oninput="changePeerVolume('${screen.id}', this.value)"
+                        class="w-20" title="Volume individual de ${screen.shortCode}">
+                `;
+            } else {
+                leftControls.innerHTML = `
+                    <span class="font-mono text-[10px] uppercase text-mono-muted">PRÉVIA LOCAL (MUTADO P/ VOCÊ)</span>
+                `;
+            }
+
+            const rightControls = document.createElement('div');
+            rightControls.className = 'flex items-center gap-1.5';
+            rightControls.innerHTML = `
+                <button onclick="focusOnScreen('${screen.id}')" id="focusBtn-${screen.id}"
+                    class="px-2.5 py-1 font-mono text-[10px] uppercase border border-mono-border hover:border-mono-white bg-mono-panel text-mono-white transition flex items-center gap-1.5"
+                    title="Focar apenas nesta tela ou voltar para a Grade">
+                    <i class="fa-solid fa-crosshairs text-[10px]"></i>
+                    <span class="focus-btn-label">${layoutMode === 'focus' && focusedScreenId === screen.id ? 'VOLTAR À GRADE' : 'FOCAR TELA'}</span>
+                </button>
+                <button onclick="fullscreenSingleTile('tile-${screen.id}')"
+                    class="px-2 py-1 font-mono text-[10px] border border-mono-border hover:border-mono-white bg-mono-panel text-mono-silver hover:text-mono-white transition"
+                    title="Tela Cheia nesta transmissão">
+                    <i class="fa-solid fa-expand text-[10px]"></i>
+                </button>
+            `;
+
+            bottomBar.appendChild(leftControls);
+            bottomBar.appendChild(rightControls);
+
+            tile.appendChild(video);
+            tile.appendChild(topBar);
+            tile.appendChild(bottomBar);
+
+            return tile;
+        }
+
+        function updateVideoTileControls(tile, screen) {
+            const video = tile.querySelector('video');
+            if (video && video.srcObject !== screen.stream) {
+                video.srcObject = screen.stream;
+                if (screen.type === 'remote') {
+                    playRemoteVideoElementSafely(video, screen.entry);
+                } else {
+                    video.play().catch(() => {});
+                }
+            }
+
+            const focusBtnLabel = tile.querySelector('.focus-btn-label');
+            const focusBtn = tile.querySelector(`#focusBtn-${screen.id}`);
+            if (focusBtnLabel && focusBtn) {
+                if (layoutMode === 'focus' && focusedScreenId === screen.id) {
+                    focusBtnLabel.textContent = 'VOLTAR À GRADE';
+                    focusBtn.className = 'px-2.5 py-1 font-mono text-[10px] uppercase border border-mono-white bg-mono-white text-mono-black font-bold transition flex items-center gap-1.5';
+                } else {
+                    focusBtnLabel.textContent = 'FOCAR TELA';
+                    focusBtn.className = 'px-2.5 py-1 font-mono text-[10px] uppercase border border-mono-border hover:border-mono-white bg-mono-panel text-mono-white transition flex items-center gap-1.5';
+                }
+            }
+        }
+
+        // Renderiza as abas superiores para alternar rapidamente entre "TODAS (GRADE)" ou focar em qualquer amigo
+        function renderQuickTabs(activeScreens) {
+            const container = document.getElementById('screenTabsContainer');
+            let html = `
+                <span class="font-mono text-[10px] uppercase text-mono-muted mr-1">TELAS:</span>
+                <button onclick="setLayoutMode('grid')"
+                    class="px-2.5 py-0.5 font-mono text-[10px] uppercase border transition ${
+                        layoutMode === 'grid'
+                            ? 'border-mono-white bg-mono-white text-mono-black font-bold'
+                            : 'border-mono-border bg-mono-panel text-mono-silver hover:text-mono-white'
+                    }">
+                    GRADE SIMULTÂNEA (${activeScreens.length})
+                </button>
+            `;
+
+            activeScreens.forEach(s => {
+                const isFocused = (layoutMode === 'focus' && focusedScreenId === s.id);
+                html += `
+                    <button onclick="setLayoutMode('focus', '${s.id}')"
+                        class="px-2.5 py-0.5 font-mono text-[10px] uppercase border transition flex items-center gap-1.5 ${
+                            isFocused
+                                ? 'border-mono-white bg-mono-white text-mono-black font-bold'
+                                : 'border-mono-border bg-mono-panel text-mono-silver hover:text-mono-white'
+                        }">
+                        <span class="w-1.5 h-1.5 ${isFocused ? 'bg-mono-black' : 'bg-mono-white'}"></span>
+                        <span>${s.type === 'local' ? 'MINHA TELA' : s.shortCode}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateConnectedPeersUI() {
+            const container = document.getElementById('connectedPeersPills');
+            const entries = Array.from(peersMap.values());
+
+            if (entries.length === 0) {
+                container.innerHTML = `<span class="font-mono text-[10px] uppercase text-mono-muted">CONECTADOS: 0</span>`;
+                return;
+            }
+
+            let html = `<span class="font-mono text-[10px] uppercase text-mono-muted">CONECTADOS (${entries.length}):</span>`;
+            entries.forEach(e => {
+                const hasVideo = !!e.remoteStream;
+                html += `
+                    <div class="flex items-center gap-1.5 bg-mono-panel border border-mono-border px-2 py-0.5 font-mono text-[10px]">
+                        <span class="w-1.5 h-1.5 ${hasVideo ? 'bg-mono-white' : 'bg-mono-muted'}"></span>
+                        <span class="text-mono-white font-semibold">${e.shortCode}</span>
+                        <button onclick="disconnectSpecificPeer('${e.peerId}')" class="text-mono-muted hover:text-mono-white ml-1" title="Desconectar ${e.shortCode}">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // =========================================================
+        // 5. CONTROLE DE ÁUDIO INDIVIDUAL E AUTOPLAY
+        // =========================================================
+        function playRemoteVideoElementSafely(videoEl, entry) {
             const unmuteBtn = document.getElementById('unmuteAutoplayBtn');
+            videoEl.muted = isMasterMuted || (entry && entry.muted);
+            videoEl.volume = ((entry ? entry.volume : 100) / 100) * masterVolume;
 
-            remoteVideo.muted = false;
-            const playPromise = remoteVideo.play();
-
+            const playPromise = videoEl.play();
             if (playPromise !== undefined) {
-                playPromise.then(() => {
-                    unmuteBtn.classList.add('hidden');
-                    unmuteBtn.classList.remove('flex');
-                }).catch(() => {
-                    // Navegador bloqueou reprodução com áudio sem clique prévio -> toca mutado e exibe botão
-                    remoteVideo.muted = true;
-                    remoteVideo.play().catch(() => {});
+                playPromise.catch(() => {
+                    // Se o navegador bloquear autoplay com áudio, inicia o vídeo mutado e exibe o botão de desbloqueio
+                    videoEl.muted = true;
+                    videoEl.play().catch(() => {});
                     unmuteBtn.classList.remove('hidden');
                     unmuteBtn.classList.add('flex');
                 });
             }
         }
 
-        function forceUnmuteRemoteVideo() {
-            const remoteVideo = document.getElementById('remoteVideo');
+        function forceUnmuteAllRemoteVideos() {
             const unmuteBtn = document.getElementById('unmuteAutoplayBtn');
-            remoteVideo.muted = false;
-            remoteVideo.volume = document.getElementById('remoteVolSlider').value / 100;
-            remoteVideo.play().catch(() => {});
+            peersMap.forEach((entry) => {
+                const v = document.getElementById(`video-${entry.peerId}`);
+                if (v) {
+                    v.muted = isMasterMuted || entry.muted;
+                    v.volume = (entry.volume / 100) * masterVolume;
+                    v.play().catch(() => {});
+                }
+            });
             unmuteBtn.classList.add('hidden');
             unmuteBtn.classList.remove('flex');
         }
 
-        function clearRemoteStream() {
-            remoteStream = null;
-            const remoteVideo = document.getElementById('remoteVideo');
-            remoteVideo.srcObject = null;
-            document.getElementById('remoteLiveDot').classList.add('hidden');
-            document.getElementById('unmuteAutoplayBtn').classList.add('hidden');
-            document.getElementById('unmuteAutoplayBtn').classList.remove('flex');
+        function changePeerVolume(peerId, val) {
+            const entry = peersMap.get(peerId);
+            if (!entry) return;
+            entry.volume = Number(val);
+            entry.muted = (entry.volume === 0);
 
-            if (isSharing) {
-                switchView('local');
-            } else {
-                refreshStageVisibility();
+            const v = document.getElementById(`video-${peerId}`);
+            if (v) {
+                v.volume = (entry.volume / 100) * masterVolume;
+                v.muted = isMasterMuted || entry.muted;
             }
+            updatePeerMuteIcon(peerId, entry.muted);
+        }
+
+        function togglePeerMute(peerId) {
+            const entry = peersMap.get(peerId);
+            if (!entry) return;
+            entry.muted = !entry.muted;
+
+            const v = document.getElementById(`video-${peerId}`);
+            if (v) {
+                v.muted = isMasterMuted || entry.muted;
+            }
+            updatePeerMuteIcon(peerId, entry.muted);
+        }
+
+        function updatePeerMuteIcon(peerId, isMuted) {
+            const btn = document.getElementById(`muteBtn-${peerId}`);
+            if (!btn) return;
+            btn.innerHTML = isMuted
+                ? '<i class="fa-solid fa-volume-xmark text-[11px] text-mono-muted"></i>'
+                : '<i class="fa-solid fa-volume-high text-[11px] text-mono-white"></i>';
+        }
+
+        function changeMasterVolume(val) {
+            masterVolume = Number(val) / 100;
+            isMasterMuted = (masterVolume === 0);
+
+            peersMap.forEach((entry, peerId) => {
+                const v = document.getElementById(`video-${peerId}`);
+                if (v) {
+                    v.volume = (entry.volume / 100) * masterVolume;
+                    v.muted = isMasterMuted || entry.muted;
+                }
+            });
+
+            document.getElementById('masterVolIcon').className = isMasterMuted
+                ? 'fa-solid fa-volume-xmark text-xs text-mono-muted'
+                : 'fa-solid fa-volume-high text-xs text-mono-white';
+        }
+
+        function toggleMasterMute() {
+            isMasterMuted = !isMasterMuted;
+            peersMap.forEach((entry, peerId) => {
+                const v = document.getElementById(`video-${peerId}`);
+                if (v) {
+                    v.muted = isMasterMuted || entry.muted;
+                }
+            });
+            document.getElementById('masterVolIcon').className = isMasterMuted
+                ? 'fa-solid fa-volume-xmark text-xs text-mono-muted'
+                : 'fa-solid fa-volume-high text-xs text-mono-white';
         }
 
         // =========================================================
-        // 3. CAPTURA DE TELA 1080p 30FPS + ANTI-VOZ DO DISCORD
+        // 6. CAPTURA DE TELA 1080P 30FPS + ISOLAMENTO DO DISCORD
         // =========================================================
         function toggleScreenShare() {
             if (isSharing) {
@@ -598,43 +1123,24 @@
                     stopScreenShare();
                 };
 
-                // Monta o stream de saída com segurança (funciona COM ou SEM áudio compartilhado)
                 await setupOutboundStream(rawDisplayStream);
 
                 isSharing = true;
-                const localVideo = document.getElementById('localVideo');
-                localVideo.srcObject = outboundStream;
-                localVideo.play().catch(() => {});
-
-                document.getElementById('localLiveDot').classList.remove('hidden');
                 updateShareButtonUI(true);
+                renderStage();
 
-                // Se o parceiro não estiver transmitindo, mostra nossa prévia; se estiver, mantém na tela dele
-                if (!remoteStream) {
-                    switchView('local');
-                } else {
-                    refreshStageVisibility();
-                }
-
-                startTelemetry();
-
-                // Se já estamos conectados com o parceiro(a), envia o vídeo imediatamente!
-                if (connectedPeerId) {
-                    pushStreamToPartner();
-                    showToast('Transmitindo sua tela em 1080p 30FPS para o parceiro(a)!', 'success');
-                } else {
-                    showToast('Tela capturada! Conecte ao código do parceiro(a) no topo.', 'info');
-                }
+                // Envia automaticamente para todos os amigos já conectados
+                pushStreamToAllPeers();
+                showToast('TRANSMITINDO EM 1080P 30FPS PARA A SALA.');
 
             } catch (err) {
-                console.warn('Compartilhamento cancelado:', err);
+                console.warn('Captura de tela cancelada:', err);
             }
         }
 
         async function setupOutboundStream(sourceStream) {
             const audioTracks = sourceStream.getAudioTracks();
 
-            // Se o usuário não marcou "Compartilhar áudio do sistema", envia o vídeo direto sem erro!
             if (audioTracks.length === 0) {
                 outboundStream = new MediaStream([sourceStream.getVideoTracks()[0]]);
                 updateAudioBadgeUI(false);
@@ -653,7 +1159,7 @@
                 const dest = audioCtx.createMediaStreamDestination();
                 const src = audioCtx.createMediaStreamSource(new MediaStream([audioTracks[0]]));
 
-                // 3 Filtros Biquad cirúrgicos na faixa de voz humana do Discord (300Hz a 3400Hz)
+                // 3 Filtros Biquad em cascata na faixa vocal do Discord (300Hz a 3400Hz)
                 filterBand1 = audioCtx.createBiquadFilter();
                 filterBand1.type = 'peaking';
                 filterBand1.frequency.value = 500;
@@ -686,14 +1192,12 @@
                 updateAudioBadgeUI(true);
 
             } catch (e) {
-                console.warn('Fallback de áudio direto:', e);
                 outboundStream = sourceStream;
                 updateAudioBadgeUI(true);
             }
         }
 
         function applyAudioFilterStates() {
-            // 1. Mute total da live (Anti-Eco para quem já está em Call no Discord)
             if (outGainNode && audioCtx) {
                 outGainNode.gain.setTargetAtTime(isOutgoingAudioMuted ? 0 : 1, audioCtx.currentTime, 0.02);
             }
@@ -703,7 +1207,6 @@
                 });
             }
 
-            // 2. Filtro Notch de Vozes (300Hz - 3400Hz)
             if (filterBand1 && filterBand2 && filterBand3 && audioCtx) {
                 const db = isVoiceFilterActive ? -34 : 0;
                 const now = audioCtx.currentTime;
@@ -715,7 +1218,6 @@
             updateAudioBadgeUI(rawDisplayStream && rawDisplayStream.getAudioTracks().length > 0);
         }
 
-        // Botão 2: Mutar Som da Live (Ideal quando estão conversando no Discord)
         function toggleOutgoingAudioMute() {
             isOutgoingAudioMuted = !isOutgoingAudioMuted;
             applyAudioFilterStates();
@@ -725,19 +1227,18 @@
             const text = document.getElementById('muteOutgoingText');
 
             if (isOutgoingAudioMuted) {
-                btn.className = 'bg-discord-red/20 border border-discord-red text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2';
-                icon.className = 'fa-solid fa-volume-xmark text-discord-red';
-                text.textContent = 'Mutar Som do Discord/Live: ON (Sem Eco)';
-                showToast('Áudio da transmissão mutado! Vocês não ouvirão vozes duplicadas do Discord.', 'success');
+                btn.className = 'bg-mono-white text-mono-black font-mono font-bold text-xs uppercase px-4 py-2.5 border border-mono-white transition flex items-center gap-2';
+                icon.className = 'fa-solid fa-volume-xmark text-[11px]';
+                text.textContent = 'MUTAR SOM DISCORD/LIVE: ON';
+                showToast('ÁUDIO DA LIVE CORTADO (SEM ECO DE VOZES DO DISCORD).');
             } else {
-                btn.className = 'bg-discord-card hover:bg-discord-hover text-white font-semibold text-xs px-4 py-2.5 rounded-xl border border-white/10 transition flex items-center gap-2';
-                icon.className = 'fa-solid fa-ear-deaf text-discord-green';
-                text.textContent = 'Mutar Som do Discord/Live: OFF';
-                showToast('Áudio da transmissão ativado.', 'info');
+                btn.className = 'bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase px-4 py-2.5 border border-mono-border transition flex items-center gap-2';
+                icon.className = 'fa-solid fa-volume-high text-[11px]';
+                text.textContent = 'MUTAR SOM DISCORD/LIVE: OFF';
+                showToast('ÁUDIO DA LIVE REATIVADO.');
             }
         }
 
-        // Botão 3: Filtro Anti-Voz (300Hz-3400Hz)
         function toggleVoiceBandFilter() {
             isVoiceFilterActive = !isVoiceFilterActive;
             applyAudioFilterStates();
@@ -746,13 +1247,13 @@
             const text = document.getElementById('voiceFilterText');
 
             if (isVoiceFilterActive) {
-                btn.className = 'bg-discord-nitro/20 border border-discord-nitro text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition flex items-center gap-2';
-                text.textContent = 'Filtro Anti-Voz: ON (300-3.4kHz)';
-                showToast('Filtro Anti-Voz ativado: Frequências vocais reduzidas!', 'success');
+                btn.className = 'bg-mono-white text-mono-black font-mono font-bold text-xs uppercase px-4 py-2.5 border border-mono-white transition flex items-center gap-2';
+                text.textContent = 'FILTRO ANTI-VOZ: ON [300-3.4KHZ]';
+                showToast('FILTRO ANTI-VOZ ATIVADO (300HZ–3400HZ ATENUADOS).');
             } else {
-                btn.className = 'bg-discord-card hover:bg-discord-hover text-discord-muted hover:text-white font-semibold text-xs px-4 py-2.5 rounded-xl border border-white/10 transition flex items-center gap-2';
-                text.textContent = 'Filtro Anti-Voz: OFF';
-                showToast('Filtro Anti-Voz desativado.', 'info');
+                btn.className = 'bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase px-4 py-2.5 border border-mono-border transition flex items-center gap-2';
+                text.textContent = 'FILTRO ANTI-VOZ: OFF';
+                showToast('FILTRO ANTI-VOZ DESATIVADO.');
             }
         }
 
@@ -767,61 +1268,74 @@
                 outboundStream.getTracks().forEach(t => t.stop());
                 outboundStream = null;
             }
-            if (outgoingCall) {
-                outgoingCall.close();
-                outgoingCall = null;
-            }
-            if (dataConn && dataConn.open) {
-                dataConn.send({ type: 'STREAM_STOPPED' });
-            }
 
-            const localVideo = document.getElementById('localVideo');
-            localVideo.srcObject = null;
-            document.getElementById('localLiveDot').classList.add('hidden');
+            peersMap.forEach((entry) => {
+                if (entry.outgoingCall) {
+                    try { entry.outgoingCall.close(); } catch(e){}
+                    entry.outgoingCall = null;
+                }
+                if (entry.dataConn && entry.dataConn.open) {
+                    entry.dataConn.send({ type: 'STREAM_STOPPED' });
+                }
+            });
+
+            const localTile = document.getElementById('tile-local');
+            if (localTile) localTile.remove();
+
+            if (focusedScreenId === 'local') {
+                focusedScreenId = null;
+                layoutMode = 'grid';
+            }
 
             updateShareButtonUI(false);
-
-            if (remoteStream) {
-                switchView('remote');
-            } else {
-                refreshStageVisibility();
-            }
+            updateAudioBadgeUI(false);
+            renderStage();
         }
 
         function updateShareButtonUI(sharing) {
             const btn = document.getElementById('shareScreenBtn');
             const icon = document.getElementById('shareScreenIcon');
             const text = document.getElementById('shareScreenText');
+            const dot = document.getElementById('localBroadcastDot');
+            const status = document.getElementById('localBroadcastStatus');
 
             if (sharing) {
-                btn.className = 'bg-discord-red hover:bg-discord-redHover text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2';
-                icon.className = 'fa-solid fa-circle-stop';
-                text.textContent = 'Parar Transmissão';
+                btn.className = 'bg-mono-black hover:bg-mono-hover text-mono-white font-mono font-bold text-xs uppercase px-5 py-2.5 border border-mono-white transition flex items-center gap-2';
+                icon.className = 'fa-solid fa-stop text-[11px]';
+                text.textContent = 'ENCERRAR TRANSMISSÃO';
+                dot.className = 'w-1.5 h-1.5 bg-mono-white animate-ping';
+                status.textContent = 'TX: 1080P ATIVO';
+                status.className = 'text-mono-white font-bold uppercase';
             } else {
-                btn.className = 'bg-discord-green hover:bg-discord-greenHover text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2';
-                icon.className = 'fa-solid fa-desktop';
-                text.textContent = 'Compartilhar Tela (1080p)';
+                btn.className = 'bg-mono-white hover:bg-mono-silver text-mono-black font-mono font-bold text-xs uppercase px-5 py-2.5 border border-mono-white transition flex items-center gap-2';
+                icon.className = 'fa-solid fa-display text-[11px]';
+                text.textContent = 'TRANSMITIR TELA [1080P]';
+                dot.className = 'w-1.5 h-1.5 bg-mono-muted';
+                status.textContent = 'TX: INATIVO';
+                status.className = 'text-mono-silver uppercase';
             }
         }
 
         function updateAudioBadgeUI(hasAudioTrack) {
             const badge = document.getElementById('audioStateBadge');
-            if (!hasAudioTrack) {
-                badge.textContent = 'Vídeo (Sem Áudio)';
-                badge.className = 'bg-black/80 backdrop-blur-md text-discord-muted text-xs font-semibold px-2.5 py-1 rounded-lg border border-white/10';
+            if (!isSharing) {
+                badge.textContent = 'ÁUDIO TX: STANDBY';
+                badge.className = 'border border-mono-border bg-mono-black px-3 py-1.5 text-mono-muted uppercase';
+            } else if (!hasAudioTrack) {
+                badge.textContent = 'ÁUDIO TX: APENAS VÍDEO';
+                badge.className = 'border border-mono-border bg-mono-black px-3 py-1.5 text-mono-muted uppercase';
             } else if (isOutgoingAudioMuted) {
-                badge.textContent = 'Som da Live Mutado';
-                badge.className = 'bg-black/80 backdrop-blur-md text-discord-red text-xs font-semibold px-2.5 py-1 rounded-lg border border-discord-red/30';
+                badge.textContent = 'ÁUDIO TX: MUTADO (SEM ECO)';
+                badge.className = 'border border-mono-white bg-mono-white text-mono-black font-bold px-3 py-1.5 uppercase';
             } else if (isVoiceFilterActive) {
-                badge.textContent = 'Anti-Voz Ativo';
-                badge.className = 'bg-black/80 backdrop-blur-md text-discord-nitro text-xs font-semibold px-2.5 py-1 rounded-lg border border-discord-nitro/30';
+                badge.textContent = 'ÁUDIO TX: FILTRO ANTI-VOZ';
+                badge.className = 'border border-mono-white bg-mono-black text-mono-white font-bold px-3 py-1.5 uppercase';
             } else {
-                badge.textContent = 'Som Ativo';
-                badge.className = 'bg-black/80 backdrop-blur-md text-discord-green text-xs font-semibold px-2.5 py-1 rounded-lg border border-white/10';
+                badge.textContent = 'ÁUDIO TX: DIRETO';
+                badge.className = 'border border-mono-border bg-mono-black px-3 py-1.5 text-mono-white uppercase';
             }
         }
 
-        // Aumenta o Bitrate WebRTC para 6 Mbps (Full HD 1080p 30FPS cristalino)
         function boostWebRTCBitrate(pc) {
             if (!pc || !pc.getSenders) return;
             setTimeout(() => {
@@ -838,91 +1352,39 @@
         }
 
         // =========================================================
-        // 4. CONTROLE DO PALCO DE VÍDEO E INTERFACE
+        // 7. TELEMETRIA DE RESOLUÇÃO, TELA CHEIA E UTILITÁRIOS
         // =========================================================
-        function switchView(tab) {
-            activeTab = tab;
-            const tabRemoteBtn = document.getElementById('tabRemoteBtn');
-            const tabLocalBtn = document.getElementById('tabLocalBtn');
-
-            if (tab === 'remote') {
-                tabRemoteBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition bg-discord-blurple text-white';
-                tabLocalBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition text-discord-muted hover:text-white';
-            } else {
-                tabLocalBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition bg-discord-blurple text-white';
-                tabRemoteBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition text-discord-muted hover:text-white';
-            }
-
-            refreshStageVisibility();
+        function startTelemetryLoop() {
+            if (telemetryInterval) clearInterval(telemetryInterval);
+            telemetryInterval = setInterval(() => {
+                // Atualiza resolução de cada amigo conectado
+                peersMap.forEach((entry, peerId) => {
+                    const v = document.getElementById(`video-${peerId}`);
+                    const badge = document.getElementById(`res-${peerId}`);
+                    if (v && badge && v.videoWidth > 0) {
+                        badge.textContent = `${v.videoWidth}x${v.videoHeight} • 30FPS`;
+                    }
+                });
+                // Atualiza resolução da prévia local
+                const localV = document.getElementById('video-local');
+                const localBadge = document.getElementById('res-local');
+                if (localV && localBadge && localV.videoWidth > 0) {
+                    localBadge.textContent = `${localV.videoWidth}x${localV.videoHeight} • 30FPS`;
+                }
+            }, 1200);
         }
 
-        function refreshStageVisibility() {
-            const remoteVideo = document.getElementById('remoteVideo');
-            const localVideo = document.getElementById('localVideo');
-            const emptyStage = document.getElementById('emptyStage');
-            const badges = document.getElementById('streamInfoBadges');
-
-            if (activeTab === 'remote') {
-                localVideo.classList.add('hidden');
-                if (remoteStream) {
-                    remoteVideo.classList.remove('hidden');
-                    emptyStage.classList.add('hidden');
-                    badges.classList.remove('hidden');
-                    badges.classList.add('flex');
-                } else {
-                    remoteVideo.classList.add('hidden');
-                    emptyStage.classList.remove('hidden');
-                    badges.classList.add('hidden');
-                    badges.classList.remove('flex');
-                    document.getElementById('emptyStageTitle').textContent = connectedPeerId
-                        ? 'Aguardando seu parceiro(a) clicar em "Compartilhar Tela"...'
-                        : 'Nenhuma tela conectada ainda';
-                }
+        function fullscreenSingleTile(elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            if (!document.fullscreenElement) {
+                el.requestFullscreen().catch(() => {});
             } else {
-                remoteVideo.classList.add('hidden');
-                if (isSharing && outboundStream) {
-                    localVideo.classList.remove('hidden');
-                    emptyStage.classList.add('hidden');
-                    badges.classList.remove('hidden');
-                    badges.classList.add('flex');
-                } else {
-                    localVideo.classList.add('hidden');
-                    emptyStage.classList.remove('hidden');
-                    badges.classList.add('hidden');
-                    badges.classList.remove('flex');
-                    document.getElementById('emptyStageTitle').textContent = 'Você ainda não está compartilhando sua tela';
-                }
+                document.exitFullscreen().catch(() => {});
             }
         }
 
-        function startTelemetry() {
-            if (statsTimer) clearInterval(statsTimer);
-            statsTimer = setInterval(() => {
-                const videoEl = activeTab === 'remote' ? document.getElementById('remoteVideo') : document.getElementById('localVideo');
-                if (videoEl && videoEl.videoWidth > 0) {
-                    document.getElementById('resFpsBadge').textContent = `${videoEl.videoWidth}x${videoEl.videoHeight} • 30 FPS`;
-                }
-            }, 1000);
-        }
-
-        function changeRemoteVolume(val) {
-            const remoteVideo = document.getElementById('remoteVideo');
-            remoteVideo.volume = val / 100;
-            remoteVideo.muted = (Number(val) === 0);
-            document.getElementById('remoteVolIcon').className = Number(val) === 0
-                ? 'fa-solid fa-volume-xmark text-discord-red text-xs'
-                : 'fa-solid fa-volume-high text-xs';
-        }
-
-        function toggleRemoteVolumeMute() {
-            const remoteVideo = document.getElementById('remoteVideo');
-            remoteVideo.muted = !remoteVideo.muted;
-            document.getElementById('remoteVolIcon').className = remoteVideo.muted
-                ? 'fa-solid fa-volume-xmark text-discord-red text-xs'
-                : 'fa-solid fa-volume-high text-xs';
-        }
-
-        function toggleFullscreen() {
+        function toggleStageFullscreen() {
             const stage = document.getElementById('videoStageContainer');
             if (!document.fullscreenElement) {
                 stage.requestFullscreen().catch(() => {});
@@ -941,29 +1403,25 @@
             temp.remove();
 
             const btn = document.getElementById('copyBtn');
-            btn.innerHTML = '<i class="fa-solid fa-check text-discord-green"></i><span>Copiado!</span>';
+            btn.textContent = 'COPIADO';
+            btn.className = 'border border-mono-white bg-mono-white text-mono-black font-mono text-[10px] font-bold uppercase px-2 py-0.5 transition';
             setTimeout(() => {
-                btn.innerHTML = '<i class="fa-regular fa-copy"></i><span>Copiar</span>';
-            }, 2000);
-            showToast(`Código ${myCode} copiado! Envie para sua namorada(o).`, 'success');
+                btn.textContent = 'COPIAR';
+                btn.className = 'border border-mono-border hover:border-mono-white bg-mono-card text-mono-white font-mono text-[10px] uppercase px-2 py-0.5 transition';
+            }, 1800);
+            showToast(`ID [${myCode}] COPIADO PARA A ÁREA DE TRANSFERÊNCIA.`);
         }
 
-        function showToast(msg, type = 'info') {
+        function showToast(msg) {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
-            const colors = {
-                success: 'border-discord-green text-discord-green',
-                warning: 'border-discord-yellow text-discord-yellow',
-                error: 'border-discord-red text-discord-red',
-                info: 'border-discord-blurple text-discord-blurple'
-            };
-            toast.className = `bg-discord-card border-l-4 ${colors[type]} text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-medium pointer-events-auto transition-opacity duration-300`;
-            toast.textContent = msg;
+            toast.className = 'bg-mono-black border border-mono-white text-mono-white px-4 py-2 font-mono text-[11px] uppercase tracking-wider shadow-2xl pointer-events-auto transition-opacity duration-300';
+            toast.textContent = `> ${msg}`;
             container.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
-            }, 3500);
+            }, 3200);
         }
     </script>
 </body>
