@@ -439,11 +439,11 @@
                 <i id="shareScreenIcon" class="fa-solid fa-display text-xs"></i>
             </button>
 
-            <!-- 2. Filtro Anti-Voz do Discord em 3 Modos (OFF -> MODO 1: L-R ESTÉREO -> MODO 2: CORTE PROFUNDO) -->
+            <!-- 2. Isolamento Nativo (Igual Meet / Janela Isolada - Sem filtro que estraga música) -->
             <button id="voiceFilterBtn" onclick="cycleVoiceFilterMode()"
-                class="retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border">
-                <i class="fa-solid fa-wave-square text-xs"></i>
-                <span id="voiceFilterText" class="retract-label">ANTI-VOZ DISCORD: OFF</span>
+                class="retract-btn h-10 bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white">
+                <i class="fa-solid fa-shield-halved text-xs"></i>
+                <span id="voiceFilterText" class="retract-label">ISOLAMENTO NATIVO: ATIVO</span>
             </button>
 
             <!-- 3. Mutar Tudo da Live (Desativa 100% do áudio enviado na transmissão) -->
@@ -512,26 +512,11 @@
         let showSelfInStage = true;
         let isSharing = false;
 
-        // Estado de Áudio
+        // Estado de Áudio Puro + Isolamento Nativo (Sem filtros destrutivos de frequência)
         let isOutgoingAudioMuted = false;
-        /**
-         * Modos do Filtro Anti-Voz do Discord:
-         * 0 = OFF (Áudio Puro da Janela)
-         * 1 = MODO 1: Cancelamento de Fase Central Estéreo (L - R) de 85Hz a 14kHz (Remove 100% de vozes Mono do Discord)
-         * 2 = MODO 2: Cancelamento (L - R) + 5 Filtros Notch Profundos (-24dB em 160Hz, 450Hz, 1.1kHz, 2.4kHz, 3.8kHz)
-         */
-        let voiceFilterMode = 0;
+        let nativeIsolationEnabled = true; // true = Isolamento Nativo (restrictOwnAudio + windowAudio + AEC Nativo)
         let masterVolume = 1.0;
         let isMasterMuted = false;
-
-        // Grafo Web Audio API Permanente (Sem precisar de replaceTrack que falha entre Chrome/Firefox/Edge)
-        let audioCtx = null;
-        let webAudioSource = null;
-        let webAudioDest = null;
-        let dryGainNode = null;
-        let mode1SideGainNode = null;
-        let mode2DeepCutGainNode = null;
-        let masterOutGainNode = null;
 
         let telemetryInterval = null;
 
@@ -577,866 +562,7 @@
         }
 
         // =========================================================
-        // 1. IDENTIFICAÇÃO POR NOME E MODAL DE ENTRADA
-        // =========================================================
-        function confirmInitialName() {
-            const input = document.getElementById('initialNameInput');
-            const typed = (input && input.value ? input.value : '').trim().toUpperCase();
-            myUserName = typed || ('BAGRE-' + Math.floor(100 + Math.random() * 900));
-            try {
-                localStorage.setItem('bagrestream_username', myUserName);
-            } catch (e) {}
-
-            updateUserNameUI(myUserName);
-            const modal = document.getElementById('nameEntryModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                modal.style.display = 'none';
-            }
-
-            broadcastProfileUpdate();
-            renderStage();
-            forceUnmuteAllRemoteVideos();
-        }
-        window.confirmInitialName = confirmInitialName;
-        window.submitUserName = confirmInitialName;
-
-        function openNameModal() {
-            const modal = document.getElementById('nameEntryModal');
-            const input = document.getElementById('initialNameInput');
-            if (input) input.value = myUserName;
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.style.display = 'flex';
-            }
-            setTimeout(() => { if (input) input.focus(); }, 50);
-        }
-
-        function updateUserNameUI(name) {
-            const headerName = document.getElementById('headerUserName');
-            const infoName = document.getElementById('infoPopoverName');
-            if (headerName) headerName.textContent = name;
-            if (infoName) infoName.textContent = name;
-        }
-
-        function openConnectModal() {
-            const modal = document.getElementById('connectModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            updateRoomUI();
-        }
-
-        function closeConnectModal() {
-            const modal = document.getElementById('connectModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        // =========================================================
-        // 2. SISTEMA DE ID DA SALA (ROOM ID) E CONEXÃO EM MALHA
-        // =========================================================
-        function generateRoomCode() {
-            const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-            let code = '';
-            for (let i = 0; i < 5; i++) {
-                code += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return code;
-        }
-
-        function cleanRoomCode(raw) {
-            if (!raw) return '';
-            return raw.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
-        }
-
-        function initRoomSession() {
-            currentRoomId = generateRoomCode();
-            myPeerId = ROOM_HOST_PREFIX + currentRoomId;
-            createPeerInstance(myPeerId);
-            updateRoomUI();
-        }
-
-        function createPeerInstance(peerIdToUse) {
-            if (peer) {
-                try { peer.destroy(); } catch (e) {}
-            }
-
-            peer = new Peer(peerIdToUse, {
-                debug: 1,
-                config: {
-                    iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' },
-                        { urls: 'stun:stun.cloudflare.com:3478' }
-                    ]
-                }
-            });
-
-            peer.on('open', (id) => {
-                myPeerId = id;
-                updateRoomUI();
-            });
-
-            peer.on('connection', (conn) => {
-                registerDataConnection(conn);
-            });
-
-            peer.on('call', (call) => {
-                const remotePeerId = call.peer;
-                const entry = ensurePeerEntry(remotePeerId);
-
-                if (call.metadata && call.metadata.userName) {
-                    entry.userName = call.metadata.userName;
-                }
-                if (call.metadata && call.metadata.roomId) {
-                    currentRoomId = call.metadata.roomId;
-                    updateRoomUI();
-                }
-
-                entry.incomingCall = call;
-                call.answer(undefined, { sdpTransform: enforceStereoOpusSDP });
-
-                call.on('stream', (incStream) => {
-                    handleIncomingRemoteStream(remotePeerId, incStream);
-                });
-
-                call.on('close', () => {
-                    removeRemoteStream(remotePeerId);
-                });
-
-                call.on('error', () => {
-                    removeRemoteStream(remotePeerId);
-                });
-            });
-
-            peer.on('error', (err) => {
-                console.warn('PeerJS error:', err.type);
-                if (err.type === 'unavailable-id') {
-                    // Caso o código aleatório colida, gera outro
-                    initRoomSession();
-                } else if (err.type === 'peer-unavailable') {
-                    showToast('SALA NÃO ENCONTRADA OU OFFLINE.');
-                    resetJoinRoomButton();
-                }
-            });
-        }
-
-        // Entrar na sala de um amigo usando o ID da Sala
-        function joinFriendRoom() {
-            const input = document.getElementById('joinRoomInput');
-            const targetRoomCode = cleanRoomCode(input.value);
-
-            if (!targetRoomCode) {
-                showToast('DIGITE O ID DA SALA.');
-                return;
-            }
-
-            const hostPeerId = ROOM_HOST_PREFIX + targetRoomCode;
-            if (hostPeerId === myPeerId) {
-                showToast('VOCÊ JÁ ESTÁ NESTA SALA.');
-                input.value = '';
-                return;
-            }
-
-            const btn = document.getElementById('joinRoomBtn');
-            btn.textContent = '...';
-            input.value = '';
-
-            // Atualiza nosso ID da Sala para o ID da sala que estamos entrando
-            currentRoomId = targetRoomCode;
-            updateRoomUI();
-
-            connectToPeerById(hostPeerId);
-        }
-
-        function connectToPeerById(targetPeerId, knownName = null) {
-            if (!peer || !targetPeerId || targetPeerId === myPeerId) return;
-
-            const existing = peersMap.get(targetPeerId);
-            if (existing && existing.dataConn && existing.dataConn.open) {
-                resetJoinRoomButton();
-                return;
-            }
-
-            const entry = ensurePeerEntry(targetPeerId, knownName);
-            const conn = peer.connect(targetPeerId, {
-                reliable: true,
-                metadata: {
-                    userName: myUserName || 'BAGRE',
-                    roomId: currentRoomId
-                }
-            });
-            registerDataConnection(conn);
-
-            if (isSharing && outboundStream) {
-                pushStreamToSinglePeer(targetPeerId);
-            }
-        }
-
-        function ensurePeerEntry(remotePeerId, fallbackName = null) {
-            if (!peersMap.has(remotePeerId)) {
-                peersMap.set(remotePeerId, {
-                    peerId: remotePeerId,
-                    userName: fallbackName || 'AMIGO',
-                    dataConn: null,
-                    outgoingCall: null,
-                    incomingCall: null,
-                    remoteStream: null,
-                    muted: false,
-                    volume: 100
-                });
-            } else if (fallbackName && peersMap.get(remotePeerId).userName === 'AMIGO') {
-                peersMap.get(remotePeerId).userName = fallbackName;
-            }
-            return peersMap.get(remotePeerId);
-        }
-
-        function registerDataConnection(conn) {
-            const remotePeerId = conn.peer;
-            const metaName = (conn.metadata && conn.metadata.userName) ? conn.metadata.userName : null;
-            const entry = ensurePeerEntry(remotePeerId, metaName);
-            entry.dataConn = conn;
-
-            conn.on('open', () => {
-                resetJoinRoomButton();
-
-                // Envia apresentação com Nome e ID da Sala
-                conn.send({
-                    type: 'HELLO_PROFILE',
-                    userName: myUserName || 'BAGRE',
-                    roomId: currentRoomId
-                });
-
-                // Se já estamos transmitindo, envia a tela para o novo participante
-                if (isSharing && outboundStream) {
-                    pushStreamToSinglePeer(remotePeerId);
-                }
-
-                // Pede sincronização caso ele já esteja transmitindo
-                conn.send({ type: 'SYNC_REQUEST' });
-
-                // Compartilha a lista de participantes da sala para formar a malha (Mesh)
-                broadcastMeshPeerList();
-                updateRoomUI();
-            });
-
-            conn.on('data', (data) => {
-                if (!data) return;
-
-                if (data.type === 'HELLO_PROFILE') {
-                    if (data.userName) {
-                        entry.userName = data.userName.toUpperCase();
-                    }
-                    if (data.roomId && myPeerId.startsWith(ROOM_HOST_PREFIX)) {
-                        // Mantém o ID da Sala do Host e confirma para o convidado
-                        conn.send({
-                            type: 'ROOM_SYNC',
-                            roomId: currentRoomId,
-                            hostName: myUserName || 'BAGRE'
-                        });
-                    }
-                    updateTileNameLabel(remotePeerId, entry.userName);
-                    updateRoomUI();
-                    showToast(`${entry.userName} CONECTOU-SE À SALA.`);
-                } else if (data.type === 'ROOM_SYNC') {
-                    if (data.roomId) {
-                        currentRoomId = data.roomId;
-                    }
-                    if (data.hostName) {
-                        entry.userName = data.hostName.toUpperCase();
-                        updateTileNameLabel(remotePeerId, entry.userName);
-                    }
-                    updateRoomUI();
-                } else if (data.type === 'SYNC_REQUEST') {
-                    if (isSharing && outboundStream) {
-                        pushStreamToSinglePeer(remotePeerId);
-                    }
-                } else if (data.type === 'STREAM_STOPPED') {
-                    removeRemoteStream(remotePeerId);
-                    showToast(`${entry.userName} ENCERROU A TRANSMISSÃO.`);
-                } else if (data.type === 'MESH_PEERS' && Array.isArray(data.peers)) {
-                    data.peers.forEach(pInfo => {
-                        if (pInfo.peerId && pInfo.peerId !== myPeerId && !peersMap.has(pInfo.peerId)) {
-                            connectToPeerById(pInfo.peerId, pInfo.userName);
-                        }
-                    });
-                }
-            });
-
-            conn.on('close', () => {
-                disconnectSpecificPeer(remotePeerId);
-            });
-
-            conn.on('error', () => {
-                resetJoinRoomButton();
-            });
-        }
-
-        function broadcastProfileUpdate() {
-            peersMap.forEach(entry => {
-                if (entry.dataConn && entry.dataConn.open) {
-                    entry.dataConn.send({
-                        type: 'HELLO_PROFILE',
-                        userName: myUserName,
-                        roomId: currentRoomId
-                    });
-                }
-            });
-            updateRoomUI();
-        }
-
-        function broadcastMeshPeerList() {
-            const peerList = Array.from(peersMap.values()).map(e => ({
-                peerId: e.peerId,
-                userName: e.userName
-            }));
-
-            peersMap.forEach(entry => {
-                if (entry.dataConn && entry.dataConn.open) {
-                    entry.dataConn.send({
-                        type: 'MESH_PEERS',
-                        peers: peerList
-                    });
-                }
-            });
-        }
-
-        function resetJoinRoomButton() {
-            const btn = document.getElementById('joinRoomBtn');
-            if (btn) btn.textContent = 'CONECTAR';
-        }
-
-        function disconnectSpecificPeer(remotePeerId) {
-            const entry = peersMap.get(remotePeerId);
-            if (!entry) return;
-
-            const name = entry.userName;
-            if (entry.outgoingCall) { try { entry.outgoingCall.close(); } catch (e) {} }
-            if (entry.incomingCall) { try { entry.incomingCall.close(); } catch (e) {} }
-            if (entry.dataConn) { try { entry.dataConn.close(); } catch (e) {} }
-
-            const tile = document.getElementById(`tile-${remotePeerId}`);
-            if (tile) tile.remove();
-
-            peersMap.delete(remotePeerId);
-
-            if (focusedScreenId === remotePeerId) {
-                focusedScreenId = null;
-                layoutMode = 'grid';
-            }
-
-            updateRoomUI();
-            renderStage();
-            showToast(`${name} SAIU DA SALA.`);
-        }
-
-        function updateRoomUI() {
-            document.getElementById('modalRoomIdDisplay').textContent = currentRoomId || '-----';
-            document.getElementById('infoPopoverRoom').textContent = currentRoomId || '-----';
-
-            const listEl = document.getElementById('modalPeersList');
-            const entries = Array.from(peersMap.values());
-            document.getElementById('modalPeersCount').textContent = entries.length + 1;
-
-            let html = `
-                <div class="flex items-center justify-between bg-mono-black border border-mono-border px-3 py-2 font-mono text-xs">
-                    <div class="flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 bg-mono-white"></span>
-                        <span class="text-mono-white font-semibold uppercase">${myUserName || 'VOCÊ'} (VOCÊ)</span>
-                    </div>
-                    <span class="text-[10px] text-mono-muted uppercase">${isSharing ? 'TRANSMITINDO' : 'NA SALA'}</span>
-                </div>
-            `;
-
-            entries.forEach(e => {
-                const streaming = !!e.remoteStream;
-                html += `
-                    <div class="flex items-center justify-between bg-mono-black border border-mono-border px-3 py-2 font-mono text-xs">
-                        <div class="flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 ${streaming ? 'bg-mono-white' : 'bg-mono-muted'}"></span>
-                            <span class="text-mono-white font-semibold uppercase">${e.userName}</span>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-[10px] text-mono-silver uppercase">${streaming ? 'TRANSMITINDO' : 'CONECTADO'}</span>
-                            <button onclick="disconnectSpecificPeer('${e.peerId}')" class="text-mono-muted hover:text-mono-white">
-                                <i class="fa-solid fa-xmark"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-
-            listEl.innerHTML = html;
-        }
-
-        function updateTileNameLabel(peerId, newName) {
-            const labelEl = document.getElementById(`label-${peerId}`);
-            if (labelEl) {
-                labelEl.textContent = newName;
-            }
-        }
-
-        function manualSyncStreams() {
-            peersMap.forEach((entry, peerId) => {
-                if (isSharing && outboundStream) {
-                    pushStreamToSinglePeer(peerId);
-                }
-                if (entry.dataConn && entry.dataConn.open) {
-                    entry.dataConn.send({ type: 'SYNC_REQUEST' });
-                }
-            });
-            showToast('SINCRONIZANDO TRANSMISSÕES DA SALA...');
-        }
-
-        function pushStreamToSinglePeer(targetPeerId) {
-            if (!peer || !outboundStream) return;
-            const entry = ensurePeerEntry(targetPeerId);
-
-            try {
-                if (entry.outgoingCall) {
-                    entry.outgoingCall.close();
-                }
-                const call = peer.call(targetPeerId, outboundStream, {
-                    metadata: {
-                        userName: myUserName || 'BAGRE',
-                        roomId: currentRoomId
-                    },
-                    sdpTransform: enforceStereoOpusSDP
-                });
-                entry.outgoingCall = call;
-                if (call && call.peerConnection) {
-                    boostWebRTCBitrate(call.peerConnection);
-                }
-            } catch (e) {
-                console.warn('Erro ao enviar stream:', e);
-            }
-        }
-
-        function pushStreamToAllPeers() {
-            peersMap.forEach((_, peerId) => {
-                pushStreamToSinglePeer(peerId);
-            });
-        }
-
-        // =========================================================
-        // 3. RECEBIMENTO DE STREAMS REMOTOS E RENDERIZAÇÃO DA GRADE / FOCO
-        // =========================================================
-        function handleIncomingRemoteStream(remotePeerId, stream) {
-            const entry = ensurePeerEntry(remotePeerId);
-            entry.remoteStream = stream;
-
-            updateRoomUI();
-            renderStage();
-
-            setTimeout(() => {
-                const videoEl = document.getElementById(`video-${remotePeerId}`);
-                if (videoEl && videoEl.srcObject !== stream) {
-                    videoEl.srcObject = stream;
-                }
-                if (videoEl) {
-                    videoEl.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
-                    videoEl.muted = isMasterMuted || entry.muted;
-                    const playPromise = videoEl.play();
-                    if (playPromise !== undefined) {
-                        playPromise.catch(() => {
-                            videoEl.muted = true;
-                            videoEl.play().catch(() => {});
-                            const unmuteBtn = document.getElementById('unmuteAutoplayBtn');
-                            if (unmuteBtn) {
-                                unmuteBtn.classList.remove('hidden');
-                                unmuteBtn.classList.add('flex');
-                            }
-                        });
-                    }
-                }
-            }, 60);
-        }
-
-        function removeRemoteStream(remotePeerId) {
-            const entry = peersMap.get(remotePeerId);
-            if (entry) {
-                entry.remoteStream = null;
-            }
-            const tile = document.getElementById(`tile-${remotePeerId}`);
-            if (tile) tile.remove();
-
-            if (focusedScreenId === remotePeerId) {
-                focusedScreenId = null;
-                layoutMode = 'grid';
-            }
-            updateRoomUI();
-            renderStage();
-        }
-
-        function setLayoutMode(mode) {
-            layoutMode = mode;
-            if (mode === 'focus' && !focusedScreenId) {
-                const firstRemote = Array.from(peersMap.values()).find(e => !!e.remoteStream);
-                if (firstRemote) {
-                    focusedScreenId = firstRemote.peerId;
-                } else if (isSharing) {
-                    focusedScreenId = 'local';
-                }
-            }
-            renderStage();
-        }
-
-        function focusSpecificScreen(screenId) {
-            if (layoutMode === 'focus' && focusedScreenId === screenId) {
-                layoutMode = 'grid';
-                focusedScreenId = null;
-            } else {
-                layoutMode = 'focus';
-                focusedScreenId = screenId;
-            }
-            renderStage();
-        }
-
-        function toggleSelfView() {
-            showSelfInStage = !showSelfInStage;
-            const icon = document.getElementById('selfPreviewIcon');
-            const label = document.getElementById('selfPreviewLabel');
-            const btn = document.getElementById('toggleSelfPreviewBtn');
-
-            if (showSelfInStage) {
-                icon.className = 'fa-regular fa-eye text-xs';
-                label.textContent = 'MINHA TELA: ON';
-                btn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-white';
-            } else {
-                icon.className = 'fa-regular fa-eye-slash text-xs';
-                label.textContent = 'MINHA TELA: OFF';
-                btn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-muted hover:text-mono-white';
-                if (focusedScreenId === 'local') {
-                    focusedScreenId = null;
-                    layoutMode = 'grid';
-                }
-            }
-            renderStage();
-        }
-
-        function renderStage() {
-            const grid = document.getElementById('screensGrid');
-            const emptyStage = document.getElementById('emptyStage');
-            const focusTabs = document.getElementById('focusFloatingTabs');
-
-            const activeScreens = [];
-
-            peersMap.forEach((entry, peerId) => {
-                if (entry.remoteStream) {
-                    activeScreens.push({
-                        id: peerId,
-                        title: entry.userName || 'AMIGO',
-                        stream: entry.remoteStream,
-                        isLocal: false,
-                        entry: entry
-                    });
-                }
-            });
-
-            if (isSharing && outboundStream && showSelfInStage) {
-                activeScreens.push({
-                    id: 'local',
-                    title: `${myUserName || 'VOCÊ'} (MINHA TELA)`,
-                    stream: outboundStream,
-                    isLocal: true,
-                    entry: null
-                });
-            }
-
-            document.getElementById('activeScreensCount').textContent = activeScreens.length;
-
-            // Atualiza botões de modo no topo
-            const gridBtn = document.getElementById('modeGridBtn');
-            const focusBtn = document.getElementById('modeFocusBtn');
-            if (layoutMode === 'grid') {
-                gridBtn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider bg-mono-white text-mono-black font-semibold';
-                focusBtn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-silver hover:text-mono-white';
-            } else {
-                gridBtn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-silver hover:text-mono-white';
-                focusBtn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider bg-mono-white text-mono-black font-semibold';
-            }
-
-            if (activeScreens.length === 0) {
-                grid.innerHTML = '';
-                emptyStage.classList.remove('hidden');
-                focusTabs.classList.add('hidden');
-                focusTabs.classList.remove('flex');
-                return;
-            }
-
-            emptyStage.classList.add('hidden');
-
-            if (layoutMode === 'focus') {
-                const exists = activeScreens.some(s => s.id === focusedScreenId);
-                if (!exists) {
-                    focusedScreenId = activeScreens[0].id;
-                }
-            }
-
-            // Seletor flutuante quando em modo Foco com múltiplas telas
-            if (layoutMode === 'focus' && activeScreens.length > 1) {
-                focusTabs.classList.remove('hidden');
-                focusTabs.classList.add('flex');
-                focusTabs.innerHTML = activeScreens.map(s => {
-                    const active = s.id === focusedScreenId;
-                    return `
-                        <button onclick="focusSpecificScreen('${s.id}')"
-                            class="px-2.5 py-1 font-mono text-[10px] uppercase transition ${active ? 'bg-mono-white text-mono-black font-bold' : 'text-mono-silver hover:text-mono-white'}">
-                            ${s.title}
-                        </button>
-                    `;
-                }).join('') + `
-                    <button onclick="setLayoutMode('grid')"
-                        class="px-2.5 py-1 font-mono text-[10px] uppercase text-mono-muted hover:text-mono-white border-l border-mono-border ml-1">
-                        GRADE
-                    </button>
-                `;
-            } else {
-                focusTabs.classList.add('hidden');
-                focusTabs.classList.remove('flex');
-            }
-
-            const visibleScreens = layoutMode === 'focus'
-                ? activeScreens.filter(s => s.id === focusedScreenId)
-                : activeScreens;
-
-            // Define colunas da grade
-            const count = visibleScreens.length;
-            if (count <= 1) {
-                grid.className = 'w-full h-full grid grid-cols-1 gap-2 p-2 overflow-auto place-items-stretch';
-            } else if (count === 2) {
-                grid.className = 'w-full h-full grid grid-cols-1 lg:grid-cols-2 gap-2 p-2 overflow-auto place-items-stretch';
-            } else {
-                grid.className = 'w-full h-full grid grid-cols-1 md:grid-cols-2 gap-2 p-2 overflow-auto place-items-stretch';
-            }
-
-            // Remove cards que não estão mais visíveis
-            const visibleIds = new Set(visibleScreens.map(s => `tile-${s.id}`));
-            Array.from(grid.children).forEach(child => {
-                if (!visibleIds.has(child.id)) {
-                    child.remove();
-                }
-            });
-
-            visibleScreens.forEach(s => {
-                createOrUpdateVideoTile(grid, s);
-            });
-        }
-
-        function createOrUpdateVideoTile(container, screenObj) {
-            const tileId = `tile-${screenObj.id}`;
-            let tile = document.getElementById(tileId);
-            const isFocused = (layoutMode === 'focus' && focusedScreenId === screenObj.id);
-
-            if (!tile) {
-                tile = document.createElement('div');
-                tile.id = tileId;
-                tile.className = 'video-tile relative w-full h-full bg-mono-black border border-mono-border overflow-hidden flex flex-col justify-between group';
-
-                const isLocal = screenObj.isLocal;
-                const volValue = isLocal ? 0 : (screenObj.entry ? screenObj.entry.volume : 100);
-                const isMuted = isLocal ? true : (screenObj.entry ? screenObj.entry.muted : false);
-
-                tile.innerHTML = `
-                    <!-- Topo do Card -->
-                    <div class="absolute top-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-none">
-                        <div class="bg-mono-black/90 border border-mono-border px-3 py-1 flex items-center gap-2 pointer-events-auto">
-                            <span class="w-1.5 h-1.5 bg-mono-white"></span>
-                            <span id="label-${screenObj.id}" class="font-mono text-[11px] font-bold uppercase tracking-wider text-mono-white">${screenObj.title}</span>
-                        </div>
-                        <div class="bg-mono-black/90 border border-mono-border px-2.5 py-1 font-mono text-[10px] text-mono-silver">
-                            <span id="res-${screenObj.id}">1920x1080 • 30FPS</span>
-                        </div>
-                    </div>
-
-                    <!-- Elemento de Vídeo -->
-                    <video id="video-${screenObj.id}" autoplay playsinline ${isLocal ? 'muted' : ''}
-                        ondblclick="focusSpecificScreen('${screenObj.id}')"
-                        class="w-full h-full object-contain bg-mono-black cursor-pointer"></video>
-
-                    <!-- Barra Inferior do Card -->
-                    <div class="absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-mono-black/90 border border-mono-border px-3 py-2">
-                        <div>
-                            ${!isLocal ? `
-                                <div class="vol-pill">
-                                    <button onclick="togglePeerMute('${screenObj.id}')" class="text-mono-white hover:text-mono-silver transition flex items-center justify-center w-4">
-                                        <i id="vol-icon-${screenObj.id}" class="fa-solid ${isMuted ? 'fa-volume-xmark text-mono-muted' : 'fa-volume-high text-mono-white'} text-xs"></i>
-                                    </button>
-                                    <input id="vol-slider-${screenObj.id}" type="range" min="0" max="100" value="${isMuted ? 0 : volValue}"
-                                        style="--val: ${isMuted ? 0 : volValue}%"
-                                        oninput="changePeerVolume('${screenObj.id}', this.value)"
-                                        class="bagre-slider">
-                                </div>
-                            ` : `
-                                <span class="font-mono text-[10px] uppercase text-mono-muted px-2">PRÉVIA LOCAL (MUDO PARA VOCÊ)</span>
-                            `}
-                        </div>
-
-                        <div class="flex items-center gap-1.5">
-                            <button onclick="focusSpecificScreen('${screenObj.id}')"
-                                class="bg-mono-panel hover:bg-mono-white hover:text-mono-black text-mono-white border border-mono-border font-mono text-[10px] uppercase px-2.5 py-1 transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-crosshairs text-[10px]"></i>
-                                <span id="focus-btn-label-${screenObj.id}">${isFocused ? 'VOLTAR À GRADE' : 'FOCAR TELA'}</span>
-                            </button>
-                            <button onclick="fullscreenSingleTile('${tileId}')"
-                                class="bg-mono-panel hover:bg-mono-white hover:text-mono-black text-mono-white border border-mono-border w-7 h-7 flex items-center justify-center transition" title="Tela Cheia">
-                                <i class="fa-solid fa-expand text-[10px]"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                container.appendChild(tile);
-            }
-
-            const focusBtnLabel = document.getElementById(`focus-btn-label-${screenObj.id}`);
-            if (focusBtnLabel) {
-                focusBtnLabel.textContent = isFocused ? 'VOLTAR À GRADE' : 'FOCAR TELA';
-            }
-
-            const videoEl = document.getElementById(`video-${screenObj.id}`);
-            if (videoEl && videoEl.srcObject !== screenObj.stream) {
-                videoEl.srcObject = screenObj.stream;
-                if (screenObj.isLocal) {
-                    videoEl.muted = true;
-                } else if (screenObj.entry) {
-                    videoEl.volume = Math.max(0, Math.min(1, (screenObj.entry.volume / 100) * masterVolume));
-                    videoEl.muted = isMasterMuted || screenObj.entry.muted;
-                }
-                videoEl.play().catch(() => {});
-            }
-        }
-
-        // =========================================================
-        // 4. CONTROLES DE VOLUME (SLIDER PÍLULA BRANCA INDIVIDUAL E MESTRE)
-        // =========================================================
-        function updateSliderVisualFill(sliderEl, val) {
-            if (!sliderEl) return;
-            const clamped = Math.max(0, Math.min(100, Number(val) || 0));
-            sliderEl.value = clamped;
-            sliderEl.style.setProperty('--val', `${clamped}%`);
-        }
-
-        function changePeerVolume(peerId, val) {
-            const entry = peersMap.get(peerId);
-            if (!entry) return;
-
-            const numericVal = Math.max(0, Math.min(100, Number(val) || 0));
-            entry.volume = numericVal;
-            entry.muted = (numericVal === 0);
-
-            const slider = document.getElementById(`vol-slider-${peerId}`);
-            updateSliderVisualFill(slider, numericVal);
-
-            const icon = document.getElementById(`vol-icon-${peerId}`);
-            if (icon) {
-                icon.className = entry.muted
-                    ? 'fa-solid fa-volume-xmark text-mono-muted text-xs'
-                    : 'fa-solid fa-volume-high text-mono-white text-xs';
-            }
-
-            const videoEl = document.getElementById(`video-${peerId}`);
-            if (videoEl) {
-                videoEl.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
-                videoEl.muted = isMasterMuted || entry.muted;
-            }
-        }
-
-        function togglePeerMute(peerId) {
-            const entry = peersMap.get(peerId);
-            if (!entry) return;
-
-            entry.muted = !entry.muted;
-            if (!entry.muted && entry.volume === 0) {
-                entry.volume = 100;
-            }
-
-            const slider = document.getElementById(`vol-slider-${peerId}`);
-            updateSliderVisualFill(slider, entry.muted ? 0 : entry.volume);
-
-            const icon = document.getElementById(`vol-icon-${peerId}`);
-            if (icon) {
-                icon.className = entry.muted
-                    ? 'fa-solid fa-volume-xmark text-mono-muted text-xs'
-                    : 'fa-solid fa-volume-high text-mono-white text-xs';
-            }
-
-            const videoEl = document.getElementById(`video-${peerId}`);
-            if (videoEl) {
-                videoEl.muted = isMasterMuted || entry.muted;
-                videoEl.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
-            }
-        }
-
-        function changeMasterVolume(val) {
-            const numericVal = Math.max(0, Math.min(100, Number(val) || 0));
-            masterVolume = numericVal / 100;
-            isMasterMuted = (numericVal === 0);
-
-            const masterSlider = document.getElementById('masterVolSlider');
-            updateSliderVisualFill(masterSlider, numericVal);
-
-            peersMap.forEach((entry, peerId) => {
-                const v = document.getElementById(`video-${peerId}`);
-                if (v) {
-                    v.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
-                    v.muted = isMasterMuted || entry.muted;
-                }
-            });
-
-            updateMasterMuteIcon();
-        }
-
-        function toggleMasterMute() {
-            isMasterMuted = !isMasterMuted;
-            if (!isMasterMuted && masterVolume === 0) {
-                masterVolume = 1.0;
-            }
-
-            const masterSlider = document.getElementById('masterVolSlider');
-            updateSliderVisualFill(masterSlider, isMasterMuted ? 0 : Math.round(masterVolume * 100));
-
-            peersMap.forEach((entry, peerId) => {
-                const v = document.getElementById(`video-${peerId}`);
-                if (v) {
-                    v.muted = isMasterMuted || entry.muted;
-                    v.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
-                }
-            });
-
-            updateMasterMuteIcon();
-        }
-
-        function updateMasterMuteIcon() {
-            const icon = document.getElementById('masterVolIcon');
-            if (!icon) return;
-            icon.className = isMasterMuted
-                ? 'fa-solid fa-volume-xmark text-sm text-mono-muted'
-                : 'fa-solid fa-volume-high text-sm text-mono-white';
-        }
-
-        function forceUnmuteAllRemoteVideos() {
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume().catch(() => {});
-            }
-            peersMap.forEach((entry, peerId) => {
-                const v = document.getElementById(`video-${peerId}`);
-                if (v) {
-                    v.muted = isMasterMuted || entry.muted;
-                    v.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
-                    v.play().catch(() => {});
-                }
-            });
-            const unmuteBtn = document.getElementById('unmuteAutoplayBtn');
-            if (unmuteBtn) {
-                unmuteBtn.classList.add('hidden');
-                unmuteBtn.classList.remove('flex');
-            }
-        }
-
-        // =========================================================
-        // 5. CAPTURA DE JANELA/TELA 1080P 30FPS + MOTOR DSP ANTI-VOZ
+        // 5. CAPTURA DE JANELA/TELA 1080P 30FPS + ÁUDIO PURO COM ISOLAMENTO NATIVO
         // =========================================================
         function toggleScreenShare() {
             if (isSharing) {
@@ -1455,7 +581,7 @@
 
             try {
                 try {
-                    // Chamada imediata no clique (sem min/exact que causam TypeError no getDisplayMedia)
+                    // Captura com áudio 100% puro e parâmetros nativos de isolamento de janela/próprio áudio
                     rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
                         video: {
                             width: { ideal: 1920 },
@@ -1467,9 +593,10 @@
                         audio: {
                             channelCount: { ideal: 2 },
                             sampleRate: { ideal: 48000 },
-                            echoCancellation: false,
+                            echoCancellation: nativeIsolationEnabled,
                             noiseSuppression: false,
                             autoGainControl: false,
+                            restrictOwnAudio: true,
                             suppressLocalAudioPlayback: false
                         },
                         windowAudio: 'window',
@@ -1479,11 +606,10 @@
                         preferCurrentTab: false
                     });
                 } catch (firstErr) {
-                    // Se o usuário clicou em "Cancelar" na janela do navegador, apenas aborta
                     if (firstErr && (firstErr.name === 'NotAllowedError' || firstErr.name === 'AbortError')) {
                         throw firstErr;
                     }
-                    // Fallback direto compatível com Firefox / Chrome / Edge
+                    // Fallback compatível com Firefox / Chrome / Edge
                     try {
                         rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
                             video: {
@@ -1513,12 +639,6 @@
                     try { videoTrack.contentHint = 'motion'; } catch (e) {}
                 }
 
-                // Se o usuário selecionou Tela Inteira ("monitor"), liga automaticamente o Modo 1 (Cancelar Centro L-R)
-                const settings = videoTrack.getSettings ? videoTrack.getSettings() : {};
-                if (settings.displaySurface === 'monitor' && voiceFilterMode === 0 && rawDisplayStream.getAudioTracks().length > 0) {
-                    voiceFilterMode = 1;
-                }
-
                 videoTrack.onended = () => {
                     stopScreenShare();
                 };
@@ -1532,7 +652,7 @@
                 renderStage();
 
                 pushStreamToAllPeers();
-                showToast('TRANSMISSÃO 1080P 30FPS INICIADA.');
+                showToast('TRANSMISSÃO 1080P 30FPS INICIADA (ÁUDIO PURO).');
 
             } catch (err) {
                 console.warn('Compartilhamento cancelado ou erro:', err);
@@ -1559,20 +679,26 @@
             missingBanner?.classList.add('hidden');
             missingBanner?.classList.remove('flex');
 
+            // Mantém a faixa de áudio 100% original e pura (sem passar por filtros que distorcem música/voz)
             rawAudioTrack = audioTracks[0];
+            filteredAudioTrack = rawAudioTrack;
 
-            if (rawAudioTrack.applyConstraints) {
-                try {
-                    await rawAudioTrack.applyConstraints({
-                        echoCancellation: false,
-                        noiseSuppression: false,
-                        autoGainControl: false
-                    });
-                } catch (e) {}
-            }
+            await applyNativeAudioConstraints();
 
-            const processedTrack = await setupPermanentAudioGraph(rawAudioTrack);
-            outboundStream = new MediaStream([videoTrack, processedTrack || rawAudioTrack]);
+            rawAudioTrack.enabled = !isOutgoingAudioMuted;
+            outboundStream = new MediaStream([videoTrack, rawAudioTrack]);
+        }
+
+        async function applyNativeAudioConstraints() {
+            if (!rawAudioTrack || !rawAudioTrack.applyConstraints) return;
+            try {
+                await rawAudioTrack.applyConstraints({
+                    echoCancellation: nativeIsolationEnabled,
+                    noiseSuppression: false,
+                    autoGainControl: false,
+                    restrictOwnAudio: true
+                });
+            } catch (e) {}
         }
 
         async function injectFallbackAudioDevice() {
@@ -1584,7 +710,7 @@
                 const audioStream = await navigator.mediaDevices.getUserMedia({
                     audio: {
                         channelCount: { ideal: 2 },
-                        echoCancellation: false,
+                        echoCancellation: nativeIsolationEnabled,
                         noiseSuppression: false,
                         autoGainControl: false
                     }
@@ -1593,167 +719,31 @@
                 if (!newAudioTrack) return;
 
                 rawAudioTrack = newAudioTrack;
-                const processedTrack = await setupPermanentAudioGraph(rawAudioTrack);
-                const trackToSend = processedTrack || rawAudioTrack;
+                filteredAudioTrack = newAudioTrack;
+                rawAudioTrack.enabled = !isOutgoingAudioMuted;
 
                 outboundStream.getAudioTracks().forEach(t => outboundStream.removeTrack(t));
-                outboundStream.addTrack(trackToSend);
+                outboundStream.addTrack(rawAudioTrack);
 
                 document.getElementById('missingAudioBanner').classList.add('hidden');
                 document.getElementById('missingAudioBanner').classList.remove('flex');
 
                 pushStreamToAllPeers();
-                showToast('ÁUDIO AUXILIAR INJETADO NA TRANSMISSÃO!');
+                showToast('ÁUDIO AUXILIAR PURO INJETADO NA TRANSMISSÃO!');
             } catch (e) {
                 showToast('NÃO FOI POSSÍVEL CAPTURAR O DISPOSITIVO DE ÁUDIO.');
             }
         }
 
-        async function setupPermanentAudioGraph(sourceAudioTrack) {
-            try {
-                const keepAliveAudio = document.getElementById('chromeWebAudioKeepAlive');
-                keepAliveAudio.srcObject = new MediaStream([sourceAudioTrack]);
-                keepAliveAudio.muted = true;
-                keepAliveAudio.play().catch(() => {});
-
-                if (!audioCtx) {
-                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                    audioCtx = new AudioCtx({ latencyHint: 'interactive', sampleRate: 48000 });
-                }
-                if (audioCtx.state === 'suspended') {
-                    await audioCtx.resume();
-                }
-
-                if (webAudioSource) {
-                    try { webAudioSource.disconnect(); } catch (e) {}
-                }
-
-                webAudioDest = audioCtx.createMediaStreamDestination();
-                webAudioDest.channelCount = 2;
-                webAudioDest.channelCountMode = 'explicit';
-
-                webAudioSource = audioCtx.createMediaStreamSource(new MediaStream([sourceAudioTrack]));
-
-                // RAMO 0: ÁUDIO PURO DA JANELA
-                dryGainNode = audioCtx.createGain();
-
-                // RAMO 1: MODO 1 — CANCELAMENTO CENTRAL ESTÉREO (L - R) (Anula vozes Mono do Discord)
-                const splitter = audioCtx.createChannelSplitter(2);
-                const rightInverter = audioCtx.createGain();
-                rightInverter.gain.value = -1.0;
-
-                const diffNode = audioCtx.createGain();
-                diffNode.gain.value = 1.0;
-
-                webAudioSource.connect(splitter);
-                splitter.connect(diffNode, 0);        // +L
-                splitter.connect(rightInverter, 1);   // -R
-                rightInverter.connect(diffNode);      // L - R
-
-                const sideHighPass = audioCtx.createBiquadFilter();
-                sideHighPass.type = 'highpass';
-                sideHighPass.frequency.value = 85;
-                sideHighPass.Q.value = 0.707;
-                diffNode.connect(sideHighPass);
-
-                // Mantém sub-graves puros do jogo (< 80Hz)
-                const subBassPass = audioCtx.createBiquadFilter();
-                subBassPass.type = 'lowpass';
-                subBassPass.frequency.value = 80;
-                subBassPass.Q.value = 0.707;
-                webAudioSource.connect(subBassPass);
-
-                const mode1Merger = audioCtx.createChannelMerger(2);
-                const mode1LeftGain = audioCtx.createGain();
-                mode1LeftGain.gain.value = 1.35;
-                const mode1RightGain = audioCtx.createGain();
-                mode1RightGain.gain.value = -1.35;
-
-                sideHighPass.connect(mode1LeftGain);
-                sideHighPass.connect(mode1RightGain);
-                mode1LeftGain.connect(mode1Merger, 0, 0);
-                mode1RightGain.connect(mode1Merger, 0, 1);
-
-                mode1SideGainNode = audioCtx.createGain();
-                mode1Merger.connect(mode1SideGainNode);
-                subBassPass.connect(mode1SideGainNode);
-
-                // RAMO 2: MODO 2 — CANCELAMENTO (L - R) + 5 CORTES PROFUNDOS NAS FREQUÊNCIAS DA VOZ
-                const vocalFreqs = [
-                    { freq: 165, q: 1.2, gain: -22 },
-                    { freq: 420, q: 1.1, gain: -24 },
-                    { freq: 1100, q: 1.0, gain: -26 },
-                    { freq: 2350, q: 1.1, gain: -26 },
-                    { freq: 3800, q: 1.2, gain: -22 }
-                ];
-
-                let lastFilterNode = mode1Merger;
-                vocalFreqs.forEach(cfg => {
-                    const biquad = audioCtx.createBiquadFilter();
-                    biquad.type = 'peaking';
-                    biquad.frequency.value = cfg.freq;
-                    biquad.Q.value = cfg.q;
-                    biquad.gain.value = cfg.gain;
-                    lastFilterNode.connect(biquad);
-                    lastFilterNode = biquad;
-                });
-
-                mode2DeepCutGainNode = audioCtx.createGain();
-                lastFilterNode.connect(mode2DeepCutGainNode);
-                subBassPass.connect(mode2DeepCutGainNode);
-
-                // SAÍDA MESTRE DA LIVE
-                masterOutGainNode = audioCtx.createGain();
-                webAudioSource.connect(dryGainNode);
-
-                dryGainNode.connect(masterOutGainNode);
-                mode1SideGainNode.connect(masterOutGainNode);
-                mode2DeepCutGainNode.connect(masterOutGainNode);
-
-                masterOutGainNode.connect(webAudioDest);
-
-                applyAudioGraphModeGains();
-
-                filteredAudioTrack = webAudioDest.stream.getAudioTracks()[0];
-                if (filteredAudioTrack) {
-                    filteredAudioTrack.enabled = !isOutgoingAudioMuted;
-                }
-                return filteredAudioTrack;
-            } catch (e) {
-                console.warn('Erro ao configurar grafo WebAudio:', e);
-                return sourceAudioTrack;
-            }
-        }
-
-        function applyAudioGraphModeGains() {
-            if (!audioCtx || !dryGainNode || !mode1SideGainNode || !mode2DeepCutGainNode || !masterOutGainNode) return;
-            const now = audioCtx.currentTime;
-
-            const dGain = (voiceFilterMode === 0) ? 1.0 : 0.0;
-            const m1Gain = (voiceFilterMode === 1) ? 1.0 : 0.0;
-            const m2Gain = (voiceFilterMode === 2) ? 1.25 : 0.0;
-
-            dryGainNode.gain.setTargetAtTime(dGain, now, 0.015);
-            mode1SideGainNode.gain.setTargetAtTime(m1Gain, now, 0.015);
-            mode2DeepCutGainNode.gain.setTargetAtTime(m2Gain, now, 0.015);
-            masterOutGainNode.gain.setTargetAtTime(isOutgoingAudioMuted ? 0.0 : 1.0, now, 0.015);
-        }
-
-        function cycleVoiceFilterMode() {
-            voiceFilterMode = (voiceFilterMode + 1) % 3;
-
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume().catch(() => {});
-            }
-            applyAudioGraphModeGains();
+        async function cycleVoiceFilterMode() {
+            nativeIsolationEnabled = !nativeIsolationEnabled;
+            await applyNativeAudioConstraints();
             updateVoiceFilterButtonUI();
 
-            if (voiceFilterMode === 0) {
-                showToast('ANTI-VOZ OFF: ÁUDIO PURO DA JANELA.');
-            } else if (voiceFilterMode === 1) {
-                showToast('MODO 1 ATIVO: CANCELAMENTO DE VOZ MONO (L-R) DO DISCORD.');
+            if (nativeIsolationEnabled) {
+                showToast('ISOLAMENTO NATIVO ATIVO (SEM FILTRO DE FREQUÊNCIA).');
             } else {
-                showToast('MODO 2 ATIVO: CANCELAMENTO (L-R) + CORTE VOCAL PROFUNDO.');
+                showToast('ÁUDIO DIRETO SEM CANCELAMENTO DE ECO NATIVO.');
             }
         }
 
@@ -1761,15 +751,12 @@
             const btn = document.getElementById('voiceFilterBtn');
             const text = document.getElementById('voiceFilterText');
 
-            if (voiceFilterMode === 0) {
-                btn.className = 'retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border';
-                text.textContent = 'ANTI-VOZ DISCORD: OFF';
-            } else if (voiceFilterMode === 1) {
+            if (nativeIsolationEnabled) {
                 btn.className = 'retract-btn h-10 bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white';
-                text.textContent = 'ANTI-VOZ: MODO 1 (L-R)';
+                text.textContent = 'ISOLAMENTO NATIVO: ATIVO';
             } else {
-                btn.className = 'retract-btn h-10 bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white';
-                text.textContent = 'ANTI-VOZ: MODO 2 (PROFUNDO)';
+                btn.className = 'retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border';
+                text.textContent = 'ISOLAMENTO NATIVO: OFF';
             }
         }
 
@@ -1778,7 +765,6 @@
 
             if (rawAudioTrack) rawAudioTrack.enabled = !isOutgoingAudioMuted;
             if (filteredAudioTrack) filteredAudioTrack.enabled = !isOutgoingAudioMuted;
-            applyAudioGraphModeGains();
 
             const btn = document.getElementById('muteOutgoingAudioBtn');
             const icon = document.getElementById('muteOutgoingIcon');
