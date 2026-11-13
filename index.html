@@ -268,14 +268,32 @@
                     <span class="font-mono text-[10px] uppercase tracking-wider text-mono-muted">
                         PARTICIPANTES NA SALA (<span id="modalPeersCount">1</span>)
                     </span>
-                    <button onclick="manualSyncStreams()" class="font-mono text-[10px] uppercase text-mono-silver hover:text-mono-white flex items-center gap-1 transition">
-                        <i class="fa-solid fa-arrows-rotate text-[9px]"></i>
-                        <span>SINCRONIZAR</span>
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <button onclick="injectFallbackAudioDevice()" class="font-mono text-[10px] uppercase text-mono-silver hover:text-mono-white flex items-center gap-1 transition" title="Injetar dispositivo de áudio no Firefox">
+                            <i class="fa-solid fa-microphone-lines text-[9px]"></i>
+                            <span>+ ÁUDIO AUX</span>
+                        </button>
+                        <button onclick="manualSyncStreams()" class="font-mono text-[10px] uppercase text-mono-silver hover:text-mono-white flex items-center gap-1 transition">
+                            <i class="fa-solid fa-arrows-rotate text-[9px]"></i>
+                            <span>SINCRONIZAR</span>
+                        </button>
+                    </div>
                 </div>
                 <div id="modalPeersList" class="max-h-32 overflow-y-auto space-y-1.5 pr-1">
                     <!-- Preenchido via JS -->
                 </div>
+            </div>
+
+            <!-- Bloco 4: Dica de Isolamento Nativo de Janela (Deadlock / Jogos) -->
+            <div class="bg-mono-black border border-mono-border p-3 space-y-1">
+                <div class="font-mono text-[10px] font-bold uppercase text-mono-white flex items-center gap-1.5">
+                    <i class="fa-solid fa-shield-halved text-[10px]"></i>
+                    <span>ISOLAR 100% O JOGO NO CHROME / EDGE:</span>
+                </div>
+                <p class="font-mono text-[10px] text-mono-muted leading-relaxed">
+                    Para o Windows capturar <strong class="text-mono-silver">só o jogo (ex: Deadlock)</strong> sem o Discord ao compartilhar uma Janela, ative no navegador:
+                    <span class="text-mono-white select-all block mt-1 bg-mono-panel px-2 py-1 border border-mono-border">chrome://flags/#enable-get-display-media-window-audio-capture</span>
+                </p>
             </div>
         </div>
     </div>
@@ -432,24 +450,24 @@
         <!-- Centro Absoluto: Botão Transmitir (Apenas Ícone) + Botões de Áudio Retráteis -->
         <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
 
-            <!-- 1. Transmitir Tela (Apenas Ícone, não retrátil) -->
+            <!-- 1. Transmitir Tela (Apenas Ícone, não retrátil, inverte para branco quando ativo) -->
             <button id="shareScreenBtn" onclick="toggleScreenShare()" title="Transmitir Tela (1080p 30fps)"
-                class="w-10 h-10 bg-mono-white hover:bg-mono-silver text-mono-black border border-mono-white transition flex items-center justify-center">
+                class="w-10 h-10 bg-mono-black hover:bg-mono-hover text-mono-white border border-mono-border hover:border-mono-white transition flex items-center justify-center">
                 <i id="shareScreenIcon" class="fa-solid fa-display text-xs"></i>
             </button>
 
-            <!-- 2. Mutar Som Discord / Live (Retrátil ao passar o mouse) -->
-            <button id="muteOutgoingAudioBtn" onclick="toggleOutgoingAudioMute()"
-                class="retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border">
-                <i id="muteOutgoingIcon" class="fa-solid fa-volume-high text-xs"></i>
-                <span id="muteOutgoingText" class="retract-label">MUTAR SOM DISCORD: OFF</span>
-            </button>
-
-            <!-- 3. Filtro Anti-Voz (Retrátil ao passar o mouse) -->
+            <!-- 2. Isolar Jogo / Anti-Voz Discord (Cancelamento de Fase Estéreo L-R na voz, preserva áudio 3D do jogo) -->
             <button id="voiceFilterBtn" onclick="toggleVoiceBandFilter()"
                 class="retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border">
                 <i class="fa-solid fa-wave-square text-xs"></i>
-                <span id="voiceFilterText" class="retract-label">FILTRO ANTI-VOZ: OFF</span>
+                <span id="voiceFilterText" class="retract-label">ISOLAR JOGO (ANTI-VOZ DISCORD): OFF</span>
+            </button>
+
+            <!-- 3. Mutar Tudo da Live (Desativa 100% do áudio enviado na transmissão) -->
+            <button id="muteOutgoingAudioBtn" onclick="toggleOutgoingAudioMute()"
+                class="retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border">
+                <i id="muteOutgoingIcon" class="fa-solid fa-volume-high text-xs"></i>
+                <span id="muteOutgoingText" class="retract-label">MUTAR TUDO DA LIVE: OFF</span>
             </button>
 
         </div>
@@ -1451,7 +1469,7 @@
 
         async function startScreenShare() {
             try {
-                // Solicita captura de tela + áudio nativo do sistema/aba
+                // Solicita captura de tela 1080p 30fps + áudio estéreo de 2 canais e isolamento por janela (windowAudio: 'window')
                 rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
                     video: {
                         width: { ideal: 1920, max: 1920 },
@@ -1463,9 +1481,11 @@
                         echoCancellation: false,
                         noiseSuppression: false,
                         autoGainControl: false,
+                        channelCount: { ideal: 2 },
                         suppressLocalAudioPlayback: false
                     },
                     systemAudio: 'include',
+                    windowAudio: 'window',
                     preferCurrentTab: false
                 });
 
@@ -1577,7 +1597,7 @@
 
                 if (!audioCtx) {
                     const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                    audioCtx = new AudioCtx();
+                    audioCtx = new AudioCtx({ latencyHint: 'interactive', sampleRate: 48000 });
                 }
                 if (audioCtx.state === 'suspended') {
                     await audioCtx.resume();
@@ -1586,31 +1606,76 @@
                 const dest = audioCtx.createMediaStreamDestination();
                 const src = audioCtx.createMediaStreamSource(new MediaStream([sourceAudioTrack]));
 
+                // =========================================================================
+                // MOTOR MID-SIDE (L - R) DE ISOLAMENTO DE JOGO (EX: DEADLOCK) vs DISCORD:
+                // - Vozes do Discord são 100% Mono Central (Canal L == Canal R).
+                // - O áudio do Deadlock é Estéreo 3D (Canal L != Canal R) + Graves/Agudos.
+                // - Subtraímos o canal central (L - R) na faixa vocal (220Hz - 3500Hz)
+                //   para cancelar as vozes do Discord mantendo o som 3D, tiros e graves do jogo!
+                // =========================================================================
+
+                // 1. Mantém 100% dos Sub-Graves e Explosões do Jogo (< 220 Hz) em Estéreo
+                const lowPassGame = audioCtx.createBiquadFilter();
+                lowPassGame.type = 'lowpass';
+                lowPassGame.frequency.value = 220;
+                lowPassGame.Q.value = 0.707;
+
+                // 2. Mantém 100% dos Agudos e Ambiência do Jogo (> 3500 Hz) em Estéreo
+                const highPassGame = audioCtx.createBiquadFilter();
+                highPassGame.type = 'highpass';
+                highPassGame.frequency.value = 3500;
+                highPassGame.Q.value = 0.707;
+
+                // 3. Na faixa de voz (220Hz - 3500Hz), aplica Cancelamento de Fase Central (L - R)
+                const splitter = audioCtx.createChannelSplitter(2);
+                const merger = audioCtx.createChannelMerger(2);
+
+                const invRight = audioCtx.createGain();
+                invRight.gain.value = -1.0; // Inverte a fase do canal Direito (-R)
+
+                const sideSumLeft = audioCtx.createGain();
+                sideSumLeft.gain.value = 1.15; // Canal Esquerdo resultante: (L - R)
+
+                const sideSumRight = audioCtx.createGain();
+                sideSumRight.gain.value = -1.15; // Canal Direito resultante: (R - L)
+
+                // Atenuação suave extra de centro para garantir inteligibilidade zero da call
                 filterBand1 = audioCtx.createBiquadFilter();
                 filterBand1.type = 'peaking';
-                filterBand1.frequency.value = 500;
-                filterBand1.Q.value = 1.2;
-                filterBand1.gain.value = -34;
+                filterBand1.frequency.value = 650;
+                filterBand1.Q.value = 1.0;
+                filterBand1.gain.value = -10;
 
                 filterBand2 = audioCtx.createBiquadFilter();
                 filterBand2.type = 'peaking';
-                filterBand2.frequency.value = 1350;
-                filterBand2.Q.value = 0.9;
-                filterBand2.gain.value = -38;
-
-                filterBand3 = audioCtx.createBiquadFilter();
-                filterBand3.type = 'peaking';
-                filterBand3.frequency.value = 2700;
-                filterBand3.Q.value = 1.2;
-                filterBand3.gain.value = -34;
+                filterBand2.frequency.value = 1600;
+                filterBand2.Q.value = 1.0;
+                filterBand2.gain.value = -12;
 
                 outGainNode = audioCtx.createGain();
-                outGainNode.gain.value = isOutgoingAudioMuted ? 0 : 1;
+                outGainNode.gain.value = isOutgoingAudioMuted ? 0 : 1.15;
 
-                src.connect(filterBand1);
+                // Conexão dos Graves e Agudos preservados do Jogo
+                src.connect(lowPassGame);
+                src.connect(highPassGame);
+                lowPassGame.connect(outGainNode);
+                highPassGame.connect(outGainNode);
+
+                // Conexão do Cancelador de Fase Vocal Estéreo (L - R)
+                src.connect(splitter);
+                splitter.connect(sideSumLeft, 0);  // +L
+                splitter.connect(invRight, 1);     // -R
+                invRight.connect(sideSumLeft);     // Soma L + (-R) = L - R
+
+                sideSumLeft.connect(sideSumRight); // Inverte para o lado direito
+
+                sideSumLeft.connect(merger, 0, 0);
+                sideSumRight.connect(merger, 0, 1);
+
+                merger.connect(filterBand1);
                 filterBand1.connect(filterBand2);
-                filterBand2.connect(filterBand3);
-                filterBand3.connect(outGainNode);
+                filterBand2.connect(outGainNode);
+
                 outGainNode.connect(dest);
 
                 filteredAudioTrack = dest.stream.getAudioTracks()[0];
@@ -1660,7 +1725,7 @@
             if (rawAudioTrack) rawAudioTrack.enabled = !isOutgoingAudioMuted;
             if (filteredAudioTrack) filteredAudioTrack.enabled = !isOutgoingAudioMuted;
             if (outGainNode && audioCtx) {
-                outGainNode.gain.setTargetAtTime(isOutgoingAudioMuted ? 0 : 1, audioCtx.currentTime, 0.02);
+                outGainNode.gain.setTargetAtTime(isOutgoingAudioMuted ? 0 : 1.15, audioCtx.currentTime, 0.02);
             }
 
             const btn = document.getElementById('muteOutgoingAudioBtn');
@@ -1670,13 +1735,31 @@
             if (isOutgoingAudioMuted) {
                 btn.className = 'retract-btn h-10 bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white';
                 icon.className = 'fa-solid fa-volume-xmark text-xs';
-                text.textContent = 'MUTAR SOM DISCORD: ON';
-                showToast('ÁUDIO DA LIVE MUTADO.');
+                text.textContent = 'MUTAR TUDO DA LIVE: ON';
+                showToast('TODO O ÁUDIO DA SUA LIVE FOI MUTADO.');
             } else {
                 btn.className = 'retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border';
                 icon.className = 'fa-solid fa-volume-high text-xs';
-                text.textContent = 'MUTAR SOM DISCORD: OFF';
-                showToast('ÁUDIO DA LIVE ATIVADO.');
+                text.textContent = 'MUTAR TUDO DA LIVE: OFF';
+                showToast('ÁUDIO DA SUA LIVE ATIVADO.');
+            }
+        }
+
+        async function toggleVoiceBandFilter() {
+            isVoiceFilterActive = !isVoiceFilterActive;
+            await hotSwapActiveAudioTrack();
+
+            const btn = document.getElementById('voiceFilterBtn');
+            const text = document.getElementById('voiceFilterText');
+
+            if (isVoiceFilterActive) {
+                btn.className = 'retract-btn h-10 bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white';
+                text.textContent = 'ISOLAR JOGO (ANTI-VOZ DISCORD): ON';
+                showToast('ISOLAMENTO ESTÉREO ATIVO: VOZES MONO DO DISCORD REMOVIDAS.');
+            } else {
+                btn.className = 'retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border';
+                text.textContent = 'ISOLAR JOGO (ANTI-VOZ DISCORD): OFF';
+                showToast('ISOLAMENTO DESATIVADO (ÁUDIO NATIVO COMPLETO).');
             }
         }
 
@@ -1743,11 +1826,11 @@
             const icon = document.getElementById('shareScreenIcon');
 
             if (sharing) {
-                btn.className = 'w-10 h-10 bg-mono-black hover:bg-mono-hover text-mono-white border border-mono-white transition flex items-center justify-center';
-                icon.className = 'fa-solid fa-stop text-xs';
-                btn.title = 'Encerrar Transmissão';
-            } else {
                 btn.className = 'w-10 h-10 bg-mono-white hover:bg-mono-silver text-mono-black border border-mono-white transition flex items-center justify-center';
+                icon.className = 'fa-solid fa-display text-xs';
+                btn.title = 'Transmitindo Tela (Clique para encerrar)';
+            } else {
+                btn.className = 'w-10 h-10 bg-mono-black hover:bg-mono-hover text-mono-white border border-mono-border hover:border-mono-white transition flex items-center justify-center';
                 icon.className = 'fa-solid fa-display text-xs';
                 btn.title = 'Transmitir Tela (1080p 30fps)';
             }
