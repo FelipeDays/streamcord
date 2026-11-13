@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MONO // STREAM — 1080P 30FPS MULTI-SCREEN P2P</title>
+    <title>BAGRESTREAM — B // S</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- PeerJS CDN para WebRTC P2P -->
@@ -27,8 +27,9 @@
                             black: '#000000',
                             bg: '#050505',
                             panel: '#0a0a0a',
-                            card: '#111111',
-                            hover: '#1a1a1a',
+                            card: '#121212',
+                            pill: '#181818',
+                            hover: '#1f1f1f',
                             border: '#242424',
                             borderLight: '#3a3a3a',
                             muted: '#737373',
@@ -45,32 +46,120 @@
         * {
             box-sizing: border-box;
         }
-        /* Minimalist Monochromatic Range Slider */
-        input[type="range"] {
+
+        /* =========================================================
+           SLIDER DE ÁUDIO ESTILO PÍLULA COM BARRA BRANCA VISÍVEL
+           (Compatível com Chrome, Edge, Safari e Firefox)
+           ========================================================= */
+        .vol-pill {
+            background-color: #181818;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 9999px;
+            padding: 6px 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            height: 36px;
+            transition: border-color 0.2s ease, background-color 0.2s ease;
+        }
+        .vol-pill:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            background-color: #1f1f1f;
+        }
+
+        input[type="range"].bagre-slider {
             -webkit-appearance: none;
             appearance: none;
-            background: transparent;
+            width: 88px;
+            height: 4px;
+            border-radius: 9999px;
+            background: linear-gradient(
+                to right,
+                #ffffff 0%,
+                #ffffff var(--val, 100%),
+                rgba(255, 255, 255, 0.32) var(--val, 100%),
+                rgba(255, 255, 255, 0.32) 100%
+            );
+            outline: none;
             cursor: pointer;
+            margin: 0;
         }
-        input[type="range"]::-webkit-slider-runnable-track {
-            background: #262626;
-            height: 2px;
+
+        /* Chrome / Edge / Safari Thumb */
+        input[type="range"].bagre-slider::-webkit-slider-runnable-track {
+            height: 4px;
+            border-radius: 9999px;
+            background: transparent;
         }
-        input[type="range"]::-webkit-slider-thumb {
+        input[type="range"].bagre-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: none;
             margin-top: -5px;
-            background-color: #ffffff;
-            height: 12px;
-            width: 12px;
-            border-radius: 0px;
-            border: 1px solid #000000;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
             transition: transform 0.15s ease;
         }
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
+        input[type="range"].bagre-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.18);
         }
-        /* Custom subtle scrollbar */
+
+        /* Firefox Track & Thumb */
+        input[type="range"].bagre-slider::-moz-range-track {
+            height: 4px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.32);
+        }
+        input[type="range"].bagre-slider::-moz-range-progress {
+            height: 4px;
+            border-radius: 9999px;
+            background: #ffffff;
+        }
+        input[type="range"].bagre-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: none;
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+            transition: transform 0.15s ease;
+        }
+        input[type="range"].bagre-slider::-moz-range-thumb:hover {
+            transform: scale(1.18);
+        }
+
+        /* =========================================================
+           BOTÕES RETRÁTEIS (MOSTRAM SÓ O ÍCONE, EXPANDEM NO HOVER)
+           ========================================================= */
+        .retract-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 36px;
+            padding: 0 11px;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .retract-label {
+            max-width: 0;
+            opacity: 0;
+            margin-left: 0;
+            overflow: hidden;
+            transition: max-width 0.26s cubic-bezier(0.16, 1, 0.3, 1),
+                        opacity 0.2s ease,
+                        margin-left 0.22s ease;
+        }
+        .retract-btn:hover .retract-label {
+            max-width: 240px;
+            opacity: 1;
+            margin-left: 8px;
+        }
+
+        /* Scrollbar minimalista */
         ::-webkit-scrollbar {
             width: 4px;
             height: 4px;
@@ -81,152 +170,222 @@
         ::-webkit-scrollbar-thumb {
             background: #262626;
         }
-        /* Grid layout transitions */
+
         .video-tile {
-            transition: border-color 0.2s ease, background-color 0.2s ease;
+            transition: border-color 0.2s ease;
         }
         .video-tile:hover {
-            border-color: #525252;
+            border-color: #4a4a4a;
         }
     </style>
 </head>
 <body class="bg-mono-bg text-mono-white font-sans antialiased h-screen w-screen overflow-hidden flex flex-col select-none">
 
-    <!-- =========================================================
-         HEADER MINIMALISTA MONOCROMÁTICO (SALA + MULTI-CONEXÃO)
-         ========================================================= -->
-    <header class="bg-mono-panel border-b border-mono-border px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0 z-30">
-        <!-- Identidade Minimalista -->
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 border border-mono-white bg-mono-black flex items-center justify-center text-mono-white">
-                <span class="font-mono text-xs font-bold tracking-tighter">M//S</span>
-            </div>
-            <div class="flex flex-col">
-                <div class="flex items-center gap-2">
-                    <span class="font-mono text-xs font-bold tracking-widest uppercase text-mono-white">MONO//STREAM</span>
-                    <span class="font-mono text-[10px] px-1.5 py-0.5 border border-mono-borderLight text-mono-silver uppercase">1080P • 30FPS</span>
-                </div>
-                <div class="flex items-center gap-2 text-[10px] font-mono text-mono-muted">
-                    <span id="peerStatusDot" class="w-1.5 h-1.5 bg-mono-muted"></span>
-                    <span id="peerStatusText">INICIALIZANDO NÓ P2P...</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Seletor de Modo de Visualização (Grade Simultânea vs Foco Único) -->
-        <div class="flex items-center gap-1 bg-mono-black border border-mono-border p-1 overflow-x-auto max-w-full">
-            <button id="modeGridBtn" onclick="setLayoutMode('grid')"
-                class="px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 bg-mono-white text-mono-black font-semibold">
-                <i class="fa-solid fa-table-cells-large text-[10px]"></i>
-                <span>GRADE (<span id="activeScreensCount">0</span>)</span>
-            </button>
-
-            <button id="modeFocusBtn" onclick="setLayoutMode('focus')"
-                class="px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 text-mono-silver hover:text-mono-white">
-                <i class="fa-regular fa-square text-[10px]"></i>
-                <span>FOCO</span>
-            </button>
-
-            <div class="h-4 w-[1px] bg-mono-border mx-1"></div>
-
-            <!-- Mostrar/Ocultar Minha Própria Tela no Palco -->
-            <button id="toggleSelfPreviewBtn" onclick="toggleSelfView()"
-                class="px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 text-mono-white border border-transparent hover:border-mono-border"
-                title="Exibir ou ocultar sua própria tela na grade">
-                <i id="selfPreviewIcon" class="fa-regular fa-eye text-[10px]"></i>
-                <span class="hidden md:inline">MINHA TELA: ON</span>
-            </button>
-        </div>
-
-        <!-- Controles de Conexão Multi-Amigos -->
-        <div class="flex flex-wrap items-center gap-2">
-            <!-- Meu Código -->
-            <div class="flex items-center bg-mono-black border border-mono-border px-3 py-1 gap-2.5">
-                <span class="font-mono text-[10px] uppercase text-mono-muted">MEU ID</span>
-                <span id="myShortCode" class="font-mono font-bold text-xs text-mono-white tracking-widest select-all">-----</span>
-                <button onclick="copyMyCode()" id="copyBtn"
-                    class="border border-mono-border hover:border-mono-white bg-mono-card text-mono-white font-mono text-[10px] uppercase px-2 py-0.5 transition">
-                    COPIAR
-                </button>
-            </div>
-
-            <!-- Adicionar Amigo (Suporta vários amigos!) -->
-            <div class="flex items-center bg-mono-black border border-mono-border p-0.5 gap-1">
-                <input id="partnerCodeInput" type="text" maxlength="20" placeholder="ID DO AMIGO"
-                    onkeydown="if(event.key==='Enter') connectToPartner()"
-                    class="bg-transparent text-mono-white font-mono text-xs uppercase px-2.5 py-1 w-28 sm:w-32 focus:outline-none placeholder:text-mono-muted">
-                <button onclick="connectToPartner()" id="connectBtn"
-                    class="bg-mono-white hover:bg-mono-silver text-mono-black font-mono text-[10px] font-bold uppercase px-3 py-1.5 transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-plus text-[9px]"></i>
-                    <span>ADICIONAR</span>
-                </button>
-            </div>
-
-            <!-- Sincronizar Todas as Telas -->
-            <button onclick="manualSyncStreams()" title="Sincronizar vídeo com todos os amigos conectados"
-                class="bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white border border-mono-border px-2.5 py-1.5 font-mono text-[10px] uppercase transition flex items-center gap-1.5">
-                <i class="fa-solid fa-arrows-rotate"></i>
-                <span class="hidden lg:inline">SYNC</span>
-            </button>
-        </div>
-    </header>
+    <!-- Elemento de áudio oculto para destravar o processamento WebAudio de captura no Chrome -->
+    <audio id="chromeWebAudioKeepAlive" muted playsinline class="hidden"></audio>
 
     <!-- =========================================================
-         BARRA SECUNDÁRIA DE CONEXÕES & ABAS RÁPIDAS DE TELAS
+         MODAL 1: ENTRADA NO SITE (DIGITAR O NOME)
          ========================================================= -->
-    <div id="subHeaderBar" class="bg-mono-black border-b border-mono-border px-4 py-1.5 flex items-center justify-between gap-4 overflow-x-auto shrink-0 z-20">
-        <!-- Lista de Telas para Foco Rápido -->
-        <div class="flex items-center gap-1.5 overflow-x-auto" id="screenTabsContainer">
-            <span class="font-mono text-[10px] uppercase text-mono-muted mr-1">TELAS:</span>
-            <button onclick="setLayoutMode('grid')" id="tabAllGrid"
-                class="px-2 py-0.5 font-mono text-[10px] uppercase border border-mono-white bg-mono-white text-mono-black font-semibold transition">
-                TODAS (GRADE)
-            </button>
-            <!-- Abas dinâmicas de cada amigo e da tela local entram aqui -->
-        </div>
+    <div id="nameEntryModal" class="fixed inset-0 z-50 bg-mono-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="w-full max-w-sm bg-mono-panel border border-mono-border p-7 space-y-6 shadow-2xl">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 border border-mono-white bg-mono-black flex items-center justify-center text-mono-white shrink-0">
+                    <span class="font-mono text-xs font-bold tracking-tighter">B//S</span>
+                </div>
+                <div>
+                    <h1 class="font-mono text-sm font-bold tracking-widest uppercase text-mono-white">BAGRESTREAM</h1>
+                    <p class="font-mono text-[10px] text-mono-muted uppercase">IDENTIFICAÇÃO DE USUÁRIO</p>
+                </div>
+            </div>
 
-        <!-- Lista de Amigos Conectados na Malha (Mesh) -->
-        <div class="flex items-center gap-2 shrink-0" id="connectedPeersPills">
-            <span class="font-mono text-[10px] uppercase text-mono-muted">CONECTADOS: 0</span>
+            <div class="space-y-2">
+                <label for="initialNameInput" class="block font-mono text-[10px] uppercase tracking-wider text-mono-silver">
+                    COMO SEUS AMIGOS DEVEM TE VER?
+                </label>
+                <input id="initialNameInput" type="text" maxlength="18" placeholder="DIGITE SEU NOME..."
+                    onkeydown="if(event.key==='Enter') confirmInitialName()"
+                    class="w-full bg-mono-black border border-mono-border focus:border-mono-white text-mono-white font-mono text-xs uppercase px-3.5 py-3 focus:outline-none placeholder:text-mono-muted">
+            </div>
+
+            <button onclick="confirmInitialName()"
+                class="w-full bg-mono-white hover:bg-mono-silver text-mono-black font-mono text-xs font-bold uppercase py-3 transition tracking-wider">
+                ENTRAR NO BAGRESTREAM
+            </button>
         </div>
     </div>
 
     <!-- =========================================================
+         MODAL 2: JANELA "CONECTAR-SE" (ID DA SALA + COPIAR + ENTRAR)
+         ========================================================= -->
+    <div id="connectModal" class="hidden fixed inset-0 z-50 bg-mono-black/85 backdrop-blur-sm items-center justify-center p-4"
+         onclick="if(event.target === this) closeConnectModal()">
+        <div class="w-full max-w-md bg-mono-panel border border-mono-border p-6 space-y-6 shadow-2xl">
+            <!-- Topo do Modal -->
+            <div class="flex items-center justify-between border-b border-mono-border pb-4">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-link text-xs text-mono-white"></i>
+                    <h2 class="font-mono text-xs font-bold uppercase tracking-widest text-mono-white">CONECTAR-SE À SALA</h2>
+                </div>
+                <button onclick="closeConnectModal()" class="text-mono-muted hover:text-mono-white transition px-1">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Bloco 1: Código da Sala Atual para Copiar -->
+            <div class="space-y-2">
+                <span class="block font-mono text-[10px] uppercase tracking-wider text-mono-muted">
+                    ID DA SUA SALA ATUAL (ENVIE PARA OS AMIGOS)
+                </span>
+                <div class="flex items-center justify-between bg-mono-black border border-mono-border px-4 py-3">
+                    <span id="modalRoomIdDisplay" class="font-mono text-lg font-bold tracking-[0.25em] text-mono-white select-all">-----</span>
+                    <button id="copyRoomBtn" onclick="copyRoomCode()"
+                        class="bg-mono-white hover:bg-mono-silver text-mono-black font-mono text-[11px] font-bold uppercase px-4 py-1.5 transition">
+                        COPIAR
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bloco 2: Entrar na Sala de um Amigo -->
+            <div class="space-y-2">
+                <span class="block font-mono text-[10px] uppercase tracking-wider text-mono-muted">
+                    ENTRAR NA SALA DE UM AMIGO
+                </span>
+                <div class="flex items-center gap-2">
+                    <input id="joinRoomInput" type="text" maxlength="16" placeholder="DIGITE O ID DA SALA..."
+                        onkeydown="if(event.key==='Enter') joinFriendRoom()"
+                        class="flex-1 bg-mono-black border border-mono-border focus:border-mono-white text-mono-white font-mono text-xs uppercase px-3.5 py-2.5 focus:outline-none placeholder:text-mono-muted tracking-widest">
+                    <button id="joinRoomBtn" onclick="joinFriendRoom()"
+                        class="bg-mono-white hover:bg-mono-silver text-mono-black font-mono text-xs font-bold uppercase px-5 py-2.5 transition">
+                        CONECTAR
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bloco 3: Pessoas Conectadas na Sala -->
+            <div class="space-y-2 pt-2 border-t border-mono-border">
+                <div class="flex items-center justify-between">
+                    <span class="font-mono text-[10px] uppercase tracking-wider text-mono-muted">
+                        PARTICIPANTES NA SALA (<span id="modalPeersCount">1</span>)
+                    </span>
+                    <button onclick="manualSyncStreams()" class="font-mono text-[10px] uppercase text-mono-silver hover:text-mono-white flex items-center gap-1 transition">
+                        <i class="fa-solid fa-arrows-rotate text-[9px]"></i>
+                        <span>SINCRONIZAR</span>
+                    </button>
+                </div>
+                <div id="modalPeersList" class="max-h-32 overflow-y-auto space-y-1.5 pr-1">
+                    <!-- Preenchido via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         HEADER ULTRA-LIMPO (B//S ESQUERDA | ÍCONES RETRÁTEIS CENTRO | NOME + CONECTAR-SE DIREITA)
+         ========================================================= -->
+    <header class="relative bg-mono-panel border-b border-mono-border px-4 h-14 flex items-center justify-between shrink-0 z-30">
+
+        <!-- Esquerda: Logo B//S + BAGRESTREAM (Sem textos poluídos embaixo) -->
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 border border-mono-white bg-mono-black flex items-center justify-center text-mono-white">
+                <span class="font-mono text-xs font-bold tracking-tighter">B//S</span>
+            </div>
+            <span class="font-mono text-xs font-bold tracking-widest uppercase text-mono-white">BAGRESTREAM</span>
+        </div>
+
+        <!-- Centro Absoluto: Controles de Visualização com Ícones Retráteis -->
+        <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-mono-black border border-mono-border p-1">
+            <!-- Grade Simultânea -->
+            <button id="modeGridBtn" onclick="setLayoutMode('grid')"
+                class="retract-btn font-mono text-[11px] uppercase tracking-wider bg-mono-white text-mono-black font-semibold">
+                <i class="fa-solid fa-table-cells-large text-xs"></i>
+                <span class="retract-label">GRADE (<span id="activeScreensCount">0</span>)</span>
+            </button>
+
+            <!-- Foco Único -->
+            <button id="modeFocusBtn" onclick="setLayoutMode('focus')"
+                class="retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-silver hover:text-mono-white">
+                <i class="fa-regular fa-square text-xs"></i>
+                <span class="retract-label">FOCO</span>
+            </button>
+
+            <div class="h-4 w-[1px] bg-mono-border mx-0.5"></div>
+
+            <!-- Mostrar / Ocultar Minha Tela -->
+            <button id="toggleSelfPreviewBtn" onclick="toggleSelfView()"
+                class="retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-white">
+                <i id="selfPreviewIcon" class="fa-regular fa-eye text-xs"></i>
+                <span id="selfPreviewLabel" class="retract-label">MINHA TELA: ON</span>
+            </button>
+        </div>
+
+        <!-- Direita: Nome do Usuário + Botão Conectar-se -->
+        <div class="flex items-center gap-2.5">
+            <button onclick="openNameModal()" title="Clique para alterar seu nome"
+                class="bg-mono-black hover:bg-mono-hover border border-mono-border px-3 py-1.5 flex items-center gap-2 transition">
+                <i class="fa-regular fa-user text-[10px] text-mono-muted"></i>
+                <span id="headerUserName" class="font-mono text-xs font-semibold uppercase text-mono-white tracking-wider">VISITANTE</span>
+            </button>
+
+            <button onclick="openConnectModal()"
+                class="bg-mono-white hover:bg-mono-silver text-mono-black font-mono text-xs font-bold uppercase px-4 py-1.5 transition flex items-center gap-2">
+                <i class="fa-solid fa-plug text-[10px]"></i>
+                <span>Conectar-se</span>
+            </button>
+        </div>
+
+    </header>
+
+    <!-- =========================================================
          PALCO PRINCIPAL DE VÍDEO (GRADE SIMULTÂNEA OU FOCO ÚNICO)
          ========================================================= -->
-    <main class="flex-1 p-3 sm:p-4 flex flex-col overflow-hidden relative bg-mono-bg">
+    <main class="flex-1 p-3 flex flex-col overflow-hidden relative bg-mono-bg">
         <div id="videoStageContainer" class="relative flex-1 w-full h-full bg-mono-black border border-mono-border overflow-hidden flex flex-col">
 
-            <!-- Alerta Minimalista de Autoplay de Áudio Bloqueado -->
+            <!-- Seletor Flutuante Sutil quando em Modo Foco com mais de 1 tela -->
+            <div id="focusFloatingTabs" class="hidden absolute top-3 left-1/2 -translate-x-1/2 z-30 bg-mono-black/90 border border-mono-border p-1 items-center gap-1">
+                <!-- Preenchido via JS quando em modo Foco -->
+            </div>
+
+            <!-- Botão de Desbloqueio de Autoplay de Áudio (caso o navegador bloqueie) -->
             <button id="unmuteAutoplayBtn" onclick="forceUnmuteAllRemoteVideos()"
                 class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-40 bg-mono-white text-mono-black font-mono font-bold text-xs uppercase px-5 py-2.5 border border-mono-black shadow-2xl items-center gap-2 hover:bg-mono-silver transition">
                 <i class="fa-solid fa-volume-high"></i>
-                <span>CLIQUE PARA LIBERAR O ÁUDIO DAS TRANSMISSÕES</span>
+                <span>CLIQUE PARA ATIVAR O SOM DA TRANSMISSÃO</span>
             </button>
+
+            <!-- Aviso Auxiliar de Áudio (para Firefox ou quando compartilhado sem áudio do sistema) -->
+            <div id="missingAudioBanner" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 z-30 bg-mono-panel/95 border border-mono-border px-3.5 py-2 items-center gap-3 shadow-2xl">
+                <span class="font-mono text-[10px] uppercase text-mono-silver">
+                    TELA SEM ÁUDIO CAPTURADO (NO FIREFOX, COMPARTILHE UMA ABA OU INJETE DISPOSITIVO DE ÁUDIO)
+                </span>
+                <button onclick="injectFallbackAudioDevice()"
+                    class="bg-mono-white text-mono-black font-mono text-[10px] font-bold uppercase px-2.5 py-1 hover:bg-mono-silver transition">
+                    + INJETAR ÁUDIO
+                </button>
+                <button onclick="document.getElementById('missingAudioBanner').classList.add('hidden')" class="text-mono-muted hover:text-mono-white text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
 
             <!-- CONTAINER DINÂMICO DE TELAS (GRID / FOCO) -->
             <div id="screensGrid" class="w-full h-full grid gap-2 p-2 overflow-auto place-items-stretch">
-                <!-- Os cards de vídeo (remotos e local) são renderizados e gerenciados aqui -->
+                <!-- Cards de vídeo renderizados aqui -->
             </div>
 
-            <!-- ESTADO VAZIO (MINIMALISTA E ARTE TÉCNICA) -->
+            <!-- ESTADO VAZIO MINIMALISTA -->
             <div id="emptyStage" class="absolute inset-0 flex items-center justify-center p-6 pointer-events-none">
-                <div class="max-w-md w-full border border-mono-border bg-mono-panel p-8 text-center space-y-5">
-                    <div class="w-12 h-12 mx-auto border border-mono-borderLight flex items-center justify-center text-mono-white">
-                        <i class="fa-solid fa-expand text-sm"></i>
+                <div class="max-w-sm w-full border border-mono-border bg-mono-panel/80 p-8 text-center space-y-4">
+                    <div class="w-10 h-10 mx-auto border border-mono-borderLight flex items-center justify-center text-mono-white">
+                        <span class="font-mono text-xs font-bold">B//S</span>
                     </div>
-                    <div class="space-y-2">
-                        <h2 id="emptyStageTitle" class="font-mono text-xs font-bold uppercase tracking-widest text-mono-white">
-                            NENHUM SINAL DE VÍDEO ATIVO
+                    <div class="space-y-1.5">
+                        <h2 class="font-mono text-xs font-bold uppercase tracking-widest text-mono-white">
+                            NENHUMA TELA ATIVA
                         </h2>
                         <p class="font-mono text-[11px] text-mono-muted leading-relaxed">
-                            [01] ENVIE SEU ID OU ADICIONE OS IDS DOS SEUS AMIGOS ACIMA.<br>
-                            [02] TRANSMITA EM 1080P 30FPS OU ASSISTA VÁRIAS TELAS SIMULTANEAMENTE.
+                            CLIQUE EM <strong class="text-mono-silver">CONECTAR-SE</strong> NO TOPO PARA COPIAR OU ENTRAR EM UMA SALA, OU INICIE SUA TRANSMISSÃO ABAIXO.
                         </p>
-                    </div>
-                    <div class="pt-2 border-t border-mono-border flex items-center justify-between text-[10px] font-mono text-mono-muted">
-                        <span>MODO: MULTI-PEER MESH</span>
-                        <span>CODEC: WEBRTC 6MBPS</span>
                     </div>
                 </div>
             </div>
@@ -235,60 +394,80 @@
     </main>
 
     <!-- =========================================================
-         BARRA INFERIOR DE CONTROLES (ESTÉTICA INDUSTRIAL/MINIMALISTA)
+         BARRA INFERIOR ULTRA-LIMPA
+         (Esquerda: Botão 'i' | Centro: Ícone Transmitir + Retráteis | Direita: Slider Pílula Branca + Fullscreen)
          ========================================================= -->
-    <footer class="bg-mono-panel border-t border-mono-border px-4 py-3 flex flex-wrap items-center justify-between gap-3 shrink-0 z-30">
+    <footer class="relative bg-mono-panel border-t border-mono-border px-4 h-16 flex items-center justify-between shrink-0 z-30">
 
-        <!-- Esquerda: Status de Transmissão Local -->
-        <div class="hidden sm:flex items-center gap-3 font-mono text-[11px]">
-            <div class="flex items-center gap-2 border border-mono-border bg-mono-black px-3 py-1.5">
-                <span id="localBroadcastDot" class="w-1.5 h-1.5 bg-mono-muted"></span>
-                <span id="localBroadcastStatus" class="text-mono-silver uppercase">TX: INATIVO</span>
-            </div>
-            <div id="audioStateBadge" class="border border-mono-border bg-mono-black px-3 py-1.5 text-mono-muted uppercase">
-                ÁUDIO TX: STANDBY
+        <!-- Esquerda: Botão 'i' de Informações (Hover mostra Qualidade, Nome e ID da Sala) -->
+        <div class="relative group flex items-center">
+            <button class="w-9 h-9 rounded-full bg-mono-black border border-mono-border group-hover:border-mono-white text-mono-silver group-hover:text-mono-white flex items-center justify-center transition cursor-pointer">
+                <i class="fa-solid fa-info text-xs"></i>
+            </button>
+
+            <!-- Popover que abre ao passar o mouse no 'i' -->
+            <div class="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 absolute bottom-12 left-0 w-64 bg-mono-black border border-mono-white p-3.5 shadow-2xl space-y-2.5 z-50">
+                <div class="text-[10px] font-mono uppercase tracking-widest text-mono-muted border-b border-mono-border pb-1.5">
+                    INFORMAÇÕES DA SESSÃO
+                </div>
+                <div class="flex items-center justify-between font-mono text-[11px]">
+                    <span class="text-mono-muted">QUALIDADE:</span>
+                    <span id="infoPopoverQuality" class="text-mono-white font-semibold">1920x1080 • 30FPS</span>
+                </div>
+                <div class="flex items-center justify-between font-mono text-[11px]">
+                    <span class="text-mono-muted">USUÁRIO:</span>
+                    <span id="infoPopoverName" class="text-mono-white font-semibold truncate max-w-[130px]">VISITANTE</span>
+                </div>
+                <div class="flex items-center justify-between font-mono text-[11px]">
+                    <span class="text-mono-muted">ID DA SALA:</span>
+                    <span id="infoPopoverRoom" class="text-mono-white font-bold tracking-widest">-----</span>
+                </div>
+                <div class="flex items-center justify-between font-mono text-[11px] pt-1 border-t border-mono-border">
+                    <span class="text-mono-muted">TRANSMISSÕES:</span>
+                    <span id="infoPopoverStreams" class="text-mono-silver">0 ATIVAS</span>
+                </div>
             </div>
         </div>
 
-        <!-- Centro: Controles Principais de Tela e Isolamento do Discord -->
-        <div class="flex flex-wrap items-center justify-center gap-2 mx-auto sm:mx-0">
+        <!-- Centro Absoluto: Botão Transmitir (Apenas Ícone) + Botões de Áudio Retráteis -->
+        <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
 
-            <!-- 1. Botão Compartilhar / Parar Tela -->
-            <button id="shareScreenBtn" onclick="toggleScreenShare()"
-                class="bg-mono-white hover:bg-mono-silver text-mono-black font-mono font-bold text-xs uppercase px-5 py-2.5 border border-mono-white transition flex items-center gap-2">
-                <i id="shareScreenIcon" class="fa-solid fa-display text-[11px]"></i>
-                <span id="shareScreenText">TRANSMITIR TELA [1080P]</span>
+            <!-- 1. Transmitir Tela (Apenas Ícone, não retrátil) -->
+            <button id="shareScreenBtn" onclick="toggleScreenShare()" title="Transmitir Tela (1080p 30fps)"
+                class="w-10 h-10 bg-mono-white hover:bg-mono-silver text-mono-black border border-mono-white transition flex items-center justify-center">
+                <i id="shareScreenIcon" class="fa-solid fa-display text-xs"></i>
             </button>
 
-            <!-- 2. Botão Mutar Som Enviado na Live (Evita Eco de Vozes do Discord) -->
+            <!-- 2. Mutar Som Discord / Live (Retrátil ao passar o mouse) -->
             <button id="muteOutgoingAudioBtn" onclick="toggleOutgoingAudioMute()"
-                class="bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase px-4 py-2.5 border border-mono-border transition flex items-center gap-2"
-                title="Corta 100% do som enviado na sua transmissão para não dar eco nas vozes do Discord">
-                <i id="muteOutgoingIcon" class="fa-solid fa-volume-high text-[11px]"></i>
-                <span id="muteOutgoingText">MUTAR SOM DISCORD/LIVE: OFF</span>
+                class="retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border">
+                <i id="muteOutgoingIcon" class="fa-solid fa-volume-high text-xs"></i>
+                <span id="muteOutgoingText" class="retract-label">MUTAR SOM DISCORD: OFF</span>
             </button>
 
-            <!-- 3. Botão Filtro Anti-Voz (300Hz-3400Hz) -->
+            <!-- 3. Filtro Anti-Voz (Retrátil ao passar o mouse) -->
             <button id="voiceFilterBtn" onclick="toggleVoiceBandFilter()"
-                class="bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase px-4 py-2.5 border border-mono-border transition flex items-center gap-2"
-                title="Atenua frequências de voz humana (300Hz-3.4kHz) mantendo graves e agudos do sistema/jogo">
-                <i class="fa-solid fa-wave-square text-[11px]"></i>
-                <span id="voiceFilterText">FILTRO ANTI-VOZ: OFF</span>
+                class="retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border">
+                <i class="fa-solid fa-wave-square text-xs"></i>
+                <span id="voiceFilterText" class="retract-label">FILTRO ANTI-VOZ: OFF</span>
             </button>
+
         </div>
 
-        <!-- Direita: Volume Mestre e Tela Cheia do Palco -->
-        <div class="flex items-center gap-2">
-            <div class="flex items-center gap-2.5 bg-mono-black px-3 py-2 border border-mono-border" title="Volume geral de todas as telas">
-                <button onclick="toggleMasterMute()" class="text-mono-silver hover:text-mono-white transition">
-                    <i id="masterVolIcon" class="fa-solid fa-volume-high text-xs"></i>
+        <!-- Direita: Slider de Volume Pílula com Barra Branca + Tela Cheia -->
+        <div class="flex items-center gap-2.5">
+            <div class="vol-pill" title="Volume Mestre">
+                <button onclick="toggleMasterMute()" class="text-mono-white hover:text-mono-silver transition flex items-center justify-center w-4">
+                    <i id="masterVolIcon" class="fa-solid fa-volume-high text-sm"></i>
                 </button>
                 <input id="masterVolSlider" type="range" min="0" max="100" value="100"
-                    oninput="changeMasterVolume(this.value)" class="w-20">
+                    style="--val: 100%"
+                    oninput="changeMasterVolume(this.value)"
+                    class="bagre-slider">
             </div>
 
-            <button onclick="toggleStageFullscreen()" title="Tela Cheia do Palco"
-                class="bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white px-3.5 py-2 border border-mono-border transition">
+            <button onclick="toggleStageFullscreen()" title="Tela Cheia"
+                class="w-9 h-9 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white border border-mono-border flex items-center justify-center transition">
                 <i class="fa-solid fa-expand text-xs"></i>
             </button>
         </div>
@@ -296,60 +475,121 @@
     </footer>
 
     <!-- Container Minimalista de Notificações (Toasts) -->
-    <div id="toastContainer" class="fixed bottom-16 right-4 z-50 flex flex-col gap-1.5 pointer-events-none"></div>
+    <div id="toastContainer" class="fixed bottom-20 right-4 z-50 flex flex-col gap-1.5 pointer-events-none"></div>
 
     <!-- =========================================================
-         ARQUITETURA MULTI-PEER (MESH) + GRADE/FOCO + WEB AUDIO API
+         LÓGICA P2P POR SALA + NOMES + CORREÇÃO DE ÁUDIO CHROME/FIREFOX
          ========================================================= -->
     <script>
-        const PEER_PREFIX = 'sc1080p-';
+        const ROOM_HOST_PREFIX = 'bagre-room-';
+        const ROOM_MEMBER_PREFIX = 'bagre-peer-';
 
         let peer = null;
-        let myCode = '';
+        let myPeerId = '';
+        let currentRoomId = '';
+        let myUserName = localStorage.getItem('bagrestream_username') || '';
 
         /**
-         * Mapa de todos os amigos conectados:
-         * key: fullPeerId (ex: 'sc1080p-AB12C')
+         * Mapa de participantes conectados:
+         * key: remotePeerId
          * value: {
-         *   peerId, shortCode, dataConn, outgoingCall, incomingCall,
-         *   remoteStream, videoEl, muted, volume
+         *   peerId, userName, dataConn, outgoingCall, incomingCall,
+         *   remoteStream, muted, volume
          * }
          */
         const peersMap = new Map();
 
-        // Streams locais
+        // Streams de Captura e Envio
         let rawDisplayStream = null;
+        let rawAudioTrack = null;
+        let filteredAudioTrack = null;
         let outboundStream = null;
 
-        // Estado de Visualização (Multi-Telas)
-        let layoutMode = 'grid';      // 'grid' (todas simultaneamente) ou 'focus' (uma tela em destaque)
-        let focusedScreenId = null;   // 'local' ou fullPeerId de um amigo
-        let showSelfInStage = true;   // permite exibir ou ocultar a própria tela na grade
+        // Estado de Visualização
+        let layoutMode = 'grid'; // 'grid' ou 'focus'
+        let focusedScreenId = null;
+        let showSelfInStage = true;
         let isSharing = false;
 
-        // Estado de Áudio / Isolamento do Discord
+        // Estado de Áudio
         let isOutgoingAudioMuted = false;
         let isVoiceFilterActive = false;
         let masterVolume = 1.0;
         let isMasterMuted = false;
 
-        // Web Audio API Nodes
+        // Web Audio API (Inicializado sob demanda para o Filtro Anti-Voz sem quebrar o áudio nativo do Chrome)
         let audioCtx = null;
-        let outGainNode = null;
         let filterBand1 = null;
         let filterBand2 = null;
         let filterBand3 = null;
+        let outGainNode = null;
 
         let telemetryInterval = null;
 
         window.onload = () => {
-            initPeer();
+            // Preenche nome salvo se existir
+            const nameInput = document.getElementById('initialNameInput');
+            if (myUserName) {
+                nameInput.value = myUserName;
+                updateUserNameUI(myUserName);
+            }
+            setTimeout(() => nameInput.focus(), 100);
+
+            initRoomSession();
             startTelemetryLoop();
             renderStage();
         };
 
-        // Gera código curto de 5 caracteres
-        function generateShortCode() {
+        // =========================================================
+        // 1. IDENTIFICAÇÃO POR NOME E MODAL DE ENTRADA
+        // =========================================================
+        function confirmInitialName() {
+            const input = document.getElementById('initialNameInput');
+            const typed = (input.value || '').trim().toUpperCase();
+            myUserName = typed || ('BAGRE-' + Math.floor(100 + Math.random() * 900));
+            localStorage.setItem('bagrestream_username', myUserName);
+
+            updateUserNameUI(myUserName);
+            document.getElementById('nameEntryModal').classList.add('hidden');
+
+            // Propaga o novo nome para todos na sala
+            broadcastProfileUpdate();
+            renderStage();
+
+            // Aproveita o clique do usuário para destravar áudio de vídeos remotos
+            forceUnmuteAllRemoteVideos();
+        }
+
+        function openNameModal() {
+            const modal = document.getElementById('nameEntryModal');
+            const input = document.getElementById('initialNameInput');
+            input.value = myUserName;
+            modal.classList.remove('hidden');
+            setTimeout(() => input.focus(), 50);
+        }
+
+        function updateUserNameUI(name) {
+            document.getElementById('headerUserName').textContent = name;
+            document.getElementById('infoPopoverName').textContent = name;
+        }
+
+        function openConnectModal() {
+            const modal = document.getElementById('connectModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            updateRoomUI();
+        }
+
+        function closeConnectModal() {
+            const modal = document.getElementById('connectModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // =========================================================
+        // 2. SISTEMA DE ID DA SALA (ROOM ID) E CONEXÃO EM MALHA
+        // =========================================================
+        function generateRoomCode() {
             const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
             let code = '';
             for (let i = 0; i < 5; i++) {
@@ -358,27 +598,24 @@
             return code;
         }
 
-        function cleanInputCode(raw) {
+        function cleanRoomCode(raw) {
             if (!raw) return '';
-            let cleaned = raw.trim().toUpperCase();
-            if (cleaned.startsWith('SC1080P-')) {
-                cleaned = cleaned.replace('SC1080P-', '');
+            return raw.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+        }
+
+        function initRoomSession() {
+            currentRoomId = generateRoomCode();
+            myPeerId = ROOM_HOST_PREFIX + currentRoomId;
+            createPeerInstance(myPeerId);
+            updateRoomUI();
+        }
+
+        function createPeerInstance(peerIdToUse) {
+            if (peer) {
+                try { peer.destroy(); } catch (e) {}
             }
-            return cleaned;
-        }
 
-        function getShortCode(fullPeerId) {
-            return fullPeerId ? fullPeerId.replace(PEER_PREFIX, '') : '';
-        }
-
-        // =========================================================
-        // 1. INICIALIZAÇÃO DO NÓ PEERJS
-        // =========================================================
-        function initPeer() {
-            myCode = generateShortCode();
-            const fullPeerId = PEER_PREFIX + myCode;
-
-            peer = new Peer(fullPeerId, {
+            peer = new Peer(peerIdToUse, {
                 debug: 1,
                 config: {
                     iceServers: [
@@ -390,23 +627,28 @@
                 }
             });
 
-            peer.on('open', () => {
-                document.getElementById('myShortCode').textContent = myCode;
-                setPeerStatus('ONLINE // REDE MESH PRONTA', true);
+            peer.on('open', (id) => {
+                myPeerId = id;
+                updateRoomUI();
             });
 
-            // Recebe conexão de dados de qualquer amigo
             peer.on('connection', (conn) => {
                 registerDataConnection(conn);
             });
 
-            // Recebe chamada de vídeo (1080p) de qualquer amigo
             peer.on('call', (call) => {
                 const remotePeerId = call.peer;
                 const entry = ensurePeerEntry(remotePeerId);
-                entry.incomingCall = call;
 
-                // Atende a chamada (cada direção usa sua própria chamada independente para máxima estabilidade)
+                if (call.metadata && call.metadata.userName) {
+                    entry.userName = call.metadata.userName;
+                }
+                if (call.metadata && call.metadata.roomId) {
+                    currentRoomId = call.metadata.roomId;
+                    updateRoomUI();
+                }
+
+                entry.incomingCall = call;
                 call.answer();
 
                 call.on('stream', (incStream) => {
@@ -423,72 +665,62 @@
             });
 
             peer.on('error', (err) => {
-                console.warn('PeerJS Error:', err.type);
+                console.warn('PeerJS error:', err.type);
                 if (err.type === 'unavailable-id') {
-                    initPeer();
+                    // Caso o código aleatório colida, gera outro
+                    initRoomSession();
                 } else if (err.type === 'peer-unavailable') {
-                    showToast('ID NÃO ENCONTRADO OU OFFLINE.');
-                    resetConnectButton();
+                    showToast('SALA NÃO ENCONTRADA OU OFFLINE.');
+                    resetJoinRoomButton();
                 }
             });
         }
 
-        function setPeerStatus(text, isOnline) {
-            const dot = document.getElementById('peerStatusDot');
-            const label = document.getElementById('peerStatusText');
-            label.textContent = text;
-            dot.className = isOnline ? 'w-1.5 h-1.5 bg-mono-white' : 'w-1.5 h-1.5 bg-mono-muted animate-pulse';
-        }
+        // Entrar na sala de um amigo usando o ID da Sala
+        function joinFriendRoom() {
+            const input = document.getElementById('joinRoomInput');
+            const targetRoomCode = cleanRoomCode(input.value);
 
-        function ensurePeerEntry(fullPeerId) {
-            if (!peersMap.has(fullPeerId)) {
-                peersMap.set(fullPeerId, {
-                    peerId: fullPeerId,
-                    shortCode: getShortCode(fullPeerId),
-                    dataConn: null,
-                    outgoingCall: null,
-                    incomingCall: null,
-                    remoteStream: null,
-                    muted: false,
-                    volume: 100
-                });
-            }
-            return peersMap.get(fullPeerId);
-        }
-
-        // =========================================================
-        // 2. CONEXÃO MULTI-AMIGOS E DESCOBERTA EM MALHA (MESH)
-        // =========================================================
-        function connectToPartner(optionalCode) {
-            const inputEl = document.getElementById('partnerCodeInput');
-            const rawCode = optionalCode || inputEl.value;
-            const partnerCode = cleanInputCode(rawCode);
-
-            if (!partnerCode) {
-                showToast('DIGITE O ID DE 5 CARACTERES DO AMIGO.');
-                return;
-            }
-            if (partnerCode === myCode) {
-                showToast('ESTE É O SEU PRÓPRIO ID.');
+            if (!targetRoomCode) {
+                showToast('DIGITE O ID DA SALA.');
                 return;
             }
 
-            const targetPeerId = PEER_PREFIX + partnerCode;
+            const hostPeerId = ROOM_HOST_PREFIX + targetRoomCode;
+            if (hostPeerId === myPeerId) {
+                showToast('VOCÊ JÁ ESTÁ NESTA SALA.');
+                input.value = '';
+                return;
+            }
+
+            const btn = document.getElementById('joinRoomBtn');
+            btn.textContent = '...';
+            input.value = '';
+
+            // Atualiza nosso ID da Sala para o ID da sala que estamos entrando
+            currentRoomId = targetRoomCode;
+            updateRoomUI();
+
+            connectToPeerById(hostPeerId);
+        }
+
+        function connectToPeerById(targetPeerId, knownName = null) {
+            if (!peer || !targetPeerId || targetPeerId === myPeerId) return;
+
             const existing = peersMap.get(targetPeerId);
             if (existing && existing.dataConn && existing.dataConn.open) {
-                showToast(`JÁ CONECTADO COM ${partnerCode}.`);
-                if (!optionalCode) inputEl.value = '';
+                resetJoinRoomButton();
                 return;
             }
 
-            if (!optionalCode) {
-                const btn = document.getElementById('connectBtn');
-                btn.innerHTML = '<span>...</span>';
-                inputEl.value = '';
-            }
-
-            ensurePeerEntry(targetPeerId);
-            const conn = peer.connect(targetPeerId, { reliable: true });
+            const entry = ensurePeerEntry(targetPeerId, knownName);
+            const conn = peer.connect(targetPeerId, {
+                reliable: true,
+                metadata: {
+                    userName: myUserName || 'BAGRE',
+                    roomId: currentRoomId
+                }
+            });
             registerDataConnection(conn);
 
             if (isSharing && outboundStream) {
@@ -496,44 +728,91 @@
             }
         }
 
+        function ensurePeerEntry(remotePeerId, fallbackName = null) {
+            if (!peersMap.has(remotePeerId)) {
+                peersMap.set(remotePeerId, {
+                    peerId: remotePeerId,
+                    userName: fallbackName || 'AMIGO',
+                    dataConn: null,
+                    outgoingCall: null,
+                    incomingCall: null,
+                    remoteStream: null,
+                    muted: false,
+                    volume: 100
+                });
+            } else if (fallbackName && peersMap.get(remotePeerId).userName === 'AMIGO') {
+                peersMap.get(remotePeerId).userName = fallbackName;
+            }
+            return peersMap.get(remotePeerId);
+        }
+
         function registerDataConnection(conn) {
             const remotePeerId = conn.peer;
-            const entry = ensurePeerEntry(remotePeerId);
+            const metaName = (conn.metadata && conn.metadata.userName) ? conn.metadata.userName : null;
+            const entry = ensurePeerEntry(remotePeerId, metaName);
             entry.dataConn = conn;
 
             conn.on('open', () => {
-                resetConnectButton();
-                updateConnectedPeersUI();
-                showToast(`CONECTADO AO NÓ [${entry.shortCode}]`);
+                resetJoinRoomButton();
 
-                // 1. Se já estamos transmitindo tela, enviamos imediatamente para este amigo
+                // Envia apresentação com Nome e ID da Sala
+                conn.send({
+                    type: 'HELLO_PROFILE',
+                    userName: myUserName || 'BAGRE',
+                    roomId: currentRoomId
+                });
+
+                // Se já estamos transmitindo, envia a tela para o novo participante
                 if (isSharing && outboundStream) {
                     pushStreamToSinglePeer(remotePeerId);
                 }
 
-                // 2. Solicita sincronização caso o amigo já esteja transmitindo
+                // Pede sincronização caso ele já esteja transmitindo
                 conn.send({ type: 'SYNC_REQUEST' });
 
-                // 3. Descoberta em malha (Mesh): envia lista de outros amigos conectados na sala
+                // Compartilha a lista de participantes da sala para formar a malha (Mesh)
                 broadcastMeshPeerList();
+                updateRoomUI();
             });
 
             conn.on('data', (data) => {
                 if (!data) return;
 
-                if (data.type === 'SYNC_REQUEST') {
+                if (data.type === 'HELLO_PROFILE') {
+                    if (data.userName) {
+                        entry.userName = data.userName.toUpperCase();
+                    }
+                    if (data.roomId && myPeerId.startsWith(ROOM_HOST_PREFIX)) {
+                        // Mantém o ID da Sala do Host e confirma para o convidado
+                        conn.send({
+                            type: 'ROOM_SYNC',
+                            roomId: currentRoomId,
+                            hostName: myUserName || 'BAGRE'
+                        });
+                    }
+                    updateTileNameLabel(remotePeerId, entry.userName);
+                    updateRoomUI();
+                    showToast(`${entry.userName} CONECTOU-SE À SALA.`);
+                } else if (data.type === 'ROOM_SYNC') {
+                    if (data.roomId) {
+                        currentRoomId = data.roomId;
+                    }
+                    if (data.hostName) {
+                        entry.userName = data.hostName.toUpperCase();
+                        updateTileNameLabel(remotePeerId, entry.userName);
+                    }
+                    updateRoomUI();
+                } else if (data.type === 'SYNC_REQUEST') {
                     if (isSharing && outboundStream) {
                         pushStreamToSinglePeer(remotePeerId);
                     }
                 } else if (data.type === 'STREAM_STOPPED') {
                     removeRemoteStream(remotePeerId);
-                    showToast(`[${entry.shortCode}] ENCERROU A TRANSMISSÃO.`);
+                    showToast(`${entry.userName} ENCERROU A TRANSMISSÃO.`);
                 } else if (data.type === 'MESH_PEERS' && Array.isArray(data.peers)) {
-                    // Conecta automaticamente aos outros amigos que estão na mesma sala!
-                    data.peers.forEach(otherPeerId => {
-                        const otherShort = getShortCode(otherPeerId);
-                        if (otherShort && otherShort !== myCode && !peersMap.has(otherPeerId)) {
-                            connectToPartner(otherShort);
+                    data.peers.forEach(pInfo => {
+                        if (pInfo.peerId && pInfo.peerId !== myPeerId && !peersMap.has(pInfo.peerId)) {
+                            connectToPeerById(pInfo.peerId, pInfo.userName);
                         }
                     });
                 }
@@ -544,48 +823,112 @@
             });
 
             conn.on('error', () => {
-                resetConnectButton();
+                resetJoinRoomButton();
             });
         }
 
+        function broadcastProfileUpdate() {
+            peersMap.forEach(entry => {
+                if (entry.dataConn && entry.dataConn.open) {
+                    entry.dataConn.send({
+                        type: 'HELLO_PROFILE',
+                        userName: myUserName,
+                        roomId: currentRoomId
+                    });
+                }
+            });
+            updateRoomUI();
+        }
+
         function broadcastMeshPeerList() {
-            const allActivePeerIds = Array.from(peersMap.keys());
+            const peerList = Array.from(peersMap.values()).map(e => ({
+                peerId: e.peerId,
+                userName: e.userName
+            }));
+
             peersMap.forEach(entry => {
                 if (entry.dataConn && entry.dataConn.open) {
                     entry.dataConn.send({
                         type: 'MESH_PEERS',
-                        peers: allActivePeerIds
+                        peers: peerList
                     });
                 }
             });
         }
 
-        function resetConnectButton() {
-            const btn = document.getElementById('connectBtn');
-            btn.innerHTML = '<i class="fa-solid fa-plus text-[9px]"></i><span>ADICIONAR</span>';
+        function resetJoinRoomButton() {
+            const btn = document.getElementById('joinRoomBtn');
+            if (btn) btn.textContent = 'CONECTAR';
         }
 
-        function disconnectSpecificPeer(fullPeerId) {
-            const entry = peersMap.get(fullPeerId);
+        function disconnectSpecificPeer(remotePeerId) {
+            const entry = peersMap.get(remotePeerId);
             if (!entry) return;
 
-            if (entry.outgoingCall) { try { entry.outgoingCall.close(); } catch(e){} }
-            if (entry.incomingCall) { try { entry.incomingCall.close(); } catch(e){} }
-            if (entry.dataConn) { try { entry.dataConn.close(); } catch(e){} }
+            const name = entry.userName;
+            if (entry.outgoingCall) { try { entry.outgoingCall.close(); } catch (e) {} }
+            if (entry.incomingCall) { try { entry.incomingCall.close(); } catch (e) {} }
+            if (entry.dataConn) { try { entry.dataConn.close(); } catch (e) {} }
 
-            const tile = document.getElementById(`tile-${fullPeerId}`);
+            const tile = document.getElementById(`tile-${remotePeerId}`);
             if (tile) tile.remove();
 
-            peersMap.delete(fullPeerId);
+            peersMap.delete(remotePeerId);
 
-            if (focusedScreenId === fullPeerId) {
+            if (focusedScreenId === remotePeerId) {
                 focusedScreenId = null;
                 layoutMode = 'grid';
             }
 
-            updateConnectedPeersUI();
+            updateRoomUI();
             renderStage();
-            showToast(`DESCONECTADO DE [${entry.shortCode}]`);
+            showToast(`${name} SAIU DA SALA.`);
+        }
+
+        function updateRoomUI() {
+            document.getElementById('modalRoomIdDisplay').textContent = currentRoomId || '-----';
+            document.getElementById('infoPopoverRoom').textContent = currentRoomId || '-----';
+
+            const listEl = document.getElementById('modalPeersList');
+            const entries = Array.from(peersMap.values());
+            document.getElementById('modalPeersCount').textContent = entries.length + 1;
+
+            let html = `
+                <div class="flex items-center justify-between bg-mono-black border border-mono-border px-3 py-2 font-mono text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-mono-white"></span>
+                        <span class="text-mono-white font-semibold uppercase">${myUserName || 'VOCÊ'} (VOCÊ)</span>
+                    </div>
+                    <span class="text-[10px] text-mono-muted uppercase">${isSharing ? 'TRANSMITINDO' : 'NA SALA'}</span>
+                </div>
+            `;
+
+            entries.forEach(e => {
+                const streaming = !!e.remoteStream;
+                html += `
+                    <div class="flex items-center justify-between bg-mono-black border border-mono-border px-3 py-2 font-mono text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 ${streaming ? 'bg-mono-white' : 'bg-mono-muted'}"></span>
+                            <span class="text-mono-white font-semibold uppercase">${e.userName}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] text-mono-silver uppercase">${streaming ? 'TRANSMITINDO' : 'CONECTADO'}</span>
+                            <button onclick="disconnectSpecificPeer('${e.peerId}')" class="text-mono-muted hover:text-mono-white">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            listEl.innerHTML = html;
+        }
+
+        function updateTileNameLabel(peerId, newName) {
+            const labelEl = document.getElementById(`label-${peerId}`);
+            if (labelEl) {
+                labelEl.textContent = newName;
+            }
         }
 
         function manualSyncStreams() {
@@ -597,10 +940,9 @@
                     entry.dataConn.send({ type: 'SYNC_REQUEST' });
                 }
             });
-            showToast('SINCRONIZANDO TODAS AS TELAS ATIVAS...');
+            showToast('SINCRONIZANDO TRANSMISSÕES DA SALA...');
         }
 
-        // Envia nosso stream 1080p para 1 amigo específico
         function pushStreamToSinglePeer(targetPeerId) {
             if (!peer || !outboundStream) return;
             const entry = ensurePeerEntry(targetPeerId);
@@ -609,17 +951,21 @@
                 if (entry.outgoingCall) {
                     entry.outgoingCall.close();
                 }
-                const call = peer.call(targetPeerId, outboundStream);
+                const call = peer.call(targetPeerId, outboundStream, {
+                    metadata: {
+                        userName: myUserName || 'BAGRE',
+                        roomId: currentRoomId
+                    }
+                });
                 entry.outgoingCall = call;
                 if (call && call.peerConnection) {
                     boostWebRTCBitrate(call.peerConnection);
                 }
             } catch (e) {
-                console.warn('Erro ao enviar stream para:', targetPeerId, e);
+                console.warn('Erro ao enviar stream:', e);
             }
         }
 
-        // Envia nosso stream 1080p para TODOS os amigos conectados
         function pushStreamToAllPeers() {
             peersMap.forEach((_, peerId) => {
                 pushStreamToSinglePeer(peerId);
@@ -627,20 +973,19 @@
         }
 
         // =========================================================
-        // 3. RECEBIMENTO E GERENCIAMENTO DE MÚLTIPLAS TELAS
+        // 3. RECEBIMENTO E REPRODUÇÃO DE MÚLTIPLAS TELAS + ÁUDIO
         // =========================================================
         function handleIncomingRemoteStream(remotePeerId, stream) {
             const entry = ensurePeerEntry(remotePeerId);
             entry.remoteStream = stream;
 
-            // Observa encerramento da faixa de vídeo
             stream.getVideoTracks().forEach(track => {
                 track.onended = () => removeRemoteStream(remotePeerId);
             });
 
-            updateConnectedPeersUI();
+            updateRoomUI();
             renderStage();
-            showToast(`SINAL RECEBIDO DE [${entry.shortCode}]`);
+            showToast(`TRANSMISSÃO DE ${entry.userName} RECEBIDA.`);
         }
 
         function removeRemoteStream(remotePeerId) {
@@ -656,12 +1001,12 @@
                 layoutMode = 'grid';
             }
 
-            updateConnectedPeersUI();
+            updateRoomUI();
             renderStage();
         }
 
         // =========================================================
-        // 4. RENDERIZAÇÃO DO PALCO (GRADE SIMULTÂNEA vs MODO FOCO)
+        // 4. PALCO DE VÍDEO (MODO GRADE E MODO FOCO)
         // =========================================================
         function setLayoutMode(mode, targetScreenId = null) {
             layoutMode = mode;
@@ -670,7 +1015,6 @@
                 if (targetScreenId) {
                     focusedScreenId = targetScreenId;
                 } else if (!focusedScreenId) {
-                    // Escolhe a primeira tela disponível para focar
                     const firstRemote = Array.from(peersMap.values()).find(p => p.remoteStream);
                     if (firstRemote) {
                         focusedScreenId = firstRemote.peerId;
@@ -685,7 +1029,6 @@
 
         function focusOnScreen(screenId) {
             if (layoutMode === 'focus' && focusedScreenId === screenId) {
-                // Clicar novamente no botão Foco volta para a Grade Simultânea
                 setLayoutMode('grid');
             } else {
                 setLayoutMode('focus', screenId);
@@ -694,13 +1037,18 @@
 
         function toggleSelfView() {
             showSelfInStage = !showSelfInStage;
+            const icon = document.getElementById('selfPreviewIcon');
+            const label = document.getElementById('selfPreviewLabel');
             const btn = document.getElementById('toggleSelfPreviewBtn');
+
             if (showSelfInStage) {
-                btn.className = 'px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 text-mono-white border border-transparent hover:border-mono-border';
-                btn.innerHTML = '<i class="fa-regular fa-eye text-[10px]"></i><span class="hidden md:inline">MINHA TELA: ON</span>';
+                btn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-white';
+                icon.className = 'fa-regular fa-eye text-xs';
+                label.textContent = 'MINHA TELA: ON';
             } else {
-                btn.className = 'px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 text-mono-muted border border-transparent hover:border-mono-border';
-                btn.innerHTML = '<i class="fa-regular fa-eye-slash text-[10px]"></i><span class="hidden md:inline">MINHA TELA: OFF</span>';
+                btn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-muted';
+                icon.className = 'fa-regular fa-eye-slash text-xs';
+                label.textContent = 'MINHA TELA: OFF';
                 if (focusedScreenId === 'local') {
                     focusedScreenId = null;
                     layoutMode = 'grid';
@@ -712,73 +1060,86 @@
         function renderStage() {
             const grid = document.getElementById('screensGrid');
             const emptyStage = document.getElementById('emptyStage');
+            const focusTabs = document.getElementById('focusFloatingTabs');
 
-            // Coleta todas as telas ativas que devem aparecer
             const activeScreens = [];
 
-            // 1. Telas dos amigos conectados
+            // 1. Telas dos amigos
             peersMap.forEach((entry) => {
                 if (entry.remoteStream) {
                     activeScreens.push({
                         id: entry.peerId,
                         type: 'remote',
-                        label: `AMIGO // ${entry.shortCode}`,
-                        shortCode: entry.shortCode,
+                        label: entry.userName,
                         stream: entry.remoteStream,
                         entry: entry
                     });
                 }
             });
 
-            // 2. Minha própria tela (se estiver transmitindo e visível)
+            // 2. Minha tela
             if (isSharing && outboundStream && (showSelfInStage || (layoutMode === 'focus' && focusedScreenId === 'local'))) {
                 activeScreens.push({
                     id: 'local',
                     type: 'local',
-                    label: `MINHA TELA // ${myCode}`,
-                    shortCode: myCode,
+                    label: `${myUserName || 'VOCÊ'} (SUA TELA)`,
                     stream: outboundStream,
                     entry: null
                 });
             }
 
-            // Atualiza contador no botão Grade
             document.getElementById('activeScreensCount').textContent = activeScreens.length;
+            document.getElementById('infoPopoverStreams').textContent = `${activeScreens.length} ATIVA(S)`;
 
-            // Atualiza estilo dos botões Grade vs Foco no Header
+            // Atualiza botões retráteis do Header
             const modeGridBtn = document.getElementById('modeGridBtn');
             const modeFocusBtn = document.getElementById('modeFocusBtn');
             if (layoutMode === 'grid') {
-                modeGridBtn.className = 'px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 bg-mono-white text-mono-black font-semibold';
-                modeFocusBtn.className = 'px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 text-mono-silver hover:text-mono-white';
+                modeGridBtn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider bg-mono-white text-mono-black font-semibold';
+                modeFocusBtn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-silver hover:text-mono-white';
             } else {
-                modeFocusBtn.className = 'px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 bg-mono-white text-mono-black font-semibold';
-                modeGridBtn.className = 'px-3 py-1 font-mono text-[11px] uppercase tracking-wider transition flex items-center gap-1.5 text-mono-silver hover:text-mono-white';
+                modeFocusBtn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider bg-mono-white text-mono-black font-semibold';
+                modeGridBtn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-silver hover:text-mono-white';
             }
 
-            // Atualiza barra de abas rápidas no subHeader
-            renderQuickTabs(activeScreens);
-
-            // Se não há nenhuma tela ativa, exibe o estado vazio minimalista
             if (activeScreens.length === 0) {
                 grid.innerHTML = '';
                 emptyStage.classList.remove('hidden');
+                focusTabs.classList.add('hidden');
+                focusTabs.classList.remove('flex');
                 return;
             }
 
             emptyStage.classList.add('hidden');
 
-            // Se estivermos em modo foco mas a tela focada não existe mais, escolhe a primeira disponível
             if (layoutMode === 'focus' && !activeScreens.some(s => s.id === focusedScreenId)) {
                 focusedScreenId = activeScreens[0].id;
             }
 
-            // Determina quais telas serão visíveis agora
+            // Se estiver em Modo Foco e houver mais de 1 tela, mostra pílula flutuante discreta para trocar de pessoa
+            if (layoutMode === 'focus' && activeScreens.length > 1) {
+                focusTabs.classList.remove('hidden');
+                focusTabs.classList.add('flex');
+                focusTabs.innerHTML = activeScreens.map(s => {
+                    const active = s.id === focusedScreenId;
+                    return `
+                        <button onclick="setLayoutMode('focus', '${s.id}')"
+                            class="px-2.5 py-1 font-mono text-[10px] uppercase transition ${
+                                active ? 'bg-mono-white text-mono-black font-bold' : 'text-mono-silver hover:text-mono-white'
+                            }">
+                            ${s.label}
+                        </button>
+                    `;
+                }).join('');
+            } else {
+                focusTabs.classList.add('hidden');
+                focusTabs.classList.remove('flex');
+            }
+
             const visibleScreens = layoutMode === 'focus'
                 ? activeScreens.filter(s => s.id === focusedScreenId)
                 : activeScreens;
 
-            // Calcula colunas e linhas ideais do Grid Responsivo (1, 2, 3, 4, 6+ telas simultâneas)
             const count = visibleScreens.length;
             let gridClasses = 'w-full h-full grid gap-2 p-2 overflow-auto ';
             if (count === 1) {
@@ -792,7 +1153,6 @@
             }
             grid.className = gridClasses;
 
-            // Remove tiles de telas que saíram
             const currentTileIds = new Set(activeScreens.map(s => `tile-${s.id}`));
             Array.from(grid.children).forEach(child => {
                 if (!currentTileIds.has(child.id)) {
@@ -800,7 +1160,6 @@
                 }
             });
 
-            // Cria ou atualiza cada tile de vídeo sem interromper o playback!
             activeScreens.forEach(screen => {
                 let tile = document.getElementById(`tile-${screen.id}`);
                 if (!tile) {
@@ -810,7 +1169,6 @@
                     updateVideoTileControls(tile, screen);
                 }
 
-                // Mostra ou oculta conforme Modo Grade vs Modo Foco
                 const isVisible = layoutMode === 'grid' || screen.id === focusedScreenId;
                 if (isVisible) {
                     tile.classList.remove('hidden');
@@ -827,57 +1185,58 @@
             tile.id = `tile-${screen.id}`;
             tile.className = 'video-tile relative w-full h-full bg-[#030303] border border-mono-border flex flex-col justify-between overflow-hidden group';
 
-            // Elemento <video>
             const video = document.createElement('video');
             video.id = `video-${screen.id}`;
             video.autoplay = true;
             video.playsInline = true;
             video.className = 'w-full h-full object-contain bg-mono-black cursor-pointer';
             video.srcObject = screen.stream;
-
-            // Clique duplo na tela alterna entre Foco e Grade
             video.ondblclick = () => focusOnScreen(screen.id);
 
             if (screen.type === 'local') {
                 video.muted = true;
                 video.play().catch(() => {});
             } else {
-                playRemoteVideoElementSafely(video, screen.entry);
+                playRemoteVideoSafely(video, screen.entry);
             }
 
-            // Topo Flutuante Minimalista (Identificação + Resolução)
+            // Topo do Card: Nome da Pessoa + Resolução
             const topBar = document.createElement('div');
-            topBar.className = 'absolute top-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between pointer-events-none';
+            topBar.className = 'absolute top-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200';
             topBar.innerHTML = `
-                <div class="flex items-center gap-2 bg-mono-black/90 border border-mono-border px-2.5 py-1">
+                <div class="flex items-center gap-2 bg-mono-black/90 border border-mono-border px-3 py-1">
                     <span class="w-1.5 h-1.5 bg-mono-white"></span>
-                    <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-mono-white">${screen.label}</span>
+                    <span id="label-${screen.id}" class="font-mono text-[11px] font-bold uppercase tracking-wider text-mono-white">${screen.label}</span>
                 </div>
-                <div id="res-${screen.id}" class="bg-mono-black/90 border border-mono-border px-2 py-1 font-mono text-[10px] text-mono-silver uppercase">
-                    1080P • LIVE
+                <div id="res-${screen.id}" class="bg-mono-black/90 border border-mono-border px-2.5 py-1 font-mono text-[10px] text-mono-silver uppercase">
+                    1080P • 30FPS
                 </div>
             `;
 
-            // Barra Inferior do Card (Focar, Volume Individual, Tela Cheia)
+            // Rodapé Flutuante do Card: Slider Pílula Branca + Botão Focar + Fullscreen
             const bottomBar = document.createElement('div');
-            bottomBar.className = 'absolute bottom-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between bg-mono-black/90 border border-mono-border px-3 py-1.5 opacity-95 group-hover:opacity-100 transition';
+            bottomBar.className = 'absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200';
 
             const leftControls = document.createElement('div');
-            leftControls.className = 'flex items-center gap-2';
-
             if (screen.type === 'remote') {
+                const vol = screen.entry ? screen.entry.volume : 100;
                 leftControls.innerHTML = `
-                    <button onclick="togglePeerMute('${screen.id}')" id="muteBtn-${screen.id}"
-                        class="text-mono-silver hover:text-mono-white transition font-mono text-xs" title="Mutar/Desmutar este amigo">
-                        <i class="fa-solid fa-volume-high text-[11px]"></i>
-                    </button>
-                    <input type="range" min="0" max="100" value="${screen.entry.volume}"
-                        oninput="changePeerVolume('${screen.id}', this.value)"
-                        class="w-20" title="Volume individual de ${screen.shortCode}">
+                    <div class="vol-pill shadow-xl">
+                        <button onclick="togglePeerMute('${screen.id}')" id="muteBtn-${screen.id}"
+                            class="text-mono-white hover:text-mono-silver transition flex items-center justify-center w-4">
+                            <i class="fa-solid fa-volume-high text-sm"></i>
+                        </button>
+                        <input id="slider-${screen.id}" type="range" min="0" max="100" value="${vol}"
+                            style="--val: ${vol}%"
+                            oninput="changePeerVolume('${screen.id}', this.value)"
+                            class="bagre-slider">
+                    </div>
                 `;
             } else {
                 leftControls.innerHTML = `
-                    <span class="font-mono text-[10px] uppercase text-mono-muted">PRÉVIA LOCAL (MUTADO P/ VOCÊ)</span>
+                    <div class="bg-mono-black/90 border border-mono-border px-3 py-1.5 font-mono text-[10px] uppercase text-mono-muted">
+                        SUA TRANSMISSÃO
+                    </div>
                 `;
             }
 
@@ -885,14 +1244,13 @@
             rightControls.className = 'flex items-center gap-1.5';
             rightControls.innerHTML = `
                 <button onclick="focusOnScreen('${screen.id}')" id="focusBtn-${screen.id}"
-                    class="px-2.5 py-1 font-mono text-[10px] uppercase border border-mono-border hover:border-mono-white bg-mono-panel text-mono-white transition flex items-center gap-1.5"
-                    title="Focar apenas nesta tela ou voltar para a Grade">
+                    class="px-3 py-2 font-mono text-[10px] uppercase border border-mono-border hover:border-mono-white bg-mono-black/90 text-mono-white transition flex items-center gap-1.5">
                     <i class="fa-solid fa-crosshairs text-[10px]"></i>
-                    <span class="focus-btn-label">${layoutMode === 'focus' && focusedScreenId === screen.id ? 'VOLTAR À GRADE' : 'FOCAR TELA'}</span>
+                    <span class="focus-btn-label">${layoutMode === 'focus' && focusedScreenId === screen.id ? 'GRADE' : 'FOCAR'}</span>
                 </button>
                 <button onclick="fullscreenSingleTile('tile-${screen.id}')"
-                    class="px-2 py-1 font-mono text-[10px] border border-mono-border hover:border-mono-white bg-mono-panel text-mono-silver hover:text-mono-white transition"
-                    title="Tela Cheia nesta transmissão">
+                    class="w-8 h-8 border border-mono-border hover:border-mono-white bg-mono-black/90 text-mono-silver hover:text-mono-white flex items-center justify-center transition"
+                    title="Tela Cheia">
                     <i class="fa-solid fa-expand text-[10px]"></i>
                 </button>
             `;
@@ -908,99 +1266,45 @@
         }
 
         function updateVideoTileControls(tile, screen) {
+            const labelEl = tile.querySelector(`#label-${screen.id}`);
+            if (labelEl) labelEl.textContent = screen.label;
+
             const video = tile.querySelector('video');
             if (video && video.srcObject !== screen.stream) {
                 video.srcObject = screen.stream;
                 if (screen.type === 'remote') {
-                    playRemoteVideoElementSafely(video, screen.entry);
+                    playRemoteVideoSafely(video, screen.entry);
                 } else {
                     video.play().catch(() => {});
                 }
             }
 
             const focusBtnLabel = tile.querySelector('.focus-btn-label');
-            const focusBtn = tile.querySelector(`#focusBtn-${screen.id}`);
-            if (focusBtnLabel && focusBtn) {
-                if (layoutMode === 'focus' && focusedScreenId === screen.id) {
-                    focusBtnLabel.textContent = 'VOLTAR À GRADE';
-                    focusBtn.className = 'px-2.5 py-1 font-mono text-[10px] uppercase border border-mono-white bg-mono-white text-mono-black font-bold transition flex items-center gap-1.5';
-                } else {
-                    focusBtnLabel.textContent = 'FOCAR TELA';
-                    focusBtn.className = 'px-2.5 py-1 font-mono text-[10px] uppercase border border-mono-border hover:border-mono-white bg-mono-panel text-mono-white transition flex items-center gap-1.5';
-                }
+            if (focusBtnLabel) {
+                focusBtnLabel.textContent = (layoutMode === 'focus' && focusedScreenId === screen.id) ? 'GRADE' : 'FOCAR';
             }
         }
 
-        // Renderiza as abas superiores para alternar rapidamente entre "TODAS (GRADE)" ou focar em qualquer amigo
-        function renderQuickTabs(activeScreens) {
-            const container = document.getElementById('screenTabsContainer');
-            let html = `
-                <span class="font-mono text-[10px] uppercase text-mono-muted mr-1">TELAS:</span>
-                <button onclick="setLayoutMode('grid')"
-                    class="px-2.5 py-0.5 font-mono text-[10px] uppercase border transition ${
-                        layoutMode === 'grid'
-                            ? 'border-mono-white bg-mono-white text-mono-black font-bold'
-                            : 'border-mono-border bg-mono-panel text-mono-silver hover:text-mono-white'
-                    }">
-                    GRADE SIMULTÂNEA (${activeScreens.length})
-                </button>
-            `;
-
-            activeScreens.forEach(s => {
-                const isFocused = (layoutMode === 'focus' && focusedScreenId === s.id);
-                html += `
-                    <button onclick="setLayoutMode('focus', '${s.id}')"
-                        class="px-2.5 py-0.5 font-mono text-[10px] uppercase border transition flex items-center gap-1.5 ${
-                            isFocused
-                                ? 'border-mono-white bg-mono-white text-mono-black font-bold'
-                                : 'border-mono-border bg-mono-panel text-mono-silver hover:text-mono-white'
-                        }">
-                        <span class="w-1.5 h-1.5 ${isFocused ? 'bg-mono-black' : 'bg-mono-white'}"></span>
-                        <span>${s.type === 'local' ? 'MINHA TELA' : s.shortCode}</span>
-                    </button>
-                `;
-            });
-
-            container.innerHTML = html;
+        // =========================================================
+        // 5. CONTROLE DOS SLIDERS DE VOLUME E REPRODUÇÃO DE ÁUDIO
+        // =========================================================
+        function updateSliderVisualFill(sliderEl, value) {
+            if (!sliderEl) return;
+            const pct = Math.max(0, Math.min(100, Number(value)));
+            sliderEl.style.setProperty('--val', `${pct}%`);
+            sliderEl.value = pct;
         }
 
-        function updateConnectedPeersUI() {
-            const container = document.getElementById('connectedPeersPills');
-            const entries = Array.from(peersMap.values());
-
-            if (entries.length === 0) {
-                container.innerHTML = `<span class="font-mono text-[10px] uppercase text-mono-muted">CONECTADOS: 0</span>`;
-                return;
-            }
-
-            let html = `<span class="font-mono text-[10px] uppercase text-mono-muted">CONECTADOS (${entries.length}):</span>`;
-            entries.forEach(e => {
-                const hasVideo = !!e.remoteStream;
-                html += `
-                    <div class="flex items-center gap-1.5 bg-mono-panel border border-mono-border px-2 py-0.5 font-mono text-[10px]">
-                        <span class="w-1.5 h-1.5 ${hasVideo ? 'bg-mono-white' : 'bg-mono-muted'}"></span>
-                        <span class="text-mono-white font-semibold">${e.shortCode}</span>
-                        <button onclick="disconnectSpecificPeer('${e.peerId}')" class="text-mono-muted hover:text-mono-white ml-1" title="Desconectar ${e.shortCode}">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        // =========================================================
-        // 5. CONTROLE DE ÁUDIO INDIVIDUAL E AUTOPLAY
-        // =========================================================
-        function playRemoteVideoElementSafely(videoEl, entry) {
+        function playRemoteVideoSafely(videoEl, entry) {
             const unmuteBtn = document.getElementById('unmuteAutoplayBtn');
+            const targetVol = ((entry ? entry.volume : 100) / 100) * masterVolume;
+
+            videoEl.volume = Math.max(0, Math.min(1, targetVol));
             videoEl.muted = isMasterMuted || (entry && entry.muted);
-            videoEl.volume = ((entry ? entry.volume : 100) / 100) * masterVolume;
 
             const playPromise = videoEl.play();
             if (playPromise !== undefined) {
                 playPromise.catch(() => {
-                    // Se o navegador bloquear autoplay com áudio, inicia o vídeo mutado e exibe o botão de desbloqueio
                     videoEl.muted = true;
                     videoEl.play().catch(() => {});
                     unmuteBtn.classList.remove('hidden');
@@ -1015,7 +1319,7 @@
                 const v = document.getElementById(`video-${entry.peerId}`);
                 if (v) {
                     v.muted = isMasterMuted || entry.muted;
-                    v.volume = (entry.volume / 100) * masterVolume;
+                    v.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
                     v.play().catch(() => {});
                 }
             });
@@ -1026,12 +1330,26 @@
         function changePeerVolume(peerId, val) {
             const entry = peersMap.get(peerId);
             if (!entry) return;
-            entry.volume = Number(val);
-            entry.muted = (entry.volume === 0);
+
+            const numericVal = Number(val);
+            entry.volume = numericVal;
+            entry.muted = (numericVal === 0);
+
+            if (numericVal > 0 && isMasterMuted) {
+                isMasterMuted = false;
+                if (masterVolume === 0) {
+                    masterVolume = 1.0;
+                    updateSliderVisualFill(document.getElementById('masterVolSlider'), 100);
+                }
+                updateMasterMuteIcon();
+            }
+
+            const slider = document.getElementById(`slider-${peerId}`);
+            updateSliderVisualFill(slider, numericVal);
 
             const v = document.getElementById(`video-${peerId}`);
             if (v) {
-                v.volume = (entry.volume / 100) * masterVolume;
+                v.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
                 v.muted = isMasterMuted || entry.muted;
             }
             updatePeerMuteIcon(peerId, entry.muted);
@@ -1042,9 +1360,17 @@
             if (!entry) return;
             entry.muted = !entry.muted;
 
+            if (!entry.muted && entry.volume === 0) {
+                entry.volume = 100;
+            }
+
+            const slider = document.getElementById(`slider-${peerId}`);
+            updateSliderVisualFill(slider, entry.muted ? 0 : entry.volume);
+
             const v = document.getElementById(`video-${peerId}`);
             if (v) {
                 v.muted = isMasterMuted || entry.muted;
+                v.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
             }
             updatePeerMuteIcon(peerId, entry.muted);
         }
@@ -1053,42 +1379,67 @@
             const btn = document.getElementById(`muteBtn-${peerId}`);
             if (!btn) return;
             btn.innerHTML = isMuted
-                ? '<i class="fa-solid fa-volume-xmark text-[11px] text-mono-muted"></i>'
-                : '<i class="fa-solid fa-volume-high text-[11px] text-mono-white"></i>';
+                ? '<i class="fa-solid fa-volume-xmark text-sm text-mono-muted"></i>'
+                : '<i class="fa-solid fa-volume-high text-sm text-mono-white"></i>';
         }
 
         function changeMasterVolume(val) {
-            masterVolume = Number(val) / 100;
-            isMasterMuted = (masterVolume === 0);
+            const numericVal = Number(val);
+            masterVolume = numericVal / 100;
+            isMasterMuted = (numericVal === 0);
+
+            const masterSlider = document.getElementById('masterVolSlider');
+            updateSliderVisualFill(masterSlider, numericVal);
 
             peersMap.forEach((entry, peerId) => {
+                if (!isMasterMuted && entry.muted && entry.volume === 0) {
+                    entry.volume = numericVal;
+                    entry.muted = false;
+                }
+                const peerSlider = document.getElementById(`slider-${peerId}`);
+                if (peerSlider) {
+                    updateSliderVisualFill(peerSlider, isMasterMuted ? 0 : Math.round((entry.volume / 100) * numericVal));
+                }
                 const v = document.getElementById(`video-${peerId}`);
                 if (v) {
-                    v.volume = (entry.volume / 100) * masterVolume;
+                    v.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
                     v.muted = isMasterMuted || entry.muted;
                 }
             });
 
-            document.getElementById('masterVolIcon').className = isMasterMuted
-                ? 'fa-solid fa-volume-xmark text-xs text-mono-muted'
-                : 'fa-solid fa-volume-high text-xs text-mono-white';
+            updateMasterMuteIcon();
         }
 
         function toggleMasterMute() {
             isMasterMuted = !isMasterMuted;
+            if (!isMasterMuted && masterVolume === 0) {
+                masterVolume = 1.0;
+            }
+
+            const masterSlider = document.getElementById('masterVolSlider');
+            updateSliderVisualFill(masterSlider, isMasterMuted ? 0 : Math.round(masterVolume * 100));
+
             peersMap.forEach((entry, peerId) => {
                 const v = document.getElementById(`video-${peerId}`);
                 if (v) {
                     v.muted = isMasterMuted || entry.muted;
+                    v.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
                 }
             });
-            document.getElementById('masterVolIcon').className = isMasterMuted
-                ? 'fa-solid fa-volume-xmark text-xs text-mono-muted'
-                : 'fa-solid fa-volume-high text-xs text-mono-white';
+
+            updateMasterMuteIcon();
+        }
+
+        function updateMasterMuteIcon() {
+            const icon = document.getElementById('masterVolIcon');
+            if (!icon) return;
+            icon.className = isMasterMuted
+                ? 'fa-solid fa-volume-xmark text-sm text-mono-muted'
+                : 'fa-solid fa-volume-high text-sm text-mono-white';
         }
 
         // =========================================================
-        // 6. CAPTURA DE TELA 1080P 30FPS + ISOLAMENTO DO DISCORD
+        // 6. CAPTURA DE TELA 1080P 30FPS + CORREÇÃO DE ÁUDIO CHROME & FIREFOX
         // =========================================================
         function toggleScreenShare() {
             if (isSharing) {
@@ -1100,6 +1451,7 @@
 
         async function startScreenShare() {
             try {
+                // Solicita captura de tela + áudio nativo do sistema/aba
                 rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
                     video: {
                         width: { ideal: 1920, max: 1920 },
@@ -1110,8 +1462,11 @@
                     audio: {
                         echoCancellation: false,
                         noiseSuppression: false,
-                        autoGainControl: false
-                    }
+                        autoGainControl: false,
+                        suppressLocalAudioPlayback: false
+                    },
+                    systemAudio: 'include',
+                    preferCurrentTab: false
                 });
 
                 const videoTrack = rawDisplayStream.getVideoTracks()[0];
@@ -1123,31 +1478,103 @@
                     stopScreenShare();
                 };
 
-                await setupOutboundStream(rawDisplayStream);
+                await prepareOutboundMediaStream(rawDisplayStream);
 
                 isSharing = true;
                 updateShareButtonUI(true);
                 renderStage();
 
-                // Envia automaticamente para todos os amigos já conectados
                 pushStreamToAllPeers();
-                showToast('TRANSMITINDO EM 1080P 30FPS PARA A SALA.');
+                showToast('TRANSMITINDO TELA EM 1080P 30FPS.');
 
             } catch (err) {
-                console.warn('Captura de tela cancelada:', err);
+                console.warn('Compartilhamento cancelado:', err);
             }
         }
 
-        async function setupOutboundStream(sourceStream) {
+        /**
+         * CORREÇÃO DEFINITIVA DO ÁUDIO NO CHROME E FIREFOX:
+         * - Por padrão, enviamos a faixa de áudio nativa (`rawAudioTrack`) diretamente no `outboundStream`.
+         *   Isso evita o bug do Chrome onde `createMediaStreamSource` silencia o áudio de `getDisplayMedia`.
+         * - Se o usuário ativar o "Filtro Anti-Voz", ativamos o elemento `<audio muted>` keep-alive e trocamos
+         *   a faixa em tempo real via `RTCRtpSender.replaceTrack()`.
+         */
+        async function prepareOutboundMediaStream(sourceStream) {
+            const videoTrack = sourceStream.getVideoTracks()[0];
             const audioTracks = sourceStream.getAudioTracks();
+            const missingBanner = document.getElementById('missingAudioBanner');
 
             if (audioTracks.length === 0) {
-                outboundStream = new MediaStream([sourceStream.getVideoTracks()[0]]);
-                updateAudioBadgeUI(false);
+                rawAudioTrack = null;
+                filteredAudioTrack = null;
+                outboundStream = new MediaStream([videoTrack]);
+                missingBanner.classList.remove('hidden');
+                missingBanner.classList.add('flex');
                 return;
             }
 
+            missingBanner.classList.add('hidden');
+            missingBanner.classList.remove('flex');
+
+            rawAudioTrack = audioTracks[0];
+            rawAudioTrack.enabled = !isOutgoingAudioMuted;
+
+            if (isVoiceFilterActive) {
+                await buildFilteredAudioTrack(rawAudioTrack);
+                outboundStream = new MediaStream([videoTrack, filteredAudioTrack || rawAudioTrack]);
+            } else {
+                outboundStream = new MediaStream([videoTrack, rawAudioTrack]);
+            }
+        }
+
+        // Permite injetar áudio de um dispositivo (Mixagem Estéreo / Cabo Virtual / Microfone) no Firefox ou Chrome
+        async function injectFallbackAudioDevice() {
+            if (!isSharing || !outboundStream) {
+                showToast('INICIE A TRANSMISSÃO DE TELA PRIMEIRO.');
+                return;
+            }
             try {
+                const audioStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false
+                    }
+                });
+                const newAudioTrack = audioStream.getAudioTracks()[0];
+                if (!newAudioTrack) return;
+
+                rawAudioTrack = newAudioTrack;
+                rawAudioTrack.enabled = !isOutgoingAudioMuted;
+
+                let activeTrackToUse = rawAudioTrack;
+                if (isVoiceFilterActive) {
+                    await buildFilteredAudioTrack(rawAudioTrack);
+                    if (filteredAudioTrack) activeTrackToUse = filteredAudioTrack;
+                }
+
+                // Adiciona ou substitui no outboundStream e renegocia com os amigos conectados
+                outboundStream.getAudioTracks().forEach(t => outboundStream.removeTrack(t));
+                outboundStream.addTrack(activeTrackToUse);
+
+                document.getElementById('missingAudioBanner').classList.add('hidden');
+                document.getElementById('missingAudioBanner').classList.remove('flex');
+
+                pushStreamToAllPeers();
+                showToast('ÁUDIO AUXILIAR INJETADO NA TRANSMISSÃO!');
+            } catch (e) {
+                showToast('NÃO FOI POSSÍVEL CAPTURAR O DISPOSITIVO DE ÁUDIO.');
+            }
+        }
+
+        async function buildFilteredAudioTrack(sourceAudioTrack) {
+            try {
+                // Truque essencial para o Chrome processar `getDisplayMedia` no WebAudio:
+                const keepAliveAudio = document.getElementById('chromeWebAudioKeepAlive');
+                keepAliveAudio.srcObject = new MediaStream([sourceAudioTrack]);
+                keepAliveAudio.muted = true;
+                keepAliveAudio.play().catch(() => {});
+
                 if (!audioCtx) {
                     const AudioCtx = window.AudioContext || window.webkitAudioContext;
                     audioCtx = new AudioCtx();
@@ -1157,25 +1584,28 @@
                 }
 
                 const dest = audioCtx.createMediaStreamDestination();
-                const src = audioCtx.createMediaStreamSource(new MediaStream([audioTracks[0]]));
+                const src = audioCtx.createMediaStreamSource(new MediaStream([sourceAudioTrack]));
 
-                // 3 Filtros Biquad em cascata na faixa vocal do Discord (300Hz a 3400Hz)
                 filterBand1 = audioCtx.createBiquadFilter();
                 filterBand1.type = 'peaking';
                 filterBand1.frequency.value = 500;
                 filterBand1.Q.value = 1.2;
+                filterBand1.gain.value = -34;
 
                 filterBand2 = audioCtx.createBiquadFilter();
                 filterBand2.type = 'peaking';
                 filterBand2.frequency.value = 1350;
                 filterBand2.Q.value = 0.9;
+                filterBand2.gain.value = -38;
 
                 filterBand3 = audioCtx.createBiquadFilter();
                 filterBand3.type = 'peaking';
                 filterBand3.frequency.value = 2700;
                 filterBand3.Q.value = 1.2;
+                filterBand3.gain.value = -34;
 
                 outGainNode = audioCtx.createGain();
+                outGainNode.gain.value = isOutgoingAudioMuted ? 0 : 1;
 
                 src.connect(filterBand1);
                 filterBand1.connect(filterBand2);
@@ -1183,77 +1613,88 @@
                 filterBand3.connect(outGainNode);
                 outGainNode.connect(dest);
 
-                applyAudioFilterStates();
-
-                outboundStream = new MediaStream([
-                    sourceStream.getVideoTracks()[0],
-                    ...dest.stream.getAudioTracks()
-                ]);
-                updateAudioBadgeUI(true);
-
+                filteredAudioTrack = dest.stream.getAudioTracks()[0];
+                if (filteredAudioTrack) {
+                    filteredAudioTrack.enabled = !isOutgoingAudioMuted;
+                }
             } catch (e) {
-                outboundStream = sourceStream;
-                updateAudioBadgeUI(true);
+                console.warn('Falha ao criar filtro WebAudio:', e);
+                filteredAudioTrack = null;
             }
         }
 
-        function applyAudioFilterStates() {
-            if (outGainNode && audioCtx) {
-                outGainNode.gain.setTargetAtTime(isOutgoingAudioMuted ? 0 : 1, audioCtx.currentTime, 0.02);
-            }
-            if (outboundStream) {
-                outboundStream.getAudioTracks().forEach(t => {
-                    t.enabled = !isOutgoingAudioMuted;
-                });
+        async function hotSwapActiveAudioTrack() {
+            if (!isSharing || !rawAudioTrack || !outboundStream) return;
+
+            let targetTrack = rawAudioTrack;
+            if (isVoiceFilterActive) {
+                if (!filteredAudioTrack) {
+                    await buildFilteredAudioTrack(rawAudioTrack);
+                }
+                if (filteredAudioTrack) {
+                    targetTrack = filteredAudioTrack;
+                }
             }
 
-            if (filterBand1 && filterBand2 && filterBand3 && audioCtx) {
-                const db = isVoiceFilterActive ? -34 : 0;
-                const now = audioCtx.currentTime;
-                filterBand1.gain.setTargetAtTime(db, now, 0.03);
-                filterBand2.gain.setTargetAtTime(db * 1.15, now, 0.03);
-                filterBand3.gain.setTargetAtTime(db, now, 0.03);
-            }
+            targetTrack.enabled = !isOutgoingAudioMuted;
 
-            updateAudioBadgeUI(rawDisplayStream && rawDisplayStream.getAudioTracks().length > 0);
+            // Atualiza no stream de saída
+            outboundStream.getAudioTracks().forEach(t => outboundStream.removeTrack(t));
+            outboundStream.addTrack(targetTrack);
+
+            // Substitui sem derrubar a chamada WebRTC em todas as conexões ativas
+            peersMap.forEach(entry => {
+                if (entry.outgoingCall && entry.outgoingCall.peerConnection) {
+                    const senders = entry.outgoingCall.peerConnection.getSenders();
+                    const audioSender = senders.find(s => s.track && s.track.kind === 'audio');
+                    if (audioSender) {
+                        audioSender.replaceTrack(targetTrack).catch(() => {});
+                    }
+                }
+            });
         }
 
         function toggleOutgoingAudioMute() {
             isOutgoingAudioMuted = !isOutgoingAudioMuted;
-            applyAudioFilterStates();
+
+            if (rawAudioTrack) rawAudioTrack.enabled = !isOutgoingAudioMuted;
+            if (filteredAudioTrack) filteredAudioTrack.enabled = !isOutgoingAudioMuted;
+            if (outGainNode && audioCtx) {
+                outGainNode.gain.setTargetAtTime(isOutgoingAudioMuted ? 0 : 1, audioCtx.currentTime, 0.02);
+            }
 
             const btn = document.getElementById('muteOutgoingAudioBtn');
             const icon = document.getElementById('muteOutgoingIcon');
             const text = document.getElementById('muteOutgoingText');
 
             if (isOutgoingAudioMuted) {
-                btn.className = 'bg-mono-white text-mono-black font-mono font-bold text-xs uppercase px-4 py-2.5 border border-mono-white transition flex items-center gap-2';
-                icon.className = 'fa-solid fa-volume-xmark text-[11px]';
-                text.textContent = 'MUTAR SOM DISCORD/LIVE: ON';
-                showToast('ÁUDIO DA LIVE CORTADO (SEM ECO DE VOZES DO DISCORD).');
+                btn.className = 'retract-btn h-10 bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white';
+                icon.className = 'fa-solid fa-volume-xmark text-xs';
+                text.textContent = 'MUTAR SOM DISCORD: ON';
+                showToast('ÁUDIO DA LIVE MUTADO.');
             } else {
-                btn.className = 'bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase px-4 py-2.5 border border-mono-border transition flex items-center gap-2';
-                icon.className = 'fa-solid fa-volume-high text-[11px]';
-                text.textContent = 'MUTAR SOM DISCORD/LIVE: OFF';
-                showToast('ÁUDIO DA LIVE REATIVADO.');
+                btn.className = 'retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border';
+                icon.className = 'fa-solid fa-volume-high text-xs';
+                text.textContent = 'MUTAR SOM DISCORD: OFF';
+                showToast('ÁUDIO DA LIVE ATIVADO.');
             }
         }
 
-        function toggleVoiceBandFilter() {
+        async function toggleVoiceBandFilter() {
             isVoiceFilterActive = !isVoiceFilterActive;
-            applyAudioFilterStates();
+            await hotSwapActiveAudioTrack();
 
             const btn = document.getElementById('voiceFilterBtn');
             const text = document.getElementById('voiceFilterText');
 
             if (isVoiceFilterActive) {
-                btn.className = 'bg-mono-white text-mono-black font-mono font-bold text-xs uppercase px-4 py-2.5 border border-mono-white transition flex items-center gap-2';
-                text.textContent = 'FILTRO ANTI-VOZ: ON [300-3.4KHZ]';
-                showToast('FILTRO ANTI-VOZ ATIVADO (300HZ–3400HZ ATENUADOS).');
+                btn.className = 'retract-btn h-10 bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white';
+                text.textContent = 'FILTRO ANTI-VOZ: ON';
+                showToast('FILTRO ANTI-VOZ (300HZ-3.4KHZ) ATIVADO.');
             } else {
-                btn.className = 'bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase px-4 py-2.5 border border-mono-border transition flex items-center gap-2';
+                btn.className = 'retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border';
                 text.textContent = 'FILTRO ANTI-VOZ: OFF';
-                showToast('FILTRO ANTI-VOZ DESATIVADO.');
+                showToast('FILTRO ANTI-VOZ DESATIVADO (ÁUDIO NATIVO PURO).');
             }
         }
 
@@ -1268,10 +1709,15 @@
                 outboundStream.getTracks().forEach(t => t.stop());
                 outboundStream = null;
             }
+            rawAudioTrack = null;
+            filteredAudioTrack = null;
+
+            document.getElementById('missingAudioBanner').classList.add('hidden');
+            document.getElementById('missingAudioBanner').classList.remove('flex');
 
             peersMap.forEach((entry) => {
                 if (entry.outgoingCall) {
-                    try { entry.outgoingCall.close(); } catch(e){}
+                    try { entry.outgoingCall.close(); } catch (e) {}
                     entry.outgoingCall = null;
                 }
                 if (entry.dataConn && entry.dataConn.open) {
@@ -1288,51 +1734,22 @@
             }
 
             updateShareButtonUI(false);
-            updateAudioBadgeUI(false);
+            updateRoomUI();
             renderStage();
         }
 
         function updateShareButtonUI(sharing) {
             const btn = document.getElementById('shareScreenBtn');
             const icon = document.getElementById('shareScreenIcon');
-            const text = document.getElementById('shareScreenText');
-            const dot = document.getElementById('localBroadcastDot');
-            const status = document.getElementById('localBroadcastStatus');
 
             if (sharing) {
-                btn.className = 'bg-mono-black hover:bg-mono-hover text-mono-white font-mono font-bold text-xs uppercase px-5 py-2.5 border border-mono-white transition flex items-center gap-2';
-                icon.className = 'fa-solid fa-stop text-[11px]';
-                text.textContent = 'ENCERRAR TRANSMISSÃO';
-                dot.className = 'w-1.5 h-1.5 bg-mono-white animate-ping';
-                status.textContent = 'TX: 1080P ATIVO';
-                status.className = 'text-mono-white font-bold uppercase';
+                btn.className = 'w-10 h-10 bg-mono-black hover:bg-mono-hover text-mono-white border border-mono-white transition flex items-center justify-center';
+                icon.className = 'fa-solid fa-stop text-xs';
+                btn.title = 'Encerrar Transmissão';
             } else {
-                btn.className = 'bg-mono-white hover:bg-mono-silver text-mono-black font-mono font-bold text-xs uppercase px-5 py-2.5 border border-mono-white transition flex items-center gap-2';
-                icon.className = 'fa-solid fa-display text-[11px]';
-                text.textContent = 'TRANSMITIR TELA [1080P]';
-                dot.className = 'w-1.5 h-1.5 bg-mono-muted';
-                status.textContent = 'TX: INATIVO';
-                status.className = 'text-mono-silver uppercase';
-            }
-        }
-
-        function updateAudioBadgeUI(hasAudioTrack) {
-            const badge = document.getElementById('audioStateBadge');
-            if (!isSharing) {
-                badge.textContent = 'ÁUDIO TX: STANDBY';
-                badge.className = 'border border-mono-border bg-mono-black px-3 py-1.5 text-mono-muted uppercase';
-            } else if (!hasAudioTrack) {
-                badge.textContent = 'ÁUDIO TX: APENAS VÍDEO';
-                badge.className = 'border border-mono-border bg-mono-black px-3 py-1.5 text-mono-muted uppercase';
-            } else if (isOutgoingAudioMuted) {
-                badge.textContent = 'ÁUDIO TX: MUTADO (SEM ECO)';
-                badge.className = 'border border-mono-white bg-mono-white text-mono-black font-bold px-3 py-1.5 uppercase';
-            } else if (isVoiceFilterActive) {
-                badge.textContent = 'ÁUDIO TX: FILTRO ANTI-VOZ';
-                badge.className = 'border border-mono-white bg-mono-black text-mono-white font-bold px-3 py-1.5 uppercase';
-            } else {
-                badge.textContent = 'ÁUDIO TX: DIRETO';
-                badge.className = 'border border-mono-border bg-mono-black px-3 py-1.5 text-mono-white uppercase';
+                btn.className = 'w-10 h-10 bg-mono-white hover:bg-mono-silver text-mono-black border border-mono-white transition flex items-center justify-center';
+                icon.className = 'fa-solid fa-display text-xs';
+                btn.title = 'Transmitir Tela (1080p 30fps)';
             }
         }
 
@@ -1352,25 +1769,32 @@
         }
 
         // =========================================================
-        // 7. TELEMETRIA DE RESOLUÇÃO, TELA CHEIA E UTILITÁRIOS
+        // 7. TELEMETRIA DE QUALIDADE (BOTÃO 'i') E UTILITÁRIOS
         // =========================================================
         function startTelemetryLoop() {
             if (telemetryInterval) clearInterval(telemetryInterval);
             telemetryInterval = setInterval(() => {
-                // Atualiza resolução de cada amigo conectado
+                let detectedRes = null;
+
                 peersMap.forEach((entry, peerId) => {
                     const v = document.getElementById(`video-${peerId}`);
                     const badge = document.getElementById(`res-${peerId}`);
-                    if (v && badge && v.videoWidth > 0) {
-                        badge.textContent = `${v.videoWidth}x${v.videoHeight} • 30FPS`;
+                    if (v && v.videoWidth > 0) {
+                        const resStr = `${v.videoWidth}x${v.videoHeight} • 30FPS`;
+                        if (badge) badge.textContent = resStr;
+                        if (!detectedRes) detectedRes = resStr;
                     }
                 });
-                // Atualiza resolução da prévia local
+
                 const localV = document.getElementById('video-local');
                 const localBadge = document.getElementById('res-local');
-                if (localV && localBadge && localV.videoWidth > 0) {
-                    localBadge.textContent = `${localV.videoWidth}x${localV.videoHeight} • 30FPS`;
+                if (localV && localV.videoWidth > 0) {
+                    const resStr = `${localV.videoWidth}x${localV.videoHeight} • 30FPS`;
+                    if (localBadge) localBadge.textContent = resStr;
+                    if (!detectedRes) detectedRes = resStr;
                 }
+
+                document.getElementById('infoPopoverQuality').textContent = detectedRes || '1920x1080 • 30FPS';
             }, 1200);
         }
 
@@ -1393,23 +1817,21 @@
             }
         }
 
-        function copyMyCode() {
-            if (!myCode) return;
+        function copyRoomCode() {
+            if (!currentRoomId) return;
             const temp = document.createElement('input');
-            temp.value = myCode;
+            temp.value = currentRoomId;
             document.body.appendChild(temp);
             temp.select();
             document.execCommand('copy');
             temp.remove();
 
-            const btn = document.getElementById('copyBtn');
-            btn.textContent = 'COPIADO';
-            btn.className = 'border border-mono-white bg-mono-white text-mono-black font-mono text-[10px] font-bold uppercase px-2 py-0.5 transition';
+            const btn = document.getElementById('copyRoomBtn');
+            btn.textContent = 'COPIADO!';
             setTimeout(() => {
                 btn.textContent = 'COPIAR';
-                btn.className = 'border border-mono-border hover:border-mono-white bg-mono-card text-mono-white font-mono text-[10px] uppercase px-2 py-0.5 transition';
-            }, 1800);
-            showToast(`ID [${myCode}] COPIADO PARA A ÁREA DE TRANSFERÊNCIA.`);
+            }, 1600);
+            showToast(`ID DA SALA [${currentRoomId}] COPIADO.`);
         }
 
         function showToast(msg) {
@@ -1421,7 +1843,7 @@
             setTimeout(() => {
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
-            }, 3200);
+            }, 3000);
         }
     </script>
 </body>
