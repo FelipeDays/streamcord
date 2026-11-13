@@ -52,8 +52,8 @@
            (Compatível com Chrome, Edge, Safari e Firefox)
            ========================================================= */
         .vol-pill {
-            background-color: #181818;
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            background-color: #141414;
+            border: 1px solid rgba(255, 255, 255, 0.16);
             border-radius: 9999px;
             padding: 6px 14px;
             display: inline-flex;
@@ -63,22 +63,22 @@
             transition: border-color 0.2s ease, background-color 0.2s ease;
         }
         .vol-pill:hover {
-            border-color: rgba(255, 255, 255, 0.3);
-            background-color: #1f1f1f;
+            border-color: rgba(255, 255, 255, 0.38);
+            background-color: #1c1c1c;
         }
 
         input[type="range"].bagre-slider {
             -webkit-appearance: none;
             appearance: none;
-            width: 88px;
+            width: 92px;
             height: 4px;
             border-radius: 9999px;
             background: linear-gradient(
                 to right,
                 #ffffff 0%,
                 #ffffff var(--val, 100%),
-                rgba(255, 255, 255, 0.32) var(--val, 100%),
-                rgba(255, 255, 255, 0.32) 100%
+                #444444 var(--val, 100%),
+                #444444 100%
             );
             outline: none;
             cursor: pointer;
@@ -98,9 +98,9 @@
             height: 14px;
             border-radius: 50%;
             background: #ffffff;
-            border: none;
+            border: 2px solid #ffffff;
             margin-top: -5px;
-            box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.85);
             transition: transform 0.15s ease;
         }
         input[type="range"].bagre-slider::-webkit-slider-thumb:hover {
@@ -111,7 +111,7 @@
         input[type="range"].bagre-slider::-moz-range-track {
             height: 4px;
             border-radius: 9999px;
-            background: rgba(255, 255, 255, 0.32);
+            background: #444444;
         }
         input[type="range"].bagre-slider::-moz-range-progress {
             height: 4px;
@@ -123,8 +123,8 @@
             height: 14px;
             border-radius: 50%;
             background: #ffffff;
-            border: none;
-            box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.85);
             transition: transform 0.15s ease;
         }
         input[type="range"].bagre-slider::-moz-range-thumb:hover {
@@ -149,12 +149,12 @@
             opacity: 0;
             margin-left: 0;
             overflow: hidden;
-            transition: max-width 0.26s cubic-bezier(0.16, 1, 0.3, 1),
+            transition: max-width 0.28s cubic-bezier(0.16, 1, 0.3, 1),
                         opacity 0.2s ease,
                         margin-left 0.22s ease;
         }
         .retract-btn:hover .retract-label {
-            max-width: 240px;
+            max-width: 300px;
             opacity: 1;
             margin-left: 8px;
         }
@@ -285,15 +285,82 @@
             </div>
 
             <!-- Bloco 4: Dica de Isolamento Nativo de Janela (Deadlock / Jogos) -->
-            <div class="bg-mono-black border border-mono-border p-3 space-y-1">
+            <div class="bg-mono-black border border-mono-border p-3 space-y-2">
                 <div class="font-mono text-[10px] font-bold uppercase text-mono-white flex items-center gap-1.5">
                     <i class="fa-solid fa-shield-halved text-[10px]"></i>
-                    <span>ISOLAR 100% O JOGO NO CHROME / EDGE:</span>
+                    <span>CAPTURAR SÓ O JOGO (SEM DISCORD) NO CHROME / EDGE:</span>
                 </div>
                 <p class="font-mono text-[10px] text-mono-muted leading-relaxed">
-                    Para o Windows capturar <strong class="text-mono-silver">só o jogo (ex: Deadlock)</strong> sem o Discord ao compartilhar uma Janela, ative no navegador:
-                    <span class="text-mono-white select-all block mt-1 bg-mono-panel px-2 py-1 border border-mono-border">chrome://flags/#enable-get-display-media-window-audio-capture</span>
+                    1. Ative a flag abaixo no navegador e clique em <strong class="text-mono-white">Relaunch</strong>.<br>
+                    2. Ao transmitir, escolha a aba <strong class="text-mono-white">"JANELA"</strong> (nunca escolha "Tela Cheia").
                 </p>
+                <div class="flex items-center gap-1.5">
+                    <input id="flagUrlInput" type="text" readonly value="chrome://flags/#enable-get-display-media-window-audio-capture"
+                        class="flex-1 bg-mono-panel border border-mono-border text-mono-white font-mono text-[10px] px-2 py-1.5 focus:outline-none select-all">
+                    <button onclick="copyFlagUrl()" id="copyFlagBtn"
+                        class="bg-mono-white hover:bg-mono-silver text-mono-black font-mono text-[10px] font-bold uppercase px-2.5 py-1.5 transition shrink-0">
+                        COPIAR FLAG
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         MODAL 3: SELETOR DE TRANSMISSÃO (GARANTE ISOLAMENTO DE JANELA)
+         ========================================================= -->
+    <div id="preShareModal" class="hidden fixed inset-0 z-50 bg-mono-black/85 backdrop-blur-sm items-center justify-center p-4"
+         onclick="if(event.target === this) closePreShareModal()">
+        <div class="w-full max-w-md bg-mono-panel border border-mono-white p-6 space-y-5 shadow-2xl">
+            <div class="flex items-center justify-between border-b border-mono-border pb-3.5">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-display text-xs text-mono-white"></i>
+                    <h2 class="font-mono text-xs font-bold uppercase tracking-widest text-mono-white">TRANSMITIR SEM VAZAR O DISCORD</h2>
+                </div>
+                <button onclick="closePreShareModal()" class="text-mono-muted hover:text-mono-white transition px-1">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Regra 1 -->
+                <div class="bg-mono-black border border-mono-border p-3.5 space-y-1">
+                    <div class="font-mono text-[11px] font-bold text-mono-white uppercase flex items-center gap-2">
+                        <span class="bg-mono-white text-mono-black px-1.5 py-0.5 text-[10px] font-bold">1</span>
+                        <span>ESCOLHA A ABA "JANELA" (NÃO USE TELA CHEIA)</span>
+                    </div>
+                    <p class="font-mono text-[10px] text-mono-silver leading-relaxed pl-6">
+                        Se você escolher <strong class="text-mono-white">"Tela Cheia"</strong>, o Windows captura o áudio do sistema inteiro (incluindo as vozes do Discord). Escolhendo a aba <strong class="text-mono-white">"Janela"</strong> e selecionando o jogo, o áudio fica isolado.
+                    </p>
+                </div>
+
+                <!-- Regra 2 -->
+                <div class="bg-mono-black border border-mono-border p-3.5 space-y-2">
+                    <div class="font-mono text-[11px] font-bold text-mono-white uppercase flex items-center gap-2">
+                        <span class="bg-mono-white text-mono-black px-1.5 py-0.5 text-[10px] font-bold">2</span>
+                        <span>SElecione O MODO ANTI-VOZ SE PRECISAR</span>
+                    </div>
+                    <p class="font-mono text-[10px] text-mono-silver leading-relaxed pl-6">
+                        Se o seu navegador ainda não tiver a flag de áudio por janela ativa, clique no botão de ondas (<i class="fa-solid fa-wave-square text-mono-white"></i>) na barra inferior para ativar o <strong class="text-mono-white">MODO 1 (Cancelar Centro L-R)</strong> ou <strong class="text-mono-white">MODO 2 (Corte Vocal Profundo)</strong>.
+                    </p>
+                    <div class="pl-6 flex items-center gap-1.5">
+                        <button onclick="copyFlagUrl()" class="border border-mono-borderLight hover:border-mono-white bg-mono-panel text-mono-white font-mono text-[10px] uppercase px-2.5 py-1 transition">
+                            <i class="fa-regular fa-copy mr-1"></i> COPIAR FLAG DO CHROME / EDGE
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-mono-border">
+                <label class="flex items-center gap-2 cursor-pointer font-mono text-[10px] text-mono-muted hover:text-mono-silver">
+                    <input id="skipPreShareCheck" type="checkbox" class="accent-white">
+                    <span>NÃO MOSTRAR NOVAMENTE</span>
+                </label>
+
+                <button onclick="confirmAndStartScreenShare()"
+                    class="bg-mono-white hover:bg-mono-silver text-mono-black font-mono text-xs font-bold uppercase px-5 py-2.5 transition tracking-wider">
+                    ESCOLHER JANELA AGORA
+                </button>
             </div>
         </div>
     </div>
@@ -372,6 +439,25 @@
                 <span>CLIQUE PARA ATIVAR O SOM DA TRANSMISSÃO</span>
             </button>
 
+            <!-- Alerta Automático se o Usuário Compartilhar "Tela Cheia" em vez de "Janela" -->
+            <div id="fullScreenAudioWarning" class="hidden absolute top-3 left-1/2 -translate-x-1/2 z-30 bg-mono-black/95 border border-mono-white px-4 py-2.5 items-center gap-3 shadow-2xl max-w-2xl">
+                <i class="fa-solid fa-triangle-exclamation text-mono-white text-xs shrink-0"></i>
+                <span class="font-mono text-[10px] uppercase text-mono-white leading-tight">
+                    VOCÊ COMPARTILHOU <strong>"TELA CHEIA"</strong> (ISSO CAPTURA O DISCORD JUNTO!). PARA ISOLAR O JOGO, COMPARTILHE A ABA <strong>"JANELA"</strong> OU ATIVE O <strong>MODO 1 / MODO 2</strong> ABAIXO.
+                </span>
+                <button onclick="switchToWindowShare()"
+                    class="bg-mono-white text-mono-black font-mono text-[10px] font-bold uppercase px-3 py-1 hover:bg-mono-silver transition shrink-0">
+                    TROCAR P/ JANELA
+                </button>
+                <button onclick="cycleVoiceFilterMode()"
+                    class="border border-mono-white text-mono-white font-mono text-[10px] font-bold uppercase px-2.5 py-1 hover:bg-mono-hover transition shrink-0">
+                    ATIVAR ANTI-VOZ
+                </button>
+                <button onclick="document.getElementById('fullScreenAudioWarning').classList.add('hidden')" class="text-mono-muted hover:text-mono-white text-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
             <!-- Aviso Auxiliar de Áudio (para Firefox ou quando compartilhado sem áudio do sistema) -->
             <div id="missingAudioBanner" class="hidden absolute bottom-3 left-1/2 -translate-x-1/2 z-30 bg-mono-panel/95 border border-mono-border px-3.5 py-2 items-center gap-3 shadow-2xl">
                 <span class="font-mono text-[10px] uppercase text-mono-silver">
@@ -419,28 +505,36 @@
 
         <!-- Esquerda: Botão 'i' de Informações (Hover mostra Qualidade, Nome e ID da Sala) -->
         <div class="relative group flex items-center">
-            <button class="w-9 h-9 rounded-full bg-mono-black border border-mono-border group-hover:border-mono-white text-mono-silver group-hover:text-mono-white flex items-center justify-center transition cursor-pointer">
+            <button class="w-9 h-9 rounded-md bg-mono-black border border-mono-border group-hover:border-mono-white text-mono-silver group-hover:text-mono-white flex items-center justify-center transition cursor-pointer">
                 <i class="fa-solid fa-info text-xs"></i>
             </button>
 
             <!-- Popover que abre ao passar o mouse no 'i' -->
-            <div class="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 absolute bottom-12 left-0 w-64 bg-mono-black border border-mono-white p-3.5 shadow-2xl space-y-2.5 z-50">
+            <div class="pointer-events-none opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 absolute bottom-12 left-0 w-72 bg-mono-black border border-mono-white p-3.5 shadow-2xl space-y-2 z-50">
                 <div class="text-[10px] font-mono uppercase tracking-widest text-mono-muted border-b border-mono-border pb-1.5">
                     INFORMAÇÕES DA SESSÃO
                 </div>
                 <div class="flex items-center justify-between font-mono text-[11px]">
-                    <span class="text-mono-muted">QUALIDADE:</span>
+                    <span class="text-mono-muted">QUALIDADE DA TELA:</span>
                     <span id="infoPopoverQuality" class="text-mono-white font-semibold">1920x1080 • 30FPS</span>
                 </div>
                 <div class="flex items-center justify-between font-mono text-[11px]">
-                    <span class="text-mono-muted">USUÁRIO:</span>
-                    <span id="infoPopoverName" class="text-mono-white font-semibold truncate max-w-[130px]">VISITANTE</span>
+                    <span class="text-mono-muted">NOME DA PESSOA:</span>
+                    <span id="infoPopoverName" class="text-mono-white font-semibold truncate max-w-[140px]">VISITANTE</span>
                 </div>
                 <div class="flex items-center justify-between font-mono text-[11px]">
                     <span class="text-mono-muted">ID DA SALA:</span>
                     <span id="infoPopoverRoom" class="text-mono-white font-bold tracking-widest">-----</span>
                 </div>
                 <div class="flex items-center justify-between font-mono text-[11px] pt-1 border-t border-mono-border">
+                    <span class="text-mono-muted">CAPTURA ATUAL:</span>
+                    <span id="infoPopoverSurface" class="text-mono-silver">STANDBY</span>
+                </div>
+                <div class="flex items-center justify-between font-mono text-[11px]">
+                    <span class="text-mono-muted">ANTI-VOZ DISCORD:</span>
+                    <span id="infoPopoverFilter" class="text-mono-white font-semibold">OFF (PURO)</span>
+                </div>
+                <div class="flex items-center justify-between font-mono text-[11px]">
                     <span class="text-mono-muted">TRANSMISSÕES:</span>
                     <span id="infoPopoverStreams" class="text-mono-silver">0 ATIVAS</span>
                 </div>
@@ -451,16 +545,16 @@
         <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
 
             <!-- 1. Transmitir Tela (Apenas Ícone, não retrátil, inverte para branco quando ativo) -->
-            <button id="shareScreenBtn" onclick="toggleScreenShare()" title="Transmitir Tela (1080p 30fps)"
+            <button id="shareScreenBtn" onclick="toggleScreenShare()" title="Transmitir Janela / Tela (1080p 30fps)"
                 class="w-10 h-10 bg-mono-black hover:bg-mono-hover text-mono-white border border-mono-border hover:border-mono-white transition flex items-center justify-center">
                 <i id="shareScreenIcon" class="fa-solid fa-display text-xs"></i>
             </button>
 
-            <!-- 2. Isolar Jogo / Anti-Voz Discord (Cancelamento de Fase Estéreo L-R na voz, preserva áudio 3D do jogo) -->
-            <button id="voiceFilterBtn" onclick="toggleVoiceBandFilter()"
+            <!-- 2. Filtro Anti-Voz do Discord em 3 Modos (OFF -> MODO 1: L-R ESTÉREO -> MODO 2: CORTE PROFUNDO) -->
+            <button id="voiceFilterBtn" onclick="cycleVoiceFilterMode()"
                 class="retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border">
                 <i class="fa-solid fa-wave-square text-xs"></i>
-                <span id="voiceFilterText" class="retract-label">ISOLAR JOGO (ANTI-VOZ DISCORD): OFF</span>
+                <span id="voiceFilterText" class="retract-label">ANTI-VOZ DISCORD: OFF (PURO)</span>
             </button>
 
             <!-- 3. Mutar Tudo da Live (Desativa 100% do áudio enviado na transmissão) -->
@@ -468,6 +562,13 @@
                 class="retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border">
                 <i id="muteOutgoingIcon" class="fa-solid fa-volume-high text-xs"></i>
                 <span id="muteOutgoingText" class="retract-label">MUTAR TUDO DA LIVE: OFF</span>
+            </button>
+
+            <!-- 4. Injetar Áudio Auxiliar (Útil para Firefox ou Cabo Virtual) -->
+            <button onclick="injectFallbackAudioDevice()"
+                class="retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border">
+                <i class="fa-solid fa-microphone-lines text-xs"></i>
+                <span class="retract-label">INJETAR ÁUDIO AUXILIAR</span>
             </button>
 
         </div>
@@ -531,20 +632,45 @@
 
         // Estado de Áudio
         let isOutgoingAudioMuted = false;
-        let isVoiceFilterActive = false;
+        /**
+         * Modos do Filtro Anti-Voz do Discord:
+         * 0 = OFF (Áudio Puro da Janela)
+         * 1 = MODO 1: Cancelamento de Fase Central Estéreo (L - R) de 85Hz a 14kHz (Remove 100% de vozes Mono do Discord)
+         * 2 = MODO 2: Cancelamento (L - R) + 5 Filtros Notch Profundos (-24dB em 160Hz, 450Hz, 1.1kHz, 2.4kHz, 3.8kHz)
+         */
+        let voiceFilterMode = 0;
         let masterVolume = 1.0;
         let isMasterMuted = false;
 
-        // Web Audio API (Inicializado sob demanda para o Filtro Anti-Voz sem quebrar o áudio nativo do Chrome)
+        // Grafo Web Audio API Permanente (Sem precisar de replaceTrack que falha entre Chrome/Firefox/Edge)
         let audioCtx = null;
-        let filterBand1 = null;
-        let filterBand2 = null;
-        let filterBand3 = null;
-        let outGainNode = null;
+        let webAudioSource = null;
+        let webAudioDest = null;
+        let dryGainNode = null;
+        let mode1SideGainNode = null;
+        let mode2DeepCutGainNode = null;
+        let masterOutGainNode = null;
 
         let telemetryInterval = null;
 
+        // Força Codec Opus em Estéreo Real (2 canais, 256kbps) no SDP entre Chrome, Firefox e Edge
+        function enforceStereoOpusSDP(sdp) {
+            if (!sdp) return sdp;
+            return sdp.replace(
+                /a=fmtp:(\d+) useinbandfec=1/g,
+                'a=fmtp:$1 useinbandfec=1;stereo=1;sprop-stereo=1;maxaveragebitrate=256000'
+            );
+        }
+
         window.onload = () => {
+            // Ajusta automaticamente a URL da flag se o usuário estiver no Microsoft Edge
+            if (navigator.userAgent.includes('Edg/')) {
+                const flagInput = document.getElementById('flagUrlInput');
+                if (flagInput) {
+                    flagInput.value = 'edge://flags/#enable-get-display-media-window-audio-capture';
+                }
+            }
+
             // Preenche nome salvo se existir
             const nameInput = document.getElementById('initialNameInput');
             if (myUserName) {
@@ -667,7 +793,7 @@
                 }
 
                 entry.incomingCall = call;
-                call.answer();
+                call.answer(undefined, { sdpTransform: enforceStereoOpusSDP });
 
                 call.on('stream', (incStream) => {
                     handleIncomingRemoteStream(remotePeerId, incStream);
@@ -973,7 +1099,8 @@
                     metadata: {
                         userName: myUserName || 'BAGRE',
                         roomId: currentRoomId
-                    }
+                    },
+                    sdpTransform: enforceStereoOpusSDP
                 });
                 entry.outgoingCall = call;
                 if (call && call.peerConnection) {
@@ -991,430 +1118,430 @@
         }
 
         // =========================================================
-        // 3. RECEBIMENTO E REPRODUÇÃO DE MÚLTIPLAS TELAS + ÁUDIO
+        // 6. CAPTURA DE JANELA/TELA 1080P 30FPS + MOTOR DSP ANTI-VOZ
         // =========================================================
-        function handleIncomingRemoteStream(remotePeerId, stream) {
-            const entry = ensurePeerEntry(remotePeerId);
-            entry.remoteStream = stream;
-
-            stream.getVideoTracks().forEach(track => {
-                track.onended = () => removeRemoteStream(remotePeerId);
-            });
-
-            updateRoomUI();
-            renderStage();
-            showToast(`TRANSMISSÃO DE ${entry.userName} RECEBIDA.`);
-        }
-
-        function removeRemoteStream(remotePeerId) {
-            const entry = peersMap.get(remotePeerId);
-            if (!entry) return;
-            entry.remoteStream = null;
-
-            const tile = document.getElementById(`tile-${remotePeerId}`);
-            if (tile) tile.remove();
-
-            if (focusedScreenId === remotePeerId) {
-                focusedScreenId = null;
-                layoutMode = 'grid';
-            }
-
-            updateRoomUI();
-            renderStage();
-        }
-
-        // =========================================================
-        // 4. PALCO DE VÍDEO (MODO GRADE E MODO FOCO)
-        // =========================================================
-        function setLayoutMode(mode, targetScreenId = null) {
-            layoutMode = mode;
-
-            if (mode === 'focus') {
-                if (targetScreenId) {
-                    focusedScreenId = targetScreenId;
-                } else if (!focusedScreenId) {
-                    const firstRemote = Array.from(peersMap.values()).find(p => p.remoteStream);
-                    if (firstRemote) {
-                        focusedScreenId = firstRemote.peerId;
-                    } else if (isSharing && outboundStream) {
-                        focusedScreenId = 'local';
-                    }
-                }
-            }
-
-            renderStage();
-        }
-
-        function focusOnScreen(screenId) {
-            if (layoutMode === 'focus' && focusedScreenId === screenId) {
-                setLayoutMode('grid');
+        function toggleScreenShare() {
+            if (isSharing) {
+                stopScreenShare();
             } else {
-                setLayoutMode('focus', screenId);
+                const skipGuide = localStorage.getItem('bagrestream_skip_preshare') === '1';
+                if (skipGuide) {
+                    startScreenShare();
+                } else {
+                    openPreShareModal();
+                }
             }
         }
 
-        function toggleSelfView() {
-            showSelfInStage = !showSelfInStage;
-            const icon = document.getElementById('selfPreviewIcon');
-            const label = document.getElementById('selfPreviewLabel');
-            const btn = document.getElementById('toggleSelfPreviewBtn');
-
-            if (showSelfInStage) {
-                btn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-white';
-                icon.className = 'fa-regular fa-eye text-xs';
-                label.textContent = 'MINHA TELA: ON';
-            } else {
-                btn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-muted';
-                icon.className = 'fa-regular fa-eye-slash text-xs';
-                label.textContent = 'MINHA TELA: OFF';
-                if (focusedScreenId === 'local') {
-                    focusedScreenId = null;
-                    layoutMode = 'grid';
-                }
-            }
-            renderStage();
+        function openPreShareModal() {
+            const modal = document.getElementById('preShareModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
         }
 
-        function renderStage() {
-            const grid = document.getElementById('screensGrid');
-            const emptyStage = document.getElementById('emptyStage');
-            const focusTabs = document.getElementById('focusFloatingTabs');
+        function closePreShareModal() {
+            const modal = document.getElementById('preShareModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
 
-            const activeScreens = [];
+        function confirmAndStartScreenShare() {
+            const skipCheck = document.getElementById('skipPreShareCheck');
+            if (skipCheck && skipCheck.checked) {
+                localStorage.setItem('bagrestream_skip_preshare', '1');
+            }
+            closePreShareModal();
+            startScreenShare();
+        }
 
-            // 1. Telas dos amigos
-            peersMap.forEach((entry) => {
-                if (entry.remoteStream) {
-                    activeScreens.push({
-                        id: entry.peerId,
-                        type: 'remote',
-                        label: entry.userName,
-                        stream: entry.remoteStream,
-                        entry: entry
-                    });
-                }
-            });
+        function switchToWindowShare() {
+            document.getElementById('fullScreenAudioWarning').classList.add('hidden');
+            stopScreenShare();
+            setTimeout(() => startScreenShare(), 150);
+        }
 
-            // 2. Minha tela
-            if (isSharing && outboundStream && (showSelfInStage || (layoutMode === 'focus' && focusedScreenId === 'local'))) {
-                activeScreens.push({
-                    id: 'local',
-                    type: 'local',
-                    label: `${myUserName || 'VOCÊ'} (SUA TELA)`,
-                    stream: outboundStream,
-                    entry: null
+        async function startScreenShare() {
+            try {
+                // Solicita captura abrindo diretamente na aba "JANELA" (displaySurface: 'window')
+                // e pedindo isolamento de áudio por processo da janela (windowAudio: 'window')
+                rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: {
+                        width: { ideal: 1920, max: 1920 },
+                        height: { ideal: 1080, max: 1080 },
+                        frameRate: { ideal: 30, max: 60 },
+                        displaySurface: 'window',
+                        cursor: 'always'
+                    },
+                    audio: {
+                        channelCount: { ideal: 2, min: 2 },
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false,
+                        suppressLocalAudioPlayback: false
+                    },
+                    windowAudio: 'window',
+                    systemAudio: 'include',
+                    surfaceSwitching: 'include',
+                    selfBrowserSurface: 'exclude',
+                    preferCurrentTab: false
                 });
+
+                const videoTrack = rawDisplayStream.getVideoTracks()[0];
+                if (videoTrack && 'contentHint' in videoTrack) {
+                    videoTrack.contentHint = 'motion';
+                }
+
+                // Verifica se o usuário escolheu "Janela" ou "Tela Cheia" (monitor)
+                const settings = videoTrack.getSettings ? videoTrack.getSettings() : {};
+                const surfaceType = settings.displaySurface || 'unknown';
+                const fullScreenWarn = document.getElementById('fullScreenAudioWarning');
+                const surfaceInfoEl = document.getElementById('infoPopoverSurface');
+
+                if (surfaceType === 'monitor') {
+                    if (surfaceInfoEl) surfaceInfoEl.textContent = 'TELA CHEIA (SISTEMA)';
+                    // Se escolheu Tela Cheia e o filtro ainda está em OFF, liga automaticamente o MODO 1 (L-R) e avisa!
+                    if (voiceFilterMode === 0 && rawDisplayStream.getAudioTracks().length > 0) {
+                        voiceFilterMode = 1;
+                    }
+                    fullScreenWarn.classList.remove('hidden');
+                    fullScreenWarn.classList.add('flex');
+                } else if (surfaceType === 'window') {
+                    if (surfaceInfoEl) surfaceInfoEl.textContent = 'JANELA ISOLADA';
+                    fullScreenWarn.classList.add('hidden');
+                    fullScreenWarn.classList.remove('flex');
+                } else {
+                    if (surfaceInfoEl) surfaceInfoEl.textContent = 'ABA DO NAVEGADOR';
+                    fullScreenWarn.classList.add('hidden');
+                    fullScreenWarn.classList.remove('flex');
+                }
+
+                videoTrack.onended = () => {
+                    stopScreenShare();
+                };
+
+                await prepareOutboundMediaStream(rawDisplayStream);
+                updateVoiceFilterButtonUI();
+
+                isSharing = true;
+                updateShareButtonUI(true);
+                updateRoomUI();
+                renderStage();
+
+                pushStreamToAllPeers();
+                showToast('TRANSMISSÃO 1080P INICIADA.');
+
+            } catch (err) {
+                console.warn('Compartilhamento cancelado:', err);
             }
+        }
 
-            document.getElementById('activeScreensCount').textContent = activeScreens.length;
-            document.getElementById('infoPopoverStreams').textContent = `${activeScreens.length} ATIVA(S)`;
+        /**
+         * PIPELINE DE ÁUDIO WEBAUDIO PERMANENTE:
+         * - Força a faixa capturada a manter 2 canais (Estéreo) sem processamentos do navegador que misturam L+R em Mono.
+         * - Roteia permanentemente pelo grafo WebAudio de 3 modos para que a troca de filtro funcione instantaneamente
+         *   para amigos no Chrome, Firefox e Edge sem precisar trocar de faixa (replaceTrack).
+         */
+        async function prepareOutboundMediaStream(sourceStream) {
+            const videoTrack = sourceStream.getVideoTracks()[0];
+            const audioTracks = sourceStream.getAudioTracks();
+            const missingBanner = document.getElementById('missingAudioBanner');
 
-            // Atualiza botões retráteis do Header
-            const modeGridBtn = document.getElementById('modeGridBtn');
-            const modeFocusBtn = document.getElementById('modeFocusBtn');
-            if (layoutMode === 'grid') {
-                modeGridBtn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider bg-mono-white text-mono-black font-semibold';
-                modeFocusBtn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-silver hover:text-mono-white';
-            } else {
-                modeFocusBtn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider bg-mono-white text-mono-black font-semibold';
-                modeGridBtn.className = 'retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-silver hover:text-mono-white';
-            }
-
-            if (activeScreens.length === 0) {
-                grid.innerHTML = '';
-                emptyStage.classList.remove('hidden');
-                focusTabs.classList.add('hidden');
-                focusTabs.classList.remove('flex');
+            if (audioTracks.length === 0) {
+                rawAudioTrack = null;
+                filteredAudioTrack = null;
+                outboundStream = new MediaStream([videoTrack]);
+                missingBanner.classList.remove('hidden');
+                missingBanner.classList.add('flex');
                 return;
             }
 
-            emptyStage.classList.add('hidden');
+            missingBanner.classList.add('hidden');
+            missingBanner.classList.remove('flex');
 
-            if (layoutMode === 'focus' && !activeScreens.some(s => s.id === focusedScreenId)) {
-                focusedScreenId = activeScreens[0].id;
+            rawAudioTrack = audioTracks[0];
+
+            // Impede que o Chrome/Edge converta o áudio do jogo para Mono
+            if (rawAudioTrack.applyConstraints) {
+                try {
+                    await rawAudioTrack.applyConstraints({
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false,
+                        channelCount: 2
+                    });
+                } catch (e) {}
             }
 
-            // Se estiver em Modo Foco e houver mais de 1 tela, mostra pílula flutuante discreta para trocar de pessoa
-            if (layoutMode === 'focus' && activeScreens.length > 1) {
-                focusTabs.classList.remove('hidden');
-                focusTabs.classList.add('flex');
-                focusTabs.innerHTML = activeScreens.map(s => {
-                    const active = s.id === focusedScreenId;
-                    return `
-                        <button onclick="setLayoutMode('focus', '${s.id}')"
-                            class="px-2.5 py-1 font-mono text-[10px] uppercase transition ${
-                                active ? 'bg-mono-white text-mono-black font-bold' : 'text-mono-silver hover:text-mono-white'
-                            }">
-                            ${s.label}
-                        </button>
-                    `;
-                }).join('');
-            } else {
-                focusTabs.classList.add('hidden');
-                focusTabs.classList.remove('flex');
-            }
-
-            const visibleScreens = layoutMode === 'focus'
-                ? activeScreens.filter(s => s.id === focusedScreenId)
-                : activeScreens;
-
-            const count = visibleScreens.length;
-            let gridClasses = 'w-full h-full grid gap-2 p-2 overflow-auto ';
-            if (count === 1) {
-                gridClasses += 'grid-cols-1 grid-rows-1';
-            } else if (count === 2) {
-                gridClasses += 'grid-cols-1 lg:grid-cols-2 grid-rows-2 lg:grid-rows-1';
-            } else if (count <= 4) {
-                gridClasses += 'grid-cols-1 md:grid-cols-2 grid-rows-2';
-            } else {
-                gridClasses += 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3 auto-rows-fr';
-            }
-            grid.className = gridClasses;
-
-            const currentTileIds = new Set(activeScreens.map(s => `tile-${s.id}`));
-            Array.from(grid.children).forEach(child => {
-                if (!currentTileIds.has(child.id)) {
-                    child.remove();
-                }
-            });
-
-            activeScreens.forEach(screen => {
-                let tile = document.getElementById(`tile-${screen.id}`);
-                if (!tile) {
-                    tile = createVideoTileElement(screen);
-                    grid.appendChild(tile);
-                } else {
-                    updateVideoTileControls(tile, screen);
-                }
-
-                const isVisible = layoutMode === 'grid' || screen.id === focusedScreenId;
-                if (isVisible) {
-                    tile.classList.remove('hidden');
-                    tile.classList.add('flex');
-                } else {
-                    tile.classList.add('hidden');
-                    tile.classList.remove('flex');
-                }
-            });
+            const processedTrack = await setupPermanentAudioGraph(rawAudioTrack);
+            outboundStream = new MediaStream([videoTrack, processedTrack || rawAudioTrack]);
         }
 
-        function createVideoTileElement(screen) {
-            const tile = document.createElement('div');
-            tile.id = `tile-${screen.id}`;
-            tile.className = 'video-tile relative w-full h-full bg-[#030303] border border-mono-border flex flex-col justify-between overflow-hidden group';
-
-            const video = document.createElement('video');
-            video.id = `video-${screen.id}`;
-            video.autoplay = true;
-            video.playsInline = true;
-            video.className = 'w-full h-full object-contain bg-mono-black cursor-pointer';
-            video.srcObject = screen.stream;
-            video.ondblclick = () => focusOnScreen(screen.id);
-
-            if (screen.type === 'local') {
-                video.muted = true;
-                video.play().catch(() => {});
-            } else {
-                playRemoteVideoSafely(video, screen.entry);
+        // Permite injetar áudio de um dispositivo (Mixagem Estéreo / Cabo Virtual / Microfone) no Firefox ou Chrome
+        async function injectFallbackAudioDevice() {
+            if (!isSharing || !outboundStream) {
+                showToast('INICIE A TRANSMISSÃO DE TELA PRIMEIRO.');
+                return;
             }
-
-            // Topo do Card: Nome da Pessoa + Resolução
-            const topBar = document.createElement('div');
-            topBar.className = 'absolute top-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200';
-            topBar.innerHTML = `
-                <div class="flex items-center gap-2 bg-mono-black/90 border border-mono-border px-3 py-1">
-                    <span class="w-1.5 h-1.5 bg-mono-white"></span>
-                    <span id="label-${screen.id}" class="font-mono text-[11px] font-bold uppercase tracking-wider text-mono-white">${screen.label}</span>
-                </div>
-                <div id="res-${screen.id}" class="bg-mono-black/90 border border-mono-border px-2.5 py-1 font-mono text-[10px] text-mono-silver uppercase">
-                    1080P • 30FPS
-                </div>
-            `;
-
-            // Rodapé Flutuante do Card: Slider Pílula Branca + Botão Focar + Fullscreen
-            const bottomBar = document.createElement('div');
-            bottomBar.className = 'absolute bottom-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200';
-
-            const leftControls = document.createElement('div');
-            if (screen.type === 'remote') {
-                const vol = screen.entry ? screen.entry.volume : 100;
-                leftControls.innerHTML = `
-                    <div class="vol-pill shadow-xl">
-                        <button onclick="togglePeerMute('${screen.id}')" id="muteBtn-${screen.id}"
-                            class="text-mono-white hover:text-mono-silver transition flex items-center justify-center w-4">
-                            <i class="fa-solid fa-volume-high text-sm"></i>
-                        </button>
-                        <input id="slider-${screen.id}" type="range" min="0" max="100" value="${vol}"
-                            style="--val: ${vol}%"
-                            oninput="changePeerVolume('${screen.id}', this.value)"
-                            class="bagre-slider">
-                    </div>
-                `;
-            } else {
-                leftControls.innerHTML = `
-                    <div class="bg-mono-black/90 border border-mono-border px-3 py-1.5 font-mono text-[10px] uppercase text-mono-muted">
-                        SUA TRANSMISSÃO
-                    </div>
-                `;
-            }
-
-            const rightControls = document.createElement('div');
-            rightControls.className = 'flex items-center gap-1.5';
-            rightControls.innerHTML = `
-                <button onclick="focusOnScreen('${screen.id}')" id="focusBtn-${screen.id}"
-                    class="px-3 py-2 font-mono text-[10px] uppercase border border-mono-border hover:border-mono-white bg-mono-black/90 text-mono-white transition flex items-center gap-1.5">
-                    <i class="fa-solid fa-crosshairs text-[10px]"></i>
-                    <span class="focus-btn-label">${layoutMode === 'focus' && focusedScreenId === screen.id ? 'GRADE' : 'FOCAR'}</span>
-                </button>
-                <button onclick="fullscreenSingleTile('tile-${screen.id}')"
-                    class="w-8 h-8 border border-mono-border hover:border-mono-white bg-mono-black/90 text-mono-silver hover:text-mono-white flex items-center justify-center transition"
-                    title="Tela Cheia">
-                    <i class="fa-solid fa-expand text-[10px]"></i>
-                </button>
-            `;
-
-            bottomBar.appendChild(leftControls);
-            bottomBar.appendChild(rightControls);
-
-            tile.appendChild(video);
-            tile.appendChild(topBar);
-            tile.appendChild(bottomBar);
-
-            return tile;
-        }
-
-        function updateVideoTileControls(tile, screen) {
-            const labelEl = tile.querySelector(`#label-${screen.id}`);
-            if (labelEl) labelEl.textContent = screen.label;
-
-            const video = tile.querySelector('video');
-            if (video && video.srcObject !== screen.stream) {
-                video.srcObject = screen.stream;
-                if (screen.type === 'remote') {
-                    playRemoteVideoSafely(video, screen.entry);
-                } else {
-                    video.play().catch(() => {});
-                }
-            }
-
-            const focusBtnLabel = tile.querySelector('.focus-btn-label');
-            if (focusBtnLabel) {
-                focusBtnLabel.textContent = (layoutMode === 'focus' && focusedScreenId === screen.id) ? 'GRADE' : 'FOCAR';
-            }
-        }
-
-        // =========================================================
-        // 5. CONTROLE DOS SLIDERS DE VOLUME E REPRODUÇÃO DE ÁUDIO
-        // =========================================================
-        function updateSliderVisualFill(sliderEl, value) {
-            if (!sliderEl) return;
-            const pct = Math.max(0, Math.min(100, Number(value)));
-            sliderEl.style.setProperty('--val', `${pct}%`);
-            sliderEl.value = pct;
-        }
-
-        function playRemoteVideoSafely(videoEl, entry) {
-            const unmuteBtn = document.getElementById('unmuteAutoplayBtn');
-            const targetVol = ((entry ? entry.volume : 100) / 100) * masterVolume;
-
-            videoEl.volume = Math.max(0, Math.min(1, targetVol));
-            videoEl.muted = isMasterMuted || (entry && entry.muted);
-
-            const playPromise = videoEl.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(() => {
-                    videoEl.muted = true;
-                    videoEl.play().catch(() => {});
-                    unmuteBtn.classList.remove('hidden');
-                    unmuteBtn.classList.add('flex');
+            try {
+                const audioStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        channelCount: { ideal: 2 },
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false
+                    }
                 });
+                const newAudioTrack = audioStream.getAudioTracks()[0];
+                if (!newAudioTrack) return;
+
+                rawAudioTrack = newAudioTrack;
+                const processedTrack = await setupPermanentAudioGraph(rawAudioTrack);
+                const trackToSend = processedTrack || rawAudioTrack;
+
+                outboundStream.getAudioTracks().forEach(t => outboundStream.removeTrack(t));
+                outboundStream.addTrack(trackToSend);
+
+                document.getElementById('missingAudioBanner').classList.add('hidden');
+                document.getElementById('missingAudioBanner').classList.remove('flex');
+
+                pushStreamToAllPeers();
+                showToast('ÁUDIO AUXILIAR INJETADO NA TRANSMISSÃO!');
+            } catch (e) {
+                showToast('NÃO FOI POSSÍVEL CAPTURAR O DISPOSITIVO DE ÁUDIO.');
             }
         }
 
-        function forceUnmuteAllRemoteVideos() {
-            const unmuteBtn = document.getElementById('unmuteAutoplayBtn');
-            peersMap.forEach((entry) => {
-                const v = document.getElementById(`video-${entry.peerId}`);
-                if (v) {
-                    v.muted = isMasterMuted || entry.muted;
-                    v.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
-                    v.play().catch(() => {});
+        async function setupPermanentAudioGraph(sourceAudioTrack) {
+            try {
+                // Elemento keep-alive oculto para impedir que o Chrome congele o WebAudio em segundo plano
+                const keepAliveAudio = document.getElementById('chromeWebAudioKeepAlive');
+                keepAliveAudio.srcObject = new MediaStream([sourceAudioTrack]);
+                keepAliveAudio.muted = true;
+                keepAliveAudio.play().catch(() => {});
+
+                if (!audioCtx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioCtx({ latencyHint: 'interactive', sampleRate: 48000 });
                 }
-            });
-            unmuteBtn.classList.add('hidden');
-            unmuteBtn.classList.remove('flex');
-        }
-
-        function changePeerVolume(peerId, val) {
-            const entry = peersMap.get(peerId);
-            if (!entry) return;
-
-            const numericVal = Number(val);
-            entry.volume = numericVal;
-            entry.muted = (numericVal === 0);
-
-            if (numericVal > 0 && isMasterMuted) {
-                isMasterMuted = false;
-                if (masterVolume === 0) {
-                    masterVolume = 1.0;
-                    updateSliderVisualFill(document.getElementById('masterVolSlider'), 100);
+                if (audioCtx.state === 'suspended') {
+                    await audioCtx.resume();
                 }
-                updateMasterMuteIcon();
-            }
 
-            const slider = document.getElementById(`slider-${peerId}`);
-            updateSliderVisualFill(slider, numericVal);
-
-            const v = document.getElementById(`video-${peerId}`);
-            if (v) {
-                v.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
-                v.muted = isMasterMuted || entry.muted;
-            }
-            updatePeerMuteIcon(peerId, entry.muted);
-        }
-
-        function togglePeerMute(peerId) {
-            const entry = peersMap.get(peerId);
-            if (!entry) return;
-            entry.muted = !entry.muted;
-
-            if (!entry.muted && entry.volume === 0) {
-                entry.volume = 100;
-            }
-
-            const slider = document.getElementById(`slider-${peerId}`);
-            updateSliderVisualFill(slider, entry.muted ? 0 : entry.volume);
-
-            const v = document.getElementById(`video-${peerId}`);
-            if (v) {
-                v.muted = isMasterMuted || entry.muted;
-                v.volume = Math.max(0, Math.min(1, (entry.volume / 100) * masterVolume));
-            }
-            updatePeerMuteIcon(peerId, entry.muted);
-        }
-
-        function updatePeerMuteIcon(peerId, isMuted) {
-            const btn = document.getElementById(`muteBtn-${peerId}`);
-            if (!btn) return;
-            btn.innerHTML = isMuted
-                ? '<i class="fa-solid fa-volume-xmark text-sm text-mono-muted"></i>'
-                : '<i class="fa-solid fa-volume-high text-sm text-mono-white"></i>';
-        }
-
-        function changeMasterVolume(val) {
-            const numericVal = Number(val);
-            masterVolume = numericVal / 100;
-            isMasterMuted = (numericVal === 0);
-
-            const masterSlider = document.getElementById('masterVolSlider');
-            updateSliderVisualFill(masterSlider, numericVal);
-
-            peersMap.forEach((entry, peerId) => {
-                if (!isMasterMuted && entry.muted && entry.volume === 0) {
-                    entry.volume = numericVal;
-                    entry.muted = false;
+                // Desconecta grafo anterior se existir
+                if (webAudioSource) {
+                    try { webAudioSource.disconnect(); } catch (e) {}
                 }
-                const peerSlider = document.getElementById(`slider-${peerId}`);
+
+                webAudioDest = audioCtx.createMediaStreamDestination();
+                webAudioDest.channelCount = 2;
+                webAudioDest.channelCountMode = 'explicit';
+
+                webAudioSource = audioCtx.createMediaStreamSource(new MediaStream([sourceAudioTrack]));
+
+                // =========================================================================
+                // RAMO 0: ÁUDIO NATIVO PURO (dryGainNode)
+                // =========================================================================
+                dryGainNode = audioCtx.createGain();
+
+                // =========================================================================
+                // RAMO 1: MODO 1 — CANCELAMENTO CENTRAL ESTÉREO PURO (L - R)
+                // - Vozes do Discord são 100% Mono Central (L == R).
+                // - Ao subtrair L - R de 85Hz até 14kHz, qualquer sinal idêntico nos 2 lados
+                //   vira ZERO absoluto (L - R = 0), enquanto o áudio 3D estéreo do jogo passa!
+                // =========================================================================
+                const splitter = audioCtx.createChannelSplitter(2);
+                const rightInverter = audioCtx.createGain();
+                rightInverter.gain.value = -1.0; // -R
+
+                // Soma Diferencial: diffNode = L + (-R) = L - R
+                const diffNode = audioCtx.createGain();
+                diffNode.gain.value = 1.0;
+
+                webAudioSource.connect(splitter);
+                splitter.connect(diffNode, 0);        // +L
+                splitter.connect(rightInverter, 1);   // -R
+                rightInverter.connect(diffNode);      // L - R
+
+                // Filtro passa-alta em 85Hz no canal diferencial
+                const sideHighPass = audioCtx.createBiquadFilter();
+                sideHighPass.type = 'highpass';
+                sideHighPass.frequency.value = 85;
+                sideHighPass.Q.value = 0.707;
+                diffNode.connect(sideHighPass);
+
+                // Preserva sub-graves puros (< 80Hz: explosões e graves do jogo, abaixo da voz humana)
+                const subBassPass = audioCtx.createBiquadFilter();
+                subBassPass.type = 'lowpass';
+                subBassPass.frequency.value = 80;
+                subBassPass.Q.value = 0.707;
+                webAudioSource.connect(subBassPass);
+
+                // Reconstrói imagem estéreo para o Modo 1
+                const mode1Merger = audioCtx.createChannelMerger(2);
+                const mode1LeftGain = audioCtx.createGain();
+                mode1LeftGain.gain.value = 1.35;
+                const mode1RightGain = audioCtx.createGain();
+                mode1RightGain.gain.value = -1.35;
+
+                sideHighPass.connect(mode1LeftGain);
+                sideHighPass.connect(mode1RightGain);
+                mode1LeftGain.connect(mode1Merger, 0, 0);
+                mode1RightGain.connect(mode1Merger, 0, 1);
+
+                mode1SideGainNode = audioCtx.createGain();
+                mode1Merger.connect(mode1SideGainNode);
+                subBassPass.connect(mode1SideGainNode);
+
+                // =========================================================================
+                // RAMO 2: MODO 2 — CANCELAMENTO (L - R) + 5 CORTES PROFUNDOS DE FORMANTES VOCAIS
+                // - Além de cancelar o centro (L - R), aplica 5 filtros Peaking de -24dB
+                //   nas frequências fundamentais e formantes da fala humana (160Hz a 3800Hz).
+                // =========================================================================
+                const vocalFreqs = [
+                    { freq: 165, q: 1.2, gain: -22 }, // Fundamental masculina
+                    { freq: 420, q: 1.1, gain: -24 }, // 1º Formante (Vogais)
+                    { freq: 1100, q: 1.0, gain: -26 }, // Timbre nasal / médio vocal
+                    { freq: 2350, q: 1.1, gain: -26 }, // Inteligibilidade / presença da fala
+                    { freq: 3800, q: 1.2, gain: -22 }  // Sibilância da voz
+                ];
+
+                let lastFilterNode = mode1Merger;
+                vocalFreqs.forEach(cfg => {
+                    const biquad = audioCtx.createBiquadFilter();
+                    biquad.type = 'peaking';
+                    biquad.frequency.value = cfg.freq;
+                    biquad.Q.value = cfg.q;
+                    biquad.gain.value = cfg.gain;
+                    lastFilterNode.connect(biquad);
+                    lastFilterNode = biquad;
+                });
+
+                mode2DeepCutGainNode = audioCtx.createGain();
+                lastFilterNode.connect(mode2DeepCutGainNode);
+                subBassPass.connect(mode2DeepCutGainNode);
+
+                // =========================================================================
+                // SAÍDA MESTRE DA LIVE (masterOutGainNode -> webAudioDest)
+                // =========================================================================
+                masterOutGainNode = audioCtx.createGain();
+                webAudioSource.connect(dryGainNode);
+
+                dryGainNode.connect(masterOutGainNode);
+                mode1SideGainNode.connect(masterOutGainNode);
+                mode2DeepCutGainNode.connect(masterOutGainNode);
+
+                masterOutGainNode.connect(webAudioDest);
+
+                applyAudioGraphModeGains();
+
+                filteredAudioTrack = webAudioDest.stream.getAudioTracks()[0];
+                if (filteredAudioTrack) {
+                    filteredAudioTrack.enabled = !isOutgoingAudioMuted;
+                }
+                return filteredAudioTrack;
+            } catch (e) {
+                console.warn('Erro ao configurar grafo WebAudio:', e);
+                return sourceAudioTrack;
+            }
+        }
+
+        function applyAudioGraphModeGains() {
+            if (!audioCtx || !dryGainNode || !mode1SideGainNode || !mode2DeepCutGainNode || !masterOutGainNode) return;
+            const now = audioCtx.currentTime;
+
+            const dGain = (voiceFilterMode === 0) ? 1.0 : 0.0;
+            const m1Gain = (voiceFilterMode === 1) ? 1.0 : 0.0;
+            const m2Gain = (voiceFilterMode === 2) ? 1.25 : 0.0;
+
+            dryGainNode.gain.setTargetAtTime(dGain, now, 0.015);
+            mode1SideGainNode.gain.setTargetAtTime(m1Gain, now, 0.015);
+            mode2DeepCutGainNode.gain.setTargetAtTime(m2Gain, now, 0.015);
+            masterOutGainNode.gain.setTargetAtTime(isOutgoingAudioMuted ? 0.0 : 1.0, now, 0.015);
+        }
+
+        function cycleVoiceFilterMode() {
+            voiceFilterMode = (voiceFilterMode + 1) % 3;
+
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(() => {});
+            }
+            applyAudioGraphModeGains();
+            updateVoiceFilterButtonUI();
+
+            if (voiceFilterMode === 0) {
+                showToast('ANTI-VOZ OFF: ENVIANDO ÁUDIO PURO DA JANELA.');
+            } else if (voiceFilterMode === 1) {
+                showToast('MODO 1 ATIVO: CANCELAMENTO DE CENTRO MONO (L-R) DO DISCORD.');
+            } else {
+                showToast('MODO 2 ATIVO: CANCELAMENTO (L-R) + CORTE VOCAL PROFUNDO (-24DB).');
+            }
+        }
+
+        function updateVoiceFilterButtonUI() {
+            const btn = document.getElementById('voiceFilterBtn');
+            const text = document.getElementById('voiceFilterText');
+            const infoFilter = document.getElementById('infoPopoverFilter');
+
+            if (voiceFilterMode === 0) {
+                btn.className = 'retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border';
+                text.textContent = 'ANTI-VOZ DISCORD: OFF (PURO)';
+                if (infoFilter) infoFilter.textContent = 'OFF (ÁUDIO PURO)';
+            } else if (voiceFilterMode === 1) {
+                btn.className = 'retract-btn h-10 bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white';
+                text.textContent = 'ANTI-VOZ: MODO 1 (CANCELAR CENTRO L-R)';
+                if (infoFilter) infoFilter.textContent = 'MODO 1 (CENTRO L-R)';
+            } else {
+                btn.className = 'retract-btn h-10 bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white';
+                text.textContent = 'ANTI-VOZ: MODO 2 (CORTE VOCAL PROFUNDO)';
+                if (infoFilter) infoFilter.textContent = 'MODO 2 (PROFUNDO)';
+            }
+        }
+
+        function toggleOutgoingAudioMute() {
+            isOutgoingAudioMuted = !isOutgoingAudioMuted;
+
+            if (rawAudioTrack) rawAudioTrack.enabled = !isOutgoingAudioMuted;
+            if (filteredAudioTrack) filteredAudioTrack.enabled = !isOutgoingAudioMuted;
+            applyAudioGraphModeGains();
+
+            const btn = document.getElementById('muteOutgoingAudioBtn');
+            const icon = document.getElementById('muteOutgoingIcon');
+            const text = document.getElementById('muteOutgoingText');
+
+            if (isOutgoingAudioMuted) {
+                btn.className = 'retract-btn h-10 bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white';
+                icon.className = 'fa-solid fa-volume-xmark text-xs';
+                text.textContent = 'MUTAR TUDO DA LIVE: ON';
+                showToast('TODO O ÁUDIO DA SUA LIVE FOI MUTADO.');
+            } else {
+                btn.className = 'retract-btn h-10 bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border';
+                icon.className = 'fa-solid fa-volume-high text-xs';
+                text.textContent = 'MUTAR TUDO DA LIVE: OFF';
+                showToast('ÁUDIO DA SUA LIVE ATIVADO.');
+            }
+        }
+
+        function stopScreenShare() {
+            isSharing = false;
+
+            if (rawDisplayStream) {
+                rawDisplayStream.getTracks().forEach(t => t.stop());
+                rawDisplayStream = null;
+            }
+            if (outboundStream) {
+                outboundStream.getTracks().forEach(t => t.stop());
+                outboundStream = null;
+            }
+            rawAudioTrack = null;
+            filteredAudioTrack = null;
+
+            document.getElementById('missingAudioBanner').classList.add('hidden');
+            document.getElementById('missingAudioBanner').classList.remove('flex');
+            document.getElementById('fullScreenAudioWarning').classList.add('hidden');
+            document.getElementById('fullScreenAudioWarning').classList.remove('flex');
+
+            const surfaceInfoEl = document.getElementById('infoPopoverSurface');
+            if (surfaceInfoEl) surfaceInfoEl.textContent = 'STANDBY';
                 if (peerSlider) {
                     updateSliderVisualFill(peerSlider, isMasterMuted ? 0 : Math.round((entry.volume / 100) * numericVal));
                 }
@@ -1915,6 +2042,27 @@
                 btn.textContent = 'COPIAR';
             }, 1600);
             showToast(`ID DA SALA [${currentRoomId}] COPIADO.`);
+        }
+
+        function copyFlagUrl() {
+            const flagInput = document.getElementById('flagUrlInput');
+            const url = flagInput ? flagInput.value : 'chrome://flags/#enable-get-display-media-window-audio-capture';
+
+            const temp = document.createElement('input');
+            temp.value = url;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            temp.remove();
+
+            const btn = document.getElementById('copyFlagBtn');
+            if (btn) {
+                btn.textContent = 'COPIADO!';
+                setTimeout(() => {
+                    btn.textContent = 'COPIAR FLAG';
+                }, 1600);
+            }
+            showToast('URL DA FLAG COPIADA! COLE NA BARRA DE ENDEREÇOS DO NAVEGADOR.');
         }
 
         function showToast(msg) {
