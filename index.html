@@ -412,11 +412,11 @@
                 <span id="muteOutgoingText" class="retract-label">ÁUDIO DA LIVE: ON</span>
             </button>
 
-            <!-- 3. Isolamento Nativo estilo Meet/Discord (Retrátil) -->
+            <!-- 3. Modo de Áudio Hi-Fi Puro vs Anti-Eco Meet (Retrátil) -->
             <button id="voiceFilterBtn" type="button" onclick="toggleNativeIsolation()"
                 class="retract-btn h-[42px] bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white cursor-pointer">
                 <i class="fa-solid fa-shield-halved text-xs"></i>
-                <span id="voiceFilterText" class="retract-label">ISOLAMENTO NATIVO: ON</span>
+                <span id="voiceFilterText" class="retract-label">MODO ÁUDIO: HI-FI PURO</span>
             </button>
 
         </div>
@@ -459,7 +459,7 @@
             showSelfInStage: true,
             isSharing: false,
             isOutgoingAudioMuted: false,
-            nativeIsolation: true,
+            nativeIsolation: false, // false = Hi-Fi Puro (Sem abafar o jogo) | true = Anti-Eco Meet
             masterVolume: 1.0,
             isMasterMuted: false
         };
@@ -1310,8 +1310,14 @@
                         },
                         audio: {
                             echoCancellation: state.nativeIsolation,
-                            noiseSuppression: state.nativeIsolation,
+                            noiseSuppression: false,
                             autoGainControl: false,
+                            googEchoCancellation: state.nativeIsolation,
+                            googAutoGainControl: false,
+                            googNoiseSuppression: false,
+                            googHighpassFilter: false,
+                            channelCount: { ideal: 2 },
+                            sampleRate: { ideal: 48000 },
                             restrictOwnAudio: true,
                             suppressLocalAudioPlayback: false
                         },
@@ -1325,7 +1331,11 @@
                     }
                     rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
                         video: true,
-                        audio: true
+                        audio: {
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false
+                        }
                     });
                 }
 
@@ -1346,6 +1356,16 @@
                 const audioTracks = rawDisplayStream.getAudioTracks();
                 if (audioTracks.length > 0) {
                     rawAudioTrack = audioTracks[0];
+                    if ('contentHint' in rawAudioTrack) {
+                        try { rawAudioTrack.contentHint = 'music'; } catch (e) {}
+                    }
+                    if (rawAudioTrack.applyConstraints) {
+                        rawAudioTrack.applyConstraints({
+                            echoCancellation: state.nativeIsolation,
+                            noiseSuppression: false,
+                            autoGainControl: false
+                        }).catch(() => {});
+                    }
                     rawAudioTrack.enabled = !state.isOutgoingAudioMuted;
                     outboundStream = new MediaStream([videoTrack, rawAudioTrack]);
                 } else {
@@ -1359,7 +1379,7 @@
                 renderStage();
 
                 pushStreamToAllPeers();
-                showToast('TRANSMITINDO EM 1080P 30FPS.');
+                showToast('TRANSMITINDO EM 1080P 30FPS (ÁUDIO HI-FI).');
             } catch (err) {
                 if (err && err.name !== 'NotAllowedError' && err.name !== 'AbortError') {
                     showToast('NÃO FOI POSSÍVEL INICIAR A TRANSMISSÃO.');
@@ -1422,7 +1442,7 @@
                 try {
                     await rawAudioTrack.applyConstraints({
                         echoCancellation: state.nativeIsolation,
-                        noiseSuppression: state.nativeIsolation,
+                        noiseSuppression: false,
                         autoGainControl: false,
                         restrictOwnAudio: true
                     });
@@ -1432,14 +1452,14 @@
             const btn = document.getElementById('voiceFilterBtn');
             const text = document.getElementById('voiceFilterText');
             if (btn && text) {
-                if (state.nativeIsolation) {
+                if (!state.nativeIsolation) {
                     btn.className = 'retract-btn h-[42px] bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white cursor-pointer';
-                    text.textContent = 'ISOLAMENTO NATIVO: ON';
-                    showToast('ISOLAMENTO NATIVO ATIVADO.');
+                    text.textContent = 'MODO ÁUDIO: HI-FI PURO';
+                    showToast('MODO HI-FI PURO (JOGO SEM ABAFAR).');
                 } else {
                     btn.className = 'retract-btn h-[42px] bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border cursor-pointer';
-                    text.textContent = 'ISOLAMENTO NATIVO: OFF';
-                    showToast('ISOLAMENTO NATIVO DESATIVADO.');
+                    text.textContent = 'MODO ÁUDIO: ANTI-ECO MEET';
+                    showToast('MODO ANTI-ECO ATIVADO (SEM SUPRESSÃO DE JOGO).');
                 }
             }
         }
@@ -1472,14 +1492,29 @@
         window.toggleOutgoingAudioMute = toggleOutgoingAudioMute;
 
         // =========================================================
-        // 6. BITRATE ALTO (6 MBPS VÍDEO + 256 KBPS ESTÉREO) & UTILITÁRIOS
+        // 6. BITRATE ALTO (6 MBPS VÍDEO + 510 KBPS ESTÉREO HI-FI) & UTILITÁRIOS
         // =========================================================
         function enforceHighQualitySDP(sdp) {
             if (!sdp) return sdp;
             return sdp.replace(
                 /a=fmtp:(\d+) useinbandfec=1/g,
-                'a=fmtp:$1 useinbandfec=1;stereo=1;sprop-stereo=1;maxaveragebitrate=256000'
+                'a=fmtp:$1 useinbandfec=1;stereo=1;sprop-stereo=1;maxaveragebitrate=510000;maxplaybackrate=48000;usedtx=0;cbr=1'
             );
+        }
+
+        // Garante que tanto quem envia quanto quem recebe negocie áudio Estéreo 48kHz sem abafar
+        if (typeof RTCPeerConnection !== 'undefined' && !RTCPeerConnection.prototype._bagreHiFiPatched) {
+            const origSetLocalDesc = RTCPeerConnection.prototype.setLocalDescription;
+            RTCPeerConnection.prototype.setLocalDescription = function(description, ...args) {
+                if (description && description.sdp) {
+                    description = {
+                        type: description.type,
+                        sdp: enforceHighQualitySDP(description.sdp)
+                    };
+                }
+                return origSetLocalDesc.apply(this, [description, ...args]);
+            };
+            RTCPeerConnection.prototype._bagreHiFiPatched = true;
         }
 
         function boostWebRTCBitrate(pc) {
@@ -1495,7 +1530,7 @@
                         params.encodings[0].maxBitrate = 6000000;
                         params.encodings[0].maxFramerate = 30;
                     } else if (sender.track.kind === 'audio') {
-                        params.encodings[0].maxBitrate = 256000;
+                        params.encodings[0].maxBitrate = 510000;
                     }
                     sender.setParameters(params).catch(() => {});
                 });
