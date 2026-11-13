@@ -248,6 +248,80 @@
         </div>
     </div>
 
+    <div id="audio-modal" class="hidden fixed inset-0 z-50 bg-mono-black/85 backdrop-blur-sm items-center justify-center p-4"
+         onclick="if(event.target === this) closeAudioModal()">
+        <div class="w-full max-w-lg max-h-[92vh] overflow-y-auto bg-mono-panel border border-mono-border p-6 space-y-5 shadow-2xl select-text">
+            <div class="flex items-center justify-between border-b border-mono-border pb-4">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-sliders text-xs text-mono-white"></i>
+                    <h2 class="font-mono text-xs font-bold uppercase tracking-widest text-mono-white">ÁUDIO DA TRANSMISSÃO</h2>
+                </div>
+                <button type="button" onclick="closeAudioModal()" class="text-mono-muted hover:text-mono-white transition px-1">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <div class="space-y-2">
+                <span class="block font-mono text-[10px] uppercase tracking-wider text-mono-muted">FONTE DO ÁUDIO ENVIADO</span>
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="audioSrcDisplayBtn" type="button" onclick="setAudioSource('display')"
+                        class="text-left border px-3 py-2.5 font-mono transition cursor-pointer">
+                        <span class="block text-[11px] font-bold uppercase">AUTOMÁTICO</span>
+                        <span class="block text-[10px] mt-1 leading-snug opacity-70 normal-case">Áudio que o navegador captura (aba ou sistema). Compartilhando uma <b>ABA</b>, só o som dela vai.</span>
+                    </button>
+                    <button id="audioSrcDeviceBtn" type="button" onclick="setAudioSource('device')"
+                        class="text-left border px-3 py-2.5 font-mono transition cursor-pointer">
+                        <span class="block text-[11px] font-bold uppercase">CABO VIRTUAL</span>
+                        <span class="block text-[10px] mt-1 leading-snug opacity-70 normal-case">Só o app que você escolher vai pro stream. <b>Vozes do Discord nunca entram.</b> Funciona no Firefox também.</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="audioDeviceBlock" class="hidden space-y-4">
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-mono text-[10px] uppercase tracking-wider text-mono-muted">ENTRADA DE ÁUDIO (EX.: CABLE OUTPUT)</span>
+                        <button type="button" onclick="refreshAudioDevices(true)" class="font-mono text-[10px] uppercase text-mono-silver hover:text-mono-white flex items-center gap-1 transition cursor-pointer">
+                            <i class="fa-solid fa-arrows-rotate text-[9px]"></i><span>DETECTAR</span>
+                        </button>
+                    </div>
+                    <select id="audioInputSelect" onchange="onAudioInputChange(this.value)"
+                        class="w-full bg-mono-black border border-mono-border focus:border-mono-white text-mono-white font-mono text-xs px-3 py-2.5 focus:outline-none"></select>
+                </div>
+
+                <div class="space-y-2 border border-mono-border bg-mono-black p-3">
+                    <label class="flex items-center gap-2 cursor-pointer font-mono text-[11px] uppercase text-mono-white">
+                        <input id="audioMonitorToggle" type="checkbox" onchange="onMonitorToggle(this.checked)" class="accent-white">
+                        OUVIR NO MEU FONE ENQUANTO TRANSMITE
+                    </label>
+                    <select id="audioOutputSelect" onchange="onAudioOutputChange(this.value)"
+                        class="w-full bg-mono-black border border-mono-border focus:border-mono-white text-mono-white font-mono text-xs px-3 py-2 focus:outline-none"></select>
+                    <p class="font-mono text-[10px] text-mono-muted leading-snug normal-case">Como o vídeo vai pro cabo, você deixa de ouvir direto. Ative isto e escolha o seu fone (nunca o próprio cabo). Se preferir, use "Ouvir este dispositivo" do Windows.</p>
+                </div>
+            </div>
+
+            <div class="space-y-1.5">
+                <div class="flex items-center justify-between font-mono text-[10px] uppercase text-mono-muted">
+                    <span>NÍVEL DO ÁUDIO ENVIADO</span>
+                    <span id="audioMeterStatus">—</span>
+                </div>
+                <div class="h-2 bg-mono-black border border-mono-border">
+                    <div id="audioMeterBar" class="h-full bg-mono-white" style="width:0%"></div>
+                </div>
+            </div>
+
+            <details class="border border-mono-border bg-mono-black">
+                <summary class="px-3 py-2 font-mono text-[11px] uppercase text-mono-silver hover:text-mono-white cursor-pointer">COMO CONFIGURAR (WINDOWS)</summary>
+                <ol class="px-4 pb-3 pt-1 space-y-1.5 list-decimal list-inside font-mono text-[11px] text-mono-silver leading-snug normal-case">
+                    <li>Instale o <b>VB-CABLE</b> (gratuito) em vb-audio.com/Cable e reinicie o PC.</li>
+                    <li>Windows › Configurações › Sistema › Som › <b>Mixer de volume</b>: no app do vídeo/jogo, mude a saída para <b>CABLE Input</b>. O <b>Discord fica no seu fone normal</b>.</li>
+                    <li>Aqui, escolha <b>CABLE Output</b> como entrada e ative <b>Ouvir no meu fone</b>.</li>
+                    <li>Se o vídeo estiver no mesmo navegador onde roda o BAGRESTREAM, as telas dos amigos também iriam pro cabo. Use <b>outro navegador</b> para o vídeo (ex.: BAGRESTREAM no Firefox, vídeo no Chrome).</li>
+                </ol>
+            </details>
+        </div>
+    </div>
+
     <header class="relative bg-mono-panel border-b border-mono-border px-4 h-14 flex items-center justify-between shrink-0 z-30">
 
         <div class="flex items-center gap-3">
@@ -366,10 +440,11 @@
                 <span id="muteOutgoingText" class="retract-label">ÁUDIO DA LIVE: ON</span>
             </button>
 
-            <button id="voiceFilterBtn" type="button" onclick="toggleNativeIsolation()"
-                class="retract-btn h-[42px] bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white cursor-pointer">
-                <i class="fa-solid fa-shield-halved text-xs"></i>
-                <span id="voiceFilterText" class="retract-label">MODO ÁUDIO: HI-FI PURO</span>
+            <button id="audioSettingsBtn" type="button" onclick="openAudioModal()"
+                class="retract-btn relative h-[42px] bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border hover:border-mono-white cursor-pointer">
+                <i class="fa-solid fa-sliders text-xs"></i>
+                <span id="audioSettingsText" class="retract-label">ÁUDIO: AUTOMÁTICO</span>
+                <span id="footerMeterBar" class="absolute left-0 bottom-0 h-[2px] bg-mono-white" style="width:0%"></span>
             </button>
 
         </div>
@@ -407,7 +482,10 @@
             showSelfInStage: true,
             isSharing: false,
             isOutgoingAudioMuted: false,
-            nativeIsolation: false, 
+            audioSource: localStorage.getItem('bagrestream_audio_source') || 'display', // 'display' | 'device'
+            audioInputId: localStorage.getItem('bagrestream_audio_input') || '',
+            audioOutputId: localStorage.getItem('bagrestream_audio_output') || '',
+            monitorEnabled: localStorage.getItem('bagrestream_audio_monitor') === '1',
             masterVolume: 1.0,
             isMasterMuted: false
         };
@@ -415,8 +493,21 @@
         let peer = null;
         let rawDisplayStream = null;
         let outboundStream = null;
-        let rawAudioTrack = null;
+        let rawAudioTrack = null;      // faixa de áudio atualmente enviada aos amigos
+        let deviceAudioStream = null;  // stream aberta via getUserMedia (cabo virtual)
         let telemetryInterval = null;
+
+        // Captura de áudio SEM nenhum processamento (sem AEC / supressão de ruído / AGC),
+        // estéreo 48kHz, para não degradar música/jogos/filmes.
+        const RAW_AUDIO_CONSTRAINTS = {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            channelCount: { ideal: 2 },
+            sampleRate: { ideal: 48000 }
+        };
+        const VIRTUAL_DEVICE_REGEX = /cable output|vb-audio|voicemeeter|virtual/i;
+        const IS_FIREFOX = /firefox/i.test(navigator.userAgent);
 
         const peersMap = new Map();
 
@@ -1050,8 +1141,13 @@
                         </span>
                     </div>
 
-                    <div id="res-${item.id}" class="bg-mono-black/90 border border-mono-border px-2.5 py-1 font-mono text-[10px] text-mono-silver uppercase">
-                        1920x1080 @ 30FPS
+                    <div class="flex items-center gap-1.5">
+                        <div id="audio-badge-${item.id}" class="bg-mono-black/90 border border-mono-border px-2.5 py-1 font-mono text-[10px] text-mono-muted uppercase">
+                            ÁUDIO: ...
+                        </div>
+                        <div id="res-${item.id}" class="bg-mono-black/90 border border-mono-border px-2.5 py-1 font-mono text-[10px] text-mono-silver uppercase">
+                            1920x1080 @ 30FPS
+                        </div>
                     </div>
                 </div>
 
@@ -1224,96 +1320,106 @@
         }
         window.toggleScreenShare = toggleScreenShare;
 
+        async function requestDisplayStream(wantAudio) {
+            const audio = wantAudio ? { ...RAW_AUDIO_CONSTRAINTS } : false;
+            const isDenied = (err) => err && (err.name === 'NotAllowedError' || err.name === 'AbortError');
+
+            try {
+                return await navigator.mediaDevices.getDisplayMedia({
+                    video: {
+                        width: { ideal: 1920, max: 1920 },
+                        height: { ideal: 1080, max: 1080 },
+                        frameRate: { ideal: 30, max: 30 }
+                    },
+                    audio,
+                    // Dicas do Chrome/Edge 141+: oferece áudio da JANELA escolhida (e não do sistema todo)
+                    windowAudio: 'window',
+                    systemAudio: 'include',
+                    selfBrowserSurface: 'exclude'
+                });
+            } catch (firstErr) {
+                if (isDenied(firstErr)) throw firstErr;
+            }
+
+            try {
+                return await navigator.mediaDevices.getDisplayMedia({ video: true, audio });
+            } catch (secondErr) {
+                if (isDenied(secondErr)) throw secondErr;
+            }
+            return navigator.mediaDevices.getDisplayMedia({ video: true });
+        }
+
         async function startScreenShare() {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
                 showToast('SEU NAVEGADOR BLOQUEOU A CAPTURA DE TELA (USE HTTPS).');
                 return;
             }
 
+            if (state.audioSource === 'device' && !state.audioInputId) {
+                showToast('CABO VIRTUAL SEM DISPOSITIVO ESCOLHIDO. USANDO ÁUDIO AUTOMÁTICO.');
+            }
+            const useDevice = state.audioSource === 'device' && !!state.audioInputId;
+
             try {
-                try {
-                    rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
-                        video: {
-                            width: { ideal: 1920, max: 1920 },
-                            height: { ideal: 1080, max: 1080 },
-                            frameRate: { ideal: 30, max: 30 }
-                        },
-                        audio: {
-                            echoCancellation: state.nativeIsolation,
-                            noiseSuppression: false,
-                            autoGainControl: false,
-                            googEchoCancellation: state.nativeIsolation,
-                            googAutoGainControl: false,
-                            googNoiseSuppression: false,
-                            googHighpassFilter: false,
-                            channelCount: { ideal: 2 },
-                            sampleRate: { ideal: 48000 },
-                            restrictOwnAudio: true,
-                            suppressLocalAudioPlayback: false
-                        },
-                        windowAudio: 'window',
-                        systemAudio: 'include',
-                        selfBrowserSurface: 'exclude'
-                    });
-                } catch (firstErr) {
-                    if (firstErr && (firstErr.name === 'NotAllowedError' || firstErr.name === 'AbortError')) {
-                        throw firstErr;
-                    }
-                    rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
-                        video: true,
-                        audio: {
-                            echoCancellation: false,
-                            noiseSuppression: false,
-                            autoGainControl: false
-                        }
-                    });
-                }
+                stopAudioPreview(); // libera o dispositivo caso o teste do modal estivesse aberto
+
+                // No modo "cabo virtual" o áudio da captura é dispensado: só o dispositivo vale.
+                rawDisplayStream = await requestDisplayStream(!useDevice);
 
                 const videoTrack = rawDisplayStream.getVideoTracks()[0];
                 if (!videoTrack) {
                     showToast('NENHUMA FAIXA DE VÍDEO SELECIONADA.');
+                    rawDisplayStream.getTracks().forEach(t => t.stop());
+                    rawDisplayStream = null;
                     return;
                 }
 
                 if ('contentHint' in videoTrack) {
                     try { videoTrack.contentHint = 'motion'; } catch (e) {}
                 }
+                videoTrack.onended = () => { stopScreenShare(); };
 
-                videoTrack.onended = () => {
-                    stopScreenShare();
-                };
+                outboundStream = new MediaStream([videoTrack]);
 
-                const audioTracks = rawDisplayStream.getAudioTracks();
-                if (audioTracks.length > 0) {
-                    rawAudioTrack = audioTracks[0];
-                    if ('contentHint' in rawAudioTrack) {
-                        try { rawAudioTrack.contentHint = 'music'; } catch (e) {}
+                let audioTrack = null;
+                if (useDevice) {
+                    try {
+                        audioTrack = await openDeviceAudioTrack();
+                    } catch (e) {
+                        showToast('NÃO FOI POSSÍVEL ABRIR O DISPOSITIVO DE ÁUDIO.');
                     }
-                    if (rawAudioTrack.applyConstraints) {
-                        rawAudioTrack.applyConstraints({
-                            echoCancellation: state.nativeIsolation,
-                            noiseSuppression: false,
-                            autoGainControl: false
-                        }).catch(() => {});
-                    }
-                    rawAudioTrack.enabled = !state.isOutgoingAudioMuted;
-                    outboundStream = new MediaStream([videoTrack, rawAudioTrack]);
                 } else {
-                    rawAudioTrack = null;
-                    outboundStream = new MediaStream([videoTrack]);
+                    audioTrack = rawDisplayStream.getAudioTracks()[0] || null;
+                    if (!audioTrack) {
+                        showToast(IS_FIREFOX
+                            ? 'FIREFOX NÃO CAPTURA ÁUDIO DA TELA. USE "CABO VIRTUAL" EM ÁUDIO.'
+                            : 'SEM ÁUDIO: MARQUE "COMPARTILHAR ÁUDIO" NA JANELA DO NAVEGADOR (ABA/TELA).');
+                    }
                 }
 
                 state.isSharing = true;
+                setOutboundAudioTrack(audioTrack);
+
                 updateShareButtonUI(true);
                 updateModalPeersList();
                 renderStage();
 
                 pushStreamToAllPeers();
-                showToast('TRANSMITINDO EM 1080P 30FPS (ÁUDIO HI-FI).');
+                showToast(audioTrack
+                    ? 'TRANSMITINDO EM 1080P 30FPS (ÁUDIO HI-FI).'
+                    : 'TRANSMITINDO EM 1080P 30FPS (SEM ÁUDIO).');
             } catch (err) {
+                state.isSharing = false;
+                if (rawDisplayStream) {
+                    rawDisplayStream.getTracks().forEach(t => t.stop());
+                    rawDisplayStream = null;
+                }
+                outboundStream = null;
+                closeDeviceAudio();
                 if (err && err.name !== 'NotAllowedError' && err.name !== 'AbortError') {
                     showToast('NÃO FOI POSSÍVEL INICIAR A TRANSMISSÃO.');
                 }
+                refreshAudioPreview();
             }
         }
 
@@ -1328,7 +1434,11 @@
                 outboundStream.getTracks().forEach(t => t.stop());
                 outboundStream = null;
             }
+            closeDeviceAudio();
             rawAudioTrack = null;
+            previewTrack = null;
+            stopMeter();
+            updateMonitor();
 
             peersMap.forEach((entry) => {
                 if (entry.outgoingCall) {
@@ -1351,6 +1461,7 @@
             updateShareButtonUI(false);
             updateModalPeersList();
             renderStage();
+            refreshAudioPreview(); // se o modal de áudio estiver aberto, volta o teste
         }
 
         function updateShareButtonUI(sharing) {
@@ -1365,35 +1476,402 @@
             }
         }
 
-        async function toggleNativeIsolation() {
-            state.nativeIsolation = !state.nativeIsolation;
+        // =====================================================================
+        //  ÁUDIO: fonte (automático / cabo virtual), medidor, monitor e dispositivos
+        // =====================================================================
+        let previewTrack = null;
+        let monitorEl = null;
+        let meterCtx = null, meterSource = null, meterAnalyser = null, meterData = null;
+        let meterRaf = 0, meterLastSound = 0, meterHasTrack = false, meterStatusText = '';
 
-            if (rawAudioTrack && rawAudioTrack.applyConstraints) {
-                try {
-                    await rawAudioTrack.applyConstraints({
-                        echoCancellation: state.nativeIsolation,
-                        noiseSuppression: false,
-                        autoGainControl: false,
-                        restrictOwnAudio: true
-                    });
-                } catch (e) {}
-            }
+        function $(id) { return document.getElementById(id); }
 
-            const btn = document.getElementById('voiceFilterBtn');
-            const text = document.getElementById('voiceFilterText');
-            if (btn && text) {
-                if (!state.nativeIsolation) {
-                    btn.className = 'retract-btn h-[42px] bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white cursor-pointer';
-                    text.textContent = 'MODO ÁUDIO: HI-FI PURO';
-                    showToast('MODO HI-FI PURO (JOGO SEM ABAFAR).');
-                } else {
-                    btn.className = 'retract-btn h-[42px] bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border cursor-pointer';
-                    text.textContent = 'MODO ÁUDIO: ANTI-ECO MEET';
-                    showToast('MODO ANTI-ECO ATIVADO (SEM SUPRESSÃO DE JOGO).');
-                }
+        function persistAudioPrefs() {
+            localStorage.setItem('bagrestream_audio_source', state.audioSource);
+            localStorage.setItem('bagrestream_audio_input', state.audioInputId || '');
+            localStorage.setItem('bagrestream_audio_output', state.audioOutputId || '');
+            localStorage.setItem('bagrestream_audio_monitor', state.monitorEnabled ? '1' : '0');
+        }
+
+        function closeDeviceAudio() {
+            if (deviceAudioStream) {
+                deviceAudioStream.getTracks().forEach(t => t.stop());
+                deviceAudioStream = null;
             }
         }
-        window.toggleNativeIsolation = toggleNativeIsolation;
+
+        // Abre o dispositivo escolhido (ex.: CABLE Output) SEM nenhum processamento de voz.
+        async function openDeviceAudioTrack() {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: { ...RAW_AUDIO_CONSTRAINTS, deviceId: { exact: state.audioInputId } },
+                video: false
+            });
+            closeDeviceAudio();
+            deviceAudioStream = stream;
+            const track = stream.getAudioTracks()[0];
+            try { track.contentHint = 'music'; } catch (e) {}
+            return track;
+        }
+
+        // Define a faixa de áudio que sai para os amigos (mantém o outboundStream em sincronia)
+        function setOutboundAudioTrack(track) {
+            if (outboundStream) {
+                outboundStream.getAudioTracks().forEach(t => outboundStream.removeTrack(t));
+            }
+            rawAudioTrack = track || null;
+            if (rawAudioTrack) {
+                try { rawAudioTrack.contentHint = 'music'; } catch (e) {}
+                rawAudioTrack.enabled = !state.isOutgoingAudioMuted;
+                if (outboundStream) outboundStream.addTrack(rawAudioTrack);
+            }
+            startMeter(rawAudioTrack);
+            updateMonitor();
+        }
+
+        // Troca o áudio ao vivo, sem derrubar a chamada
+        async function replaceAudioOnPeers(track) {
+            let needsRenegotiation = false;
+            for (const entry of peersMap.values()) {
+                const pc = entry.outgoingCall && entry.outgoingCall.peerConnection;
+                if (!pc) continue;
+                const transceiver = pc.getTransceivers().find(t => t.receiver && t.receiver.track && t.receiver.track.kind === 'audio');
+                if (transceiver) {
+                    try { await transceiver.sender.replaceTrack(track); } catch (e) { needsRenegotiation = true; }
+                } else if (track) {
+                    needsRenegotiation = true;
+                }
+            }
+            if (needsRenegotiation) pushStreamToAllPeers();
+        }
+
+        async function applyAudioSourceWhileSharing() {
+            if (!state.isSharing || !outboundStream) return;
+            const useDevice = state.audioSource === 'device' && !!state.audioInputId;
+            let newTrack = null;
+
+            if (useDevice) {
+                try {
+                    newTrack = await openDeviceAudioTrack();
+                } catch (e) {
+                    showToast('NÃO FOI POSSÍVEL ABRIR O DISPOSITIVO DE ÁUDIO.');
+                    return;
+                }
+            } else {
+                closeDeviceAudio();
+                newTrack = (rawDisplayStream && rawDisplayStream.getAudioTracks()[0]) || null;
+                if (!newTrack) {
+                    showToast('A CAPTURA DE TELA ATUAL NÃO TEM ÁUDIO. REINICIE A TRANSMISSÃO.');
+                }
+            }
+            setOutboundAudioTrack(newTrack);
+            await replaceAudioOnPeers(newTrack);
+            showToast(useDevice ? 'ÁUDIO: CABO VIRTUAL ATIVO.' : 'ÁUDIO: CAPTURA AUTOMÁTICA ATIVA.');
+        }
+
+        // ---------- Prévia (antes de transmitir): permite testar o cabo virtual ----------
+        function stopAudioPreview() {
+            if (state.isSharing) return;
+            previewTrack = null;
+            closeDeviceAudio();
+            stopMeter();
+            updateMonitor();
+        }
+
+        async function refreshAudioPreview() {
+            if (state.isSharing) return;
+            const modalOpen = !$('audio-modal').classList.contains('hidden');
+            if (!(modalOpen && state.audioSource === 'device' && state.audioInputId)) {
+                stopAudioPreview();
+                return;
+            }
+            try {
+                previewTrack = await openDeviceAudioTrack();
+                startMeter(previewTrack);
+                updateMonitor();
+            } catch (e) {
+                previewTrack = null;
+                stopMeter();
+                showToast('NÃO FOI POSSÍVEL ABRIR ESSE DISPOSITIVO.');
+            }
+        }
+
+        // ---------- Medidor de nível ----------
+        function setMeterUI(pct, status) {
+            const bar = $('audioMeterBar');
+            const footer = $('footerMeterBar');
+            const label = $('audioMeterStatus');
+            if (bar) bar.style.width = pct + '%';
+            if (footer) footer.style.width = pct + '%';
+            if (label && status !== meterStatusText) {
+                label.textContent = status;
+                meterStatusText = status;
+            }
+        }
+
+        function stopMeter() {
+            if (meterRaf) cancelAnimationFrame(meterRaf);
+            meterRaf = 0;
+            try { if (meterSource) meterSource.disconnect(); } catch (e) {}
+            try { if (meterCtx) meterCtx.close(); } catch (e) {}
+            meterCtx = meterSource = meterAnalyser = meterData = null;
+            meterHasTrack = false;
+            setMeterUI(0, '—');
+        }
+
+        function startMeter(track) {
+            stopMeter();
+            if (!track) {
+                setMeterUI(0, state.isSharing ? 'SEM ÁUDIO' : '—');
+                return;
+            }
+            try {
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+                meterCtx = new Ctx();
+                if (meterCtx.state === 'suspended') meterCtx.resume().catch(() => {});
+                meterSource = meterCtx.createMediaStreamSource(new MediaStream([track]));
+                meterAnalyser = meterCtx.createAnalyser();
+                meterAnalyser.fftSize = 1024;
+                meterSource.connect(meterAnalyser); // não conecta ao destino: só mede, não toca
+                meterData = new Uint8Array(meterAnalyser.fftSize);
+                meterHasTrack = true;
+                meterLastSound = Date.now();
+
+                let smooth = 0;
+                const tick = () => {
+                    if (!meterAnalyser) return;
+                    meterAnalyser.getByteTimeDomainData(meterData);
+                    let peak = 0;
+                    for (let i = 0; i < meterData.length; i++) {
+                        const v = Math.abs(meterData[i] - 128) / 128;
+                        if (v > peak) peak = v;
+                    }
+                    smooth = Math.max(peak, smooth * 0.85);
+                    if (peak > 0.01) meterLastSound = Date.now();
+                    const pct = Math.min(100, Math.round(Math.pow(smooth, 0.6) * 100));
+                    const status = state.isOutgoingAudioMuted && state.isSharing ? 'MUTADO'
+                        : (Date.now() - meterLastSound < 3000 ? 'COM SINAL' : 'SILÊNCIO');
+                    setMeterUI(pct, status);
+                    meterRaf = requestAnimationFrame(tick);
+                };
+                tick();
+            } catch (e) {
+                setMeterUI(0, 'MEDIDOR INDISPONÍVEL');
+            }
+        }
+
+        // ---------- Monitor local (ouvir o que está indo pro cabo) ----------
+        function getMonitoredTrack() {
+            return state.isSharing ? rawAudioTrack : previewTrack;
+        }
+
+        async function applyMonitorSink() {
+            if (!monitorEl || typeof monitorEl.setSinkId !== 'function') return;
+            try {
+                await monitorEl.setSinkId(state.audioOutputId || '');
+            } catch (e) {
+                showToast('NÃO FOI POSSÍVEL USAR ESSA SAÍDA DE ÁUDIO.');
+            }
+        }
+
+        function updateMonitor() {
+            const track = getMonitoredTrack();
+            const shouldPlay = state.monitorEnabled && state.audioSource === 'device' && !!track;
+            if (!shouldPlay) {
+                if (monitorEl) {
+                    monitorEl.pause();
+                    monitorEl.srcObject = null;
+                }
+                return;
+            }
+            if (!monitorEl) {
+                monitorEl = new Audio();
+                monitorEl.autoplay = true;
+            }
+            monitorEl.srcObject = new MediaStream([track]);
+            applyMonitorSink();
+            monitorEl.play().catch(() => {});
+        }
+
+        // ---------- Interface do modal ----------
+        function updateAudioUI() {
+            const selectedCls = 'text-left border px-3 py-2.5 font-mono transition cursor-pointer border-mono-white bg-mono-white text-mono-black';
+            const idleCls = 'text-left border px-3 py-2.5 font-mono transition cursor-pointer border-mono-border bg-mono-black text-mono-silver hover:border-mono-borderLight';
+            const isDevice = state.audioSource === 'device';
+
+            $('audioSrcDisplayBtn').className = isDevice ? idleCls : selectedCls;
+            $('audioSrcDeviceBtn').className = isDevice ? selectedCls : idleCls;
+            $('audioDeviceBlock').classList.toggle('hidden', !isDevice);
+            $('audioMonitorToggle').checked = state.monitorEnabled;
+            $('audioSettingsText').textContent = isDevice ? 'ÁUDIO: CABO VIRTUAL' : 'ÁUDIO: AUTOMÁTICO';
+        }
+
+        function renderAudioDeviceLists(devices) {
+            const inSel = $('audioInputSelect');
+            const outSel = $('audioOutputSelect');
+            const inputs = devices.filter(d => d.kind === 'audioinput' && d.deviceId !== 'communications');
+            const outputs = devices.filter(d => d.kind === 'audiooutput' && d.deviceId !== 'communications');
+
+            const addOption = (sel, value, text) => {
+                const o = document.createElement('option');
+                o.value = value;
+                o.textContent = text;
+                sel.appendChild(o);
+            };
+
+            inSel.innerHTML = '';
+            addOption(inSel, '', 'SELECIONE UM DISPOSITIVO...');
+            inputs.forEach((d, i) => addOption(inSel, d.deviceId, d.label || `Entrada ${i + 1}`));
+
+            if (!state.audioInputId) {
+                const virtual = inputs.find(d => VIRTUAL_DEVICE_REGEX.test(d.label));
+                if (virtual) {
+                    state.audioInputId = virtual.deviceId;
+                    persistAudioPrefs();
+                }
+            }
+            inSel.value = state.audioInputId;
+            if (inSel.value !== state.audioInputId) {
+                state.audioInputId = '';
+                inSel.value = '';
+            }
+
+            outSel.innerHTML = '';
+            addOption(outSel, '', 'SAÍDA PADRÃO DO SISTEMA');
+            outputs.forEach((d, i) => addOption(outSel, d.deviceId, d.label || `Saída ${i + 1}`));
+            outSel.value = state.audioOutputId;
+            if (outSel.value !== state.audioOutputId) {
+                state.audioOutputId = '';
+                outSel.value = '';
+            }
+            outSel.disabled = typeof Audio.prototype.setSinkId !== 'function';
+        }
+
+        async function refreshAudioDevices(askPermission = false) {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+            try {
+                let devices = await navigator.mediaDevices.enumerateDevices();
+                const noLabels = devices.filter(d => d.kind === 'audioinput').every(d => !d.label);
+                if (askPermission && noLabels) {
+                    // O navegador só revela o nome dos dispositivos depois de uma permissão de áudio.
+                    const tmp = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    tmp.getTracks().forEach(t => t.stop());
+                    devices = await navigator.mediaDevices.enumerateDevices();
+                }
+                renderAudioDeviceLists(devices);
+            } catch (e) {
+                showToast('PERMITA O ACESSO AO ÁUDIO PARA LISTAR OS DISPOSITIVOS.');
+                renderAudioDeviceLists([]);
+            }
+            if (askPermission) refreshAfterAudioChange();
+        }
+        window.refreshAudioDevices = refreshAudioDevices;
+
+        function refreshAfterAudioChange() {
+            if (state.isSharing) applyAudioSourceWhileSharing();
+            else refreshAudioPreview();
+        }
+
+        function setAudioSource(src) {
+            state.audioSource = src === 'device' ? 'device' : 'display';
+            persistAudioPrefs();
+            updateAudioUI();
+            if (state.audioSource === 'device') {
+                refreshAudioDevices(true); // pede permissão, lista e já reaplica
+            } else {
+                refreshAfterAudioChange();
+            }
+        }
+        window.setAudioSource = setAudioSource;
+
+        function onAudioInputChange(value) {
+            state.audioInputId = value;
+            persistAudioPrefs();
+            refreshAfterAudioChange();
+        }
+        window.onAudioInputChange = onAudioInputChange;
+
+        function onMonitorToggle(on) {
+            state.monitorEnabled = !!on;
+            persistAudioPrefs();
+            updateMonitor();
+        }
+        window.onMonitorToggle = onMonitorToggle;
+
+        function onAudioOutputChange(value) {
+            const sel = $('audioOutputSelect');
+            const label = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].textContent : '';
+            if (/cable|voicemeeter|virtual/i.test(label)) {
+                showToast('NÃO USE O CABO COMO SAÍDA: ISSO CRIA ECO.');
+                sel.value = state.audioOutputId;
+                return;
+            }
+            state.audioOutputId = value;
+            persistAudioPrefs();
+            applyMonitorSink();
+        }
+        window.onAudioOutputChange = onAudioOutputChange;
+
+        function openAudioModal() {
+            const modal = $('audio-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            updateAudioUI();
+            refreshAudioDevices(false).then(() => refreshAudioPreview());
+        }
+        window.openAudioModal = openAudioModal;
+
+        function closeAudioModal() {
+            const modal = $('audio-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            stopAudioPreview();
+        }
+        window.closeAudioModal = closeAudioModal;
+
+        // ---------- Selo de áudio em cada tela (diagnóstico para quem envia e quem assiste) ----------
+        async function updateAudioBadge(id, entry) {
+            const el = $(`audio-badge-${id}`);
+            if (!el) return;
+            const set = (text, ok) => {
+                if (el.textContent.trim() !== text) el.textContent = text;
+                el.classList.toggle('text-mono-white', ok);
+                el.classList.toggle('text-mono-muted', !ok);
+            };
+
+            if (id === 'local') {
+                if (!rawAudioTrack) set('SEM ÁUDIO', false);
+                else set(state.isOutgoingAudioMuted ? 'ÁUDIO: MUTADO' : 'ÁUDIO: ENVIANDO', !state.isOutgoingAudioMuted);
+                return;
+            }
+
+            const tracks = entry && entry.remoteStream ? entry.remoteStream.getAudioTracks() : [];
+            if (tracks.length === 0) { set('SEM ÁUDIO', false); return; }
+
+            const pc = entry.incomingCall && entry.incomingCall.peerConnection;
+            if (!pc || !pc.getStats) { set('ÁUDIO: RECEBENDO', true); return; }
+
+            try {
+                const stats = await pc.getStats();
+                let inbound = null;
+                stats.forEach(r => {
+                    if (r.type === 'inbound-rtp' && (r.kind === 'audio' || r.mediaType === 'audio')) inbound = r;
+                });
+                if (!inbound) { set('ÁUDIO: AGUARDANDO', false); return; }
+
+                if (typeof inbound.totalAudioEnergy === 'number') {
+                    const prev = entry._audioEnergy || 0;
+                    entry._audioEnergy = inbound.totalAudioEnergy;
+                    if (inbound.totalAudioEnergy - prev > 0.0001) entry._lastAudioActive = Date.now();
+                    const recent = Date.now() - (entry._lastAudioActive || 0) < 5000;
+                    set(recent ? 'ÁUDIO: OK' : 'ÁUDIO: SILÊNCIO', recent);
+                } else {
+                    set('ÁUDIO: RECEBENDO', inbound.bytesReceived > 0);
+                }
+            } catch (e) {
+                set('ÁUDIO: RECEBENDO', true);
+            }
+        }
+
 
         function toggleOutgoingAudioMute() {
             state.isOutgoingAudioMuted = !state.isOutgoingAudioMuted;
@@ -1482,6 +1960,8 @@
 
                 const localV = document.getElementById('video-local');
                 const localBadge = document.getElementById('res-local');
+                updateAudioBadge('local', null);
+                peersMap.forEach((entry, peerId) => { updateAudioBadge(peerId, entry); });
                 if (localV && localV.videoWidth > 0) {
                     const resStr = `${localV.videoWidth}x${localV.videoHeight} @ 30FPS`;
                     if (localBadge) localBadge.textContent = resStr;
