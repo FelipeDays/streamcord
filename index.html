@@ -1445,36 +1445,72 @@
                 startScreenShare();
             }
         }
+        window.toggleScreenShare = toggleScreenShare;
 
         async function startScreenShare() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+                showToast('CAPTURA BLOQUEADA PELO NAVEGADOR (USE HTTPS OU LOCALHOST).');
+                return;
+            }
+
             try {
-                // Abre direto na aba "JANELA" com isolamento de áudio por janela quando suportado
-                rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: {
-                        width: { ideal: 1920, max: 1920 },
-                        height: { ideal: 1080, max: 1080 },
-                        frameRate: { ideal: 30, max: 60 },
-                        displaySurface: 'window',
-                        cursor: 'always'
-                    },
-                    audio: {
-                        channelCount: { ideal: 2, min: 2 },
-                        sampleRate: { ideal: 48000 },
-                        echoCancellation: false,
-                        noiseSuppression: false,
-                        autoGainControl: false,
-                        suppressLocalAudioPlayback: false
-                    },
-                    windowAudio: 'window',
-                    systemAudio: 'include',
-                    surfaceSwitching: 'include',
-                    selfBrowserSurface: 'exclude',
-                    preferCurrentTab: false
-                });
+                try {
+                    // Chamada imediata no clique (sem min/exact que causam TypeError no getDisplayMedia)
+                    rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
+                        video: {
+                            width: { ideal: 1920 },
+                            height: { ideal: 1080 },
+                            frameRate: { ideal: 30 },
+                            displaySurface: 'window',
+                            cursor: 'always'
+                        },
+                        audio: {
+                            channelCount: { ideal: 2 },
+                            sampleRate: { ideal: 48000 },
+                            echoCancellation: false,
+                            noiseSuppression: false,
+                            autoGainControl: false,
+                            suppressLocalAudioPlayback: false
+                        },
+                        windowAudio: 'window',
+                        systemAudio: 'include',
+                        surfaceSwitching: 'include',
+                        selfBrowserSurface: 'exclude',
+                        preferCurrentTab: false
+                    });
+                } catch (firstErr) {
+                    // Se o usuário clicou em "Cancelar" na janela do navegador, apenas aborta
+                    if (firstErr && (firstErr.name === 'NotAllowedError' || firstErr.name === 'AbortError')) {
+                        throw firstErr;
+                    }
+                    // Fallback direto compatível com Firefox / Chrome / Edge
+                    try {
+                        rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
+                            video: {
+                                width: { ideal: 1920 },
+                                height: { ideal: 1080 },
+                                frameRate: { ideal: 30 }
+                            },
+                            audio: true
+                        });
+                    } catch (secondErr) {
+                        if (secondErr && (secondErr.name === 'NotAllowedError' || secondErr.name === 'AbortError')) {
+                            throw secondErr;
+                        }
+                        rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
+                            video: true
+                        });
+                    }
+                }
 
                 const videoTrack = rawDisplayStream.getVideoTracks()[0];
-                if (videoTrack && 'contentHint' in videoTrack) {
-                    videoTrack.contentHint = 'motion';
+                if (!videoTrack) {
+                    showToast('NENHUMA FAIXA DE VÍDEO ENCONTRADA.');
+                    return;
+                }
+
+                if ('contentHint' in videoTrack) {
+                    try { videoTrack.contentHint = 'motion'; } catch (e) {}
                 }
 
                 // Se o usuário selecionou Tela Inteira ("monitor"), liga automaticamente o Modo 1 (Cancelar Centro L-R)
@@ -1499,7 +1535,10 @@
                 showToast('TRANSMISSÃO 1080P 30FPS INICIADA.');
 
             } catch (err) {
-                console.warn('Compartilhamento cancelado:', err);
+                console.warn('Compartilhamento cancelado ou erro:', err);
+                if (err && err.name !== 'NotAllowedError' && err.name !== 'AbortError') {
+                    showToast('ERRO AO ABRIR SELETOR DE TELA.');
+                }
             }
         }
 
@@ -1512,13 +1551,13 @@
                 rawAudioTrack = null;
                 filteredAudioTrack = null;
                 outboundStream = new MediaStream([videoTrack]);
-                missingBanner.classList.remove('hidden');
-                missingBanner.classList.add('flex');
+                missingBanner?.classList.remove('hidden');
+                missingBanner?.classList.add('flex');
                 return;
             }
 
-            missingBanner.classList.add('hidden');
-            missingBanner.classList.remove('flex');
+            missingBanner?.classList.add('hidden');
+            missingBanner?.classList.remove('flex');
 
             rawAudioTrack = audioTracks[0];
 
@@ -1527,8 +1566,7 @@
                     await rawAudioTrack.applyConstraints({
                         echoCancellation: false,
                         noiseSuppression: false,
-                        autoGainControl: false,
-                        channelCount: 2
+                        autoGainControl: false
                     });
                 } catch (e) {}
             }
@@ -1773,8 +1811,9 @@
             rawAudioTrack = null;
             filteredAudioTrack = null;
 
-            document.getElementById('missingAudioBanner').classList.add('hidden');
-            document.getElementById('missingAudioBanner').classList.remove('flex');
+            const missingBanner = document.getElementById('missingAudioBanner');
+            missingBanner?.classList.add('hidden');
+            missingBanner?.classList.remove('flex');
 
             peersMap.forEach((entry) => {
                 if (entry.outgoingCall) {
