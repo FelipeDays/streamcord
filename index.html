@@ -47,10 +47,6 @@
             box-sizing: border-box;
         }
 
-        /* =========================================================
-           SLIDER DE ÁUDIO ESTILO PÍLULA COM BARRA BRANCA SÓLIDA
-           (Compatível com Chrome, Edge, Safari e Firefox)
-           ========================================================= */
         .vol-pill {
             background: #181818;
             border-radius: 9999px;
@@ -79,7 +75,6 @@
             margin: 0;
         }
 
-        /* Chrome / Edge / Safari Track & Thumb */
         input[type="range"].bagre-slider::-webkit-slider-runnable-track {
             height: 3px;
             border-radius: 9999px;
@@ -101,7 +96,6 @@
             transform: scale(1.18);
         }
 
-        /* Firefox Track & Thumb */
         input[type="range"].bagre-slider::-moz-range-track {
             height: 3px;
             border-radius: 9999px;
@@ -125,9 +119,6 @@
             transform: scale(1.18);
         }
 
-        /* =========================================================
-           BOTÕES RETRÁTEIS (MOSTRAM SÓ O ÍCONE, EXPANDEM NO HOVER)
-           ========================================================= */
         .retract-btn {
             display: inline-flex;
             align-items: center;
@@ -153,7 +144,6 @@
             margin-left: 8px;
         }
 
-        /* Scrollbar minimalista */
         ::-webkit-scrollbar {
             width: 4px;
             height: 4px;
@@ -174,10 +164,6 @@
     </style>
 </head>
 <body class="bg-mono-black text-mono-white font-mono antialiased h-screen w-screen overflow-hidden flex flex-col select-none">
-
-    <!-- =========================================================
-         MODAL 1: ENTRADA NO SITE (DIGITAR O NOME)
-         ========================================================= -->
     <div id="login-modal" class="fixed inset-0 z-50 bg-mono-black/95 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="w-full max-w-sm bg-mono-panel border border-mono-border p-7 space-y-6 shadow-2xl">
             <div class="flex items-center gap-3">
@@ -205,14 +191,9 @@
             </button>
         </div>
     </div>
-
-    <!-- =========================================================
-         MODAL 2: JANELA "CONECTAR-SE" (ID DA SALA + COPIAR + ENTRAR)
-         ========================================================= -->
     <div id="connect-modal" class="hidden fixed inset-0 z-50 bg-mono-black/85 backdrop-blur-sm items-center justify-center p-4"
          onclick="if(event.target === this) closeConnectModal()">
         <div class="w-full max-w-md bg-mono-panel border border-mono-border p-6 space-y-6 shadow-2xl">
-            <!-- Topo do Modal -->
             <div class="flex items-center justify-between border-b border-mono-border pb-4">
                 <div class="flex items-center gap-2.5">
                     <i class="fa-solid fa-link text-xs text-mono-white"></i>
@@ -223,7 +204,6 @@
                 </button>
             </div>
 
-            <!-- Bloco 1: Código da Sala Atual para Copiar -->
             <div class="space-y-2">
                 <span class="block font-mono text-[10px] uppercase tracking-wider text-mono-muted">
                     ID DA SALA (ENVIE PARA OS AMIGOS)
@@ -237,7 +217,6 @@
                 </div>
             </div>
 
-            <!-- Bloco 2: Entrar na Sala de um Amigo -->
             <div class="space-y-2">
                 <span class="block font-mono text-[10px] uppercase tracking-wider text-mono-muted">
                     ENTRAR NA SALA DE UM AMIGO
@@ -253,7 +232,6 @@
                 </div>
             </div>
 
-            <!-- Bloco 3: Pessoas Conectadas na Sala -->
             <div class="space-y-2 pt-2 border-t border-mono-border">
                 <div class="flex items-center justify-between">
                     <span class="font-mono text-[10px] uppercase tracking-wider text-mono-muted">
@@ -265,18 +243,13 @@
                     </button>
                 </div>
                 <div id="modalPeersList" class="max-h-32 overflow-y-auto space-y-1.5 pr-1">
-                    <!-- Preenchido via JS -->
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- =========================================================
-         TOP BAR ULTRA-LIMPA
-         ========================================================= -->
     <header class="relative bg-mono-panel border-b border-mono-border px-4 h-14 flex items-center justify-between shrink-0 z-30">
 
-        <!-- Esquerda: Logo B//S + BAGRESTREAM (Sem textos extras) -->
         <div class="flex items-center gap-3">
             <div class="w-8 h-8 border border-mono-white bg-mono-black flex items-center justify-center text-mono-white">
                 <span class="font-mono text-xs font-bold tracking-tighter">B//S</span>
@@ -284,16 +257,13 @@
             <span class="font-mono text-xs font-bold tracking-widest uppercase text-mono-white">BAGRESTREAM</span>
         </div>
 
-        <!-- Centro: 3 Botões com Ícones Retráteis -->
         <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-mono-black border border-mono-border p-1">
-            <!-- Grade -->
             <button id="modeGridBtn" type="button" onclick="setLayoutMode('grid')"
                 class="retract-btn font-mono text-[11px] uppercase tracking-wider bg-mono-white text-mono-black font-semibold cursor-pointer">
                 <i class="fa-solid fa-grip text-xs"></i>
                 <span class="retract-label">GRADE (<span id="activeScreensCount">0</span>)</span>
             </button>
 
-            <!-- Foco -->
             <button id="modeFocusBtn" type="button" onclick="setLayoutMode('focus')"
                 class="retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-silver hover:text-mono-white cursor-pointer">
                 <i class="fa-solid fa-expand text-xs"></i>
@@ -302,7 +272,6 @@
 
             <div class="h-4 w-[1px] bg-mono-border mx-0.5"></div>
 
-            <!-- Minha Tela ON/OFF -->
             <button id="toggleSelfPreviewBtn" type="button" onclick="toggleSelfView()"
                 class="retract-btn font-mono text-[11px] uppercase tracking-wider text-mono-white cursor-pointer">
                 <i id="selfPreviewIcon" class="fa-solid fa-eye text-xs"></i>
@@ -310,7 +279,6 @@
             </button>
         </div>
 
-        <!-- Direita: Nome + Conectar-se -->
         <div class="flex items-center gap-2.5">
             <button type="button" onclick="openLoginModal()" title="Alterar nome"
                 class="bg-mono-black hover:bg-mono-hover border border-mono-border px-3 py-1.5 flex items-center gap-2 transition cursor-pointer">
@@ -327,26 +295,19 @@
 
     </header>
 
-    <!-- =========================================================
-         PALCO DE VÍDEO (GRADE SIMULTÂNEA OU FOCO ÚNICO)
-         ========================================================= -->
     <main class="flex-1 p-3 flex flex-col overflow-hidden relative bg-mono-black">
         <div id="videoStageContainer" class="relative flex-1 w-full h-full bg-mono-black border border-mono-border overflow-hidden flex flex-col">
 
-            <!-- Abas Rápidas no Modo Foco -->
             <div id="focusFloatingTabs" class="hidden absolute top-3 left-1/2 -translate-x-1/2 z-30 bg-mono-black/95 border border-mono-border p-1 items-center gap-1"></div>
 
-            <!-- Botão de Desbloqueio de Autoplay -->
             <button id="unmuteAutoplayBtn" type="button" onclick="forceUnmuteAllRemoteVideos()"
                 class="hidden absolute top-4 left-1/2 -translate-x-1/2 z-40 bg-mono-white text-mono-black font-mono font-bold text-xs uppercase px-5 py-2.5 border border-mono-black shadow-2xl items-center gap-2 hover:bg-mono-silver transition cursor-pointer">
                 <i class="fa-solid fa-volume-high"></i>
                 <span>CLIQUE PARA ATIVAR O SOM DA TRANSMISSÃO</span>
             </button>
 
-            <!-- Grade Dinâmica de Telas -->
             <div id="screensGrid" class="w-full h-full grid gap-2 p-2 overflow-auto place-items-stretch"></div>
 
-            <!-- Estado Vazio -->
             <div id="emptyStage" class="absolute inset-0 flex items-center justify-center p-6 pointer-events-none">
                 <div class="max-w-sm w-full border border-mono-border bg-mono-panel/90 p-8 text-center space-y-4">
                     <div class="w-10 h-10 mx-auto border border-mono-borderLight flex items-center justify-center text-mono-white">
@@ -366,12 +327,8 @@
         </div>
     </main>
 
-    <!-- =========================================================
-         BARRA INFERIOR ULTRA-LIMPA
-         ========================================================= -->
     <footer class="relative bg-mono-panel border-t border-mono-border px-4 h-16 flex items-center justify-between shrink-0 z-30">
 
-        <!-- Canto Inferior Esquerdo: Botão 'i' de Informações (Hover mostra Qualidade, Nome e ID da Sala) -->
         <div class="relative group flex items-center">
             <button type="button" class="w-9 h-9 bg-mono-black border border-mono-border group-hover:border-mono-white text-mono-silver group-hover:text-mono-white flex items-center justify-center transition cursor-pointer">
                 <i class="fa-solid fa-info text-xs"></i>
@@ -396,23 +353,19 @@
             </div>
         </div>
 
-        <!-- Centro: Botão Transmitir (Apenas Ícone 42x42) + Botões Retráteis de Áudio -->
         <div class="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
 
-            <!-- 1. Transmitir Tela (Ícone fixo 42x42px) -->
             <button id="share-btn" type="button" onclick="toggleScreenShare()" title="Transmitir Tela (1080p 30fps)"
                 class="w-[42px] h-[42px] bg-mono-black hover:bg-mono-hover text-mono-white border border-mono-border hover:border-mono-white transition flex items-center justify-center cursor-pointer">
                 <i id="shareScreenIcon" class="fa-solid fa-desktop text-xs"></i>
             </button>
 
-            <!-- 2. Mutar Áudio Enviado da Live (Retrátil) -->
             <button id="muteOutgoingAudioBtn" type="button" onclick="toggleOutgoingAudioMute()"
                 class="retract-btn h-[42px] bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border cursor-pointer">
                 <i id="muteOutgoingIcon" class="fa-solid fa-volume-high text-xs"></i>
                 <span id="muteOutgoingText" class="retract-label">ÁUDIO DA LIVE: ON</span>
             </button>
 
-            <!-- 3. Modo de Áudio Hi-Fi Puro vs Anti-Eco Meet (Retrátil) -->
             <button id="voiceFilterBtn" type="button" onclick="toggleNativeIsolation()"
                 class="retract-btn h-[42px] bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white cursor-pointer">
                 <i class="fa-solid fa-shield-halved text-xs"></i>
@@ -421,7 +374,6 @@
 
         </div>
 
-        <!-- Direita: Slider de Volume Pílula com Barra Branca + Fullscreen -->
         <div class="flex items-center gap-2.5">
             <div class="vol-pill" title="Volume Geral">
                 <button type="button" onclick="toggleMasterMute()" class="text-mono-white hover:text-mono-silver transition flex items-center justify-center w-4 cursor-pointer">
@@ -440,12 +392,8 @@
 
     </footer>
 
-    <!-- Toasts -->
     <div id="toastContainer" class="fixed bottom-20 right-4 z-50 flex flex-col gap-1.5 pointer-events-none"></div>
 
-    <!-- =========================================================
-         JAVASCRIPT COMPLETO E ESTÁVEL
-         ========================================================= -->
     <script>
         const ROOM_HOST_PREFIX = 'bagre-room-';
         const ROOM_MEMBER_PREFIX = 'bagre-peer-';
@@ -454,12 +402,12 @@
             userName: localStorage.getItem('bagrestream_username') || 'VISITANTE',
             roomId: '',
             myPeerId: '',
-            layoutMode: 'grid', // 'grid' | 'focus'
+            layoutMode: 'grid', 
             focusedScreenId: null,
             showSelfInStage: true,
             isSharing: false,
             isOutgoingAudioMuted: false,
-            nativeIsolation: false, // false = Hi-Fi Puro (Sem abafar o jogo) | true = Anti-Eco Meet
+            nativeIsolation: false, 
             masterVolume: 1.0,
             isMasterMuted: false
         };
@@ -470,12 +418,8 @@
         let rawAudioTrack = null;
         let telemetryInterval = null;
 
-        // Mapa de amigos conectados: peerId -> { peerId, userName, dataConn, outgoingCall, incomingCall, remoteStream, muted, volume }
         const peersMap = new Map();
 
-        // =========================================================
-        // 1. ENTRADA NO SITE (NUNCA TRAVA NA TELA DE LOGIN)
-        // =========================================================
         function enterBagreStream() {
             try {
                 const loginModal = document.getElementById('login-modal');
@@ -496,7 +440,6 @@
                 console.warn('Erro ao salvar nome:', err);
             }
         }
-        // Alias para compatibilidade total
         const confirmInitialName = enterBagreStream;
         window.enterBagreStream = enterBagreStream;
         window.confirmInitialName = confirmInitialName;
@@ -525,9 +468,6 @@
             updateModalPeersList();
         }
 
-        // =========================================================
-        // 2. MODAL "CONECTAR-SE" (ID DA SALA + COPIAR + CONECTAR)
-        // =========================================================
         function openConnectModal() {
             const modal = document.getElementById('connect-modal');
             if (modal) {
@@ -573,7 +513,6 @@
             countEl.textContent = String(1 + peersMap.size);
             listEl.innerHTML = '';
 
-            // Você
             const selfRow = document.createElement('div');
             selfRow.className = 'flex items-center justify-between bg-mono-black border border-mono-border px-3 py-2 font-mono text-[11px]';
             selfRow.innerHTML = `
@@ -605,9 +544,6 @@
             });
         }
 
-        // =========================================================
-        // 3. REDE P2P MESH POR SALA (PEERJS)
-        // =========================================================
         function initRoomSession(targetRoomToJoin = null) {
             if (typeof Peer === 'undefined') {
                 showToast('AGUARDANDO REDE P2P...');
@@ -907,9 +843,6 @@
             renderStage();
         }
 
-        // =========================================================
-        // 4. PALCO DE VÍDEO (GRADE SIMULTÂNEA + FOCO INDIVIDUAL)
-        // =========================================================
         function getActiveStreamsList() {
             const list = [];
             peersMap.forEach((entry, peerId) => {
@@ -1282,9 +1215,6 @@
         }
         window.toggleMasterMute = toggleMasterMute;
 
-        // =========================================================
-        // 5. COMPARTILHAMENTO 1080P 30FPS + ÁUDIO PURO & ISOLAMENTO NATIVO
-        // =========================================================
         function toggleScreenShare() {
             if (state.isSharing) {
                 stopScreenShare();
@@ -1491,9 +1421,6 @@
         }
         window.toggleOutgoingAudioMute = toggleOutgoingAudioMute;
 
-        // =========================================================
-        // 6. BITRATE ALTO (6 MBPS VÍDEO + 510 KBPS ESTÉREO HI-FI) & UTILITÁRIOS
-        // =========================================================
         function enforceHighQualitySDP(sdp) {
             if (!sdp || typeof sdp !== 'string') return sdp;
             if (sdp.includes('maxaveragebitrate=510000')) return sdp;
@@ -1625,9 +1552,6 @@
             }[s]));
         }
 
-        // =========================================================
-        // 7. INICIALIZAÇÃO SEGURA DOS EVENTOS
-        // =========================================================
         function initBagreStreamApp() {
             const nameInput = document.getElementById('username-input');
 
