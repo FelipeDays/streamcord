@@ -412,7 +412,7 @@
                 <span id="muteOutgoingText" class="retract-label">ÁUDIO DA LIVE: ON</span>
             </button>
 
-            <!-- 3. Modo de Áudio Hi-Fi Puro vs Anti-Eco Meet (Retrátil) -->
+            <!-- 3. Modo de Áudio Hi-Fi Puro vs Isolamento de Janela (Retrátil) -->
             <button id="voiceFilterBtn" type="button" onclick="toggleNativeIsolation()"
                 class="retract-btn h-[42px] bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white cursor-pointer">
                 <i class="fa-solid fa-shield-halved text-xs"></i>
@@ -459,7 +459,7 @@
             showSelfInStage: true,
             isSharing: false,
             isOutgoingAudioMuted: false,
-            nativeIsolation: false, // false = Hi-Fi Puro (Sem abafar o jogo) | true = Anti-Eco Meet
+            nativeIsolation: false,
             masterVolume: 1.0,
             isMasterMuted: false
         };
@@ -469,6 +469,27 @@
         let outboundStream = null;
         let rawAudioTrack = null;
         let telemetryInterval = null;
+
+        // Constraints de Áudio Studio Hi-Fi (Desativa 100% dos filtros de voz do Chrome/Edge/Firefox)
+        const PURE_HIFI_AUDIO_CONSTRAINTS = {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false,
+            googEchoCancellation: false,
+            googEchoCancellation2: false,
+            googAutoGainControl: false,
+            googAutoGainControl2: false,
+            googNoiseSuppression: false,
+            googNoiseSuppression2: false,
+            googHighpassFilter: false,
+            googTypingNoiseDetection: false,
+            googAudioMirroring: false,
+            channelCount: { ideal: 2 },
+            sampleRate: { ideal: 48000 },
+            sampleSize: { ideal: 16 },
+            restrictOwnAudio: true,
+            suppressLocalAudioPlayback: false
+        };
 
         // Mapa de amigos conectados: peerId -> { peerId, userName, dataConn, outgoingCall, incomingCall, remoteStream, muted, volume }
         const peersMap = new Map();
@@ -496,7 +517,6 @@
                 console.warn('Erro ao salvar nome:', err);
             }
         }
-        // Alias para compatibilidade total
         const confirmInitialName = enterBagreStream;
         window.enterBagreStream = enterBagreStream;
         window.confirmInitialName = confirmInitialName;
@@ -796,7 +816,9 @@
             }
             entry.incomingCall = incomingCall;
 
-            incomingCall.answer();
+            incomingCall.answer(undefined, {
+                sdpTransform: enforceHighQualitySDP
+            });
 
             incomingCall.on('stream', (remoteStream) => {
                 if (!remoteStream) return;
@@ -1308,21 +1330,9 @@
                             height: { ideal: 1080, max: 1080 },
                             frameRate: { ideal: 30, max: 30 }
                         },
-                        audio: {
-                            echoCancellation: state.nativeIsolation,
-                            noiseSuppression: false,
-                            autoGainControl: false,
-                            googEchoCancellation: state.nativeIsolation,
-                            googAutoGainControl: false,
-                            googNoiseSuppression: false,
-                            googHighpassFilter: false,
-                            channelCount: { ideal: 2 },
-                            sampleRate: { ideal: 48000 },
-                            restrictOwnAudio: true,
-                            suppressLocalAudioPlayback: false
-                        },
+                        audio: { ...PURE_HIFI_AUDIO_CONSTRAINTS },
                         windowAudio: 'window',
-                        systemAudio: 'include',
+                        systemAudio: state.nativeIsolation ? 'exclude' : 'include',
                         selfBrowserSurface: 'exclude'
                     });
                 } catch (firstErr) {
@@ -1331,11 +1341,8 @@
                     }
                     rawDisplayStream = await navigator.mediaDevices.getDisplayMedia({
                         video: true,
-                        audio: {
-                            echoCancellation: false,
-                            noiseSuppression: false,
-                            autoGainControl: false
-                        }
+                        audio: { ...PURE_HIFI_AUDIO_CONSTRAINTS },
+                        windowAudio: 'window'
                     });
                 }
 
@@ -1361,9 +1368,11 @@
                     }
                     if (rawAudioTrack.applyConstraints) {
                         rawAudioTrack.applyConstraints({
-                            echoCancellation: state.nativeIsolation,
+                            echoCancellation: false,
                             noiseSuppression: false,
-                            autoGainControl: false
+                            autoGainControl: false,
+                            channelCount: 2,
+                            sampleRate: 48000
                         }).catch(() => {});
                     }
                     rawAudioTrack.enabled = !state.isOutgoingAudioMuted;
@@ -1379,7 +1388,7 @@
                 renderStage();
 
                 pushStreamToAllPeers();
-                showToast('TRANSMITINDO EM 1080P 30FPS (ÁUDIO HI-FI).');
+                showToast('TRANSMITINDO EM 1080P 30FPS (ÁUDIO ESTÉREO 510KBPS).');
             } catch (err) {
                 if (err && err.name !== 'NotAllowedError' && err.name !== 'AbortError') {
                     showToast('NÃO FOI POSSÍVEL INICIAR A TRANSMISSÃO.');
@@ -1438,13 +1447,13 @@
         async function toggleNativeIsolation() {
             state.nativeIsolation = !state.nativeIsolation;
 
+            // Nunca ativa echoCancellation/noiseSuppression para jamais abafar o som de vídeos/jogos
             if (rawAudioTrack && rawAudioTrack.applyConstraints) {
                 try {
                     await rawAudioTrack.applyConstraints({
-                        echoCancellation: state.nativeIsolation,
+                        echoCancellation: false,
                         noiseSuppression: false,
-                        autoGainControl: false,
-                        restrictOwnAudio: true
+                        autoGainControl: false
                     });
                 } catch (e) {}
             }
@@ -1455,11 +1464,11 @@
                 if (!state.nativeIsolation) {
                     btn.className = 'retract-btn h-[42px] bg-mono-white text-mono-black font-mono font-bold text-xs uppercase border border-mono-white cursor-pointer';
                     text.textContent = 'MODO ÁUDIO: HI-FI PURO';
-                    showToast('MODO HI-FI PURO (JOGO SEM ABAFAR).');
+                    showToast('MODO HI-FI PURO (ESTÉREO 510KBPS SEM FILTROS).');
                 } else {
                     btn.className = 'retract-btn h-[42px] bg-mono-black hover:bg-mono-hover text-mono-silver hover:text-mono-white font-mono text-xs uppercase border border-mono-border cursor-pointer';
-                    text.textContent = 'MODO ÁUDIO: ANTI-ECO MEET';
-                    showToast('MODO ANTI-ECO ATIVADO (SEM SUPRESSÃO DE JOGO).');
+                    text.textContent = 'MODO ÁUDIO: APENAS JANELA/ABA';
+                    showToast('ISOLAMENTO DE ABA/JANELA ATIVO (BLOQUEIA ÁUDIO GLOBAL DO SISTEMA).');
                 }
             }
         }
@@ -1495,14 +1504,37 @@
         // 6. BITRATE ALTO (6 MBPS VÍDEO + 510 KBPS ESTÉREO HI-FI) & UTILITÁRIOS
         // =========================================================
         function enforceHighQualitySDP(sdp) {
-            if (!sdp) return sdp;
-            return sdp.replace(
-                /a=fmtp:(\d+) useinbandfec=1/g,
-                'a=fmtp:$1 useinbandfec=1;stereo=1;sprop-stereo=1;maxaveragebitrate=510000;maxplaybackrate=48000;usedtx=0;cbr=1'
-            );
+            if (!sdp || typeof sdp !== 'string') return sdp;
+
+            // Identifica o payload type do codec Opus (ex: 111 no Chrome/Edge, 109 no Firefox)
+            const opusMatch = sdp.match(/a=rtpmap:(\d+)\s+opus\/48000\/2/i);
+            const opusPt = opusMatch ? opusMatch[1] : null;
+
+            const lines = sdp.split(/\r?\n/);
+            const updatedLines = lines.map(line => {
+                if (line.startsWith('a=fmtp:')) {
+                    const isOpusLine = opusPt
+                        ? line.startsWith(`a=fmtp:${opusPt} `)
+                        : line.includes('useinbandfec=1');
+
+                    if (isOpusLine) {
+                        let cleanLine = line
+                            .replace(/;?\s*stereo=\d+/g, '')
+                            .replace(/;?\s*sprop-stereo=\d+/g, '')
+                            .replace(/;?\s*maxaveragebitrate=\d+/g, '')
+                            .replace(/;?\s*maxplaybackrate=\d+/g, '')
+                            .replace(/;?\s*usedtx=\d+/g, '')
+                            .replace(/;?\s*cbr=\d+/g, '');
+                        return `${cleanLine};stereo=1;sprop-stereo=1;maxaveragebitrate=510000;maxplaybackrate=48000;usedtx=0;cbr=1`;
+                    }
+                }
+                return line;
+            });
+
+            return updatedLines.join('\r\n');
         }
 
-        // Garante que tanto quem envia quanto quem recebe negocie áudio Estéreo 48kHz sem abafar
+        // Garante que tanto LocalDescription quanto RemoteDescription negociem Opus Estéreo 48kHz @ 510kbps CBR
         if (typeof RTCPeerConnection !== 'undefined' && !RTCPeerConnection.prototype._bagreHiFiPatched) {
             const origSetLocalDesc = RTCPeerConnection.prototype.setLocalDescription;
             RTCPeerConnection.prototype.setLocalDescription = function(description, ...args) {
@@ -1514,27 +1546,51 @@
                 }
                 return origSetLocalDesc.apply(this, [description, ...args]);
             };
+
+            const origSetRemoteDesc = RTCPeerConnection.prototype.setRemoteDescription;
+            RTCPeerConnection.prototype.setRemoteDescription = function(description, ...args) {
+                if (description && description.sdp) {
+                    description = {
+                        type: description.type,
+                        sdp: enforceHighQualitySDP(description.sdp)
+                    };
+                }
+                return origSetRemoteDesc.apply(this, [description, ...args]);
+            };
+
             RTCPeerConnection.prototype._bagreHiFiPatched = true;
         }
 
         function boostWebRTCBitrate(pc) {
             if (!pc || !pc.getSenders) return;
-            setTimeout(() => {
+
+            const applySenderParams = () => {
                 pc.getSenders().forEach(sender => {
                     if (!sender.track) return;
-                    const params = sender.getParameters();
-                    if (!params.encodings || params.encodings.length === 0) {
-                        params.encodings = [{}];
-                    }
-                    if (sender.track.kind === 'video') {
-                        params.encodings[0].maxBitrate = 6000000;
-                        params.encodings[0].maxFramerate = 30;
-                    } else if (sender.track.kind === 'audio') {
-                        params.encodings[0].maxBitrate = 510000;
-                    }
-                    sender.setParameters(params).catch(() => {});
+                    try {
+                        const params = sender.getParameters();
+                        if (!params.encodings || params.encodings.length === 0) {
+                            params.encodings = [{}];
+                        }
+                        if (sender.track.kind === 'video') {
+                            params.encodings[0].maxBitrate = 6000000;
+                            params.encodings[0].maxFramerate = 30;
+                            params.degradationPreference = 'maintain-resolution';
+                        } else if (sender.track.kind === 'audio') {
+                            params.encodings[0].maxBitrate = 510000;
+                            params.encodings[0].priority = 'high';
+                            params.encodings[0].networkPriority = 'high';
+                        }
+                        sender.setParameters(params).catch(() => {});
+                    } catch (e) {}
                 });
-            }, 700);
+            };
+
+            setTimeout(applySenderParams, 500);
+            setTimeout(applySenderParams, 2000);
+            pc.addEventListener('connectionstatechange', () => {
+                if (pc.connectionState === 'connected') applySenderParams();
+            });
         }
 
         function startTelemetryLoop() {
@@ -1628,14 +1684,7 @@
         // 7. INICIALIZAÇÃO SEGURA DOS EVENTOS
         // =========================================================
         function initBagreStreamApp() {
-            const enterBtn = document.getElementById('enter-btn');
             const nameInput = document.getElementById('username-input');
-            const openConnectBtn = document.getElementById('open-connect-btn');
-            const shareBtn = document.getElementById('share-btn');
-
-            if (enterBtn) enterBtn.addEventListener('click', enterBagreStream);
-            if (openConnectBtn) openConnectBtn.addEventListener('click', openConnectModal);
-            if (shareBtn) shareBtn.addEventListener('click', toggleScreenShare);
 
             if (nameInput) {
                 const saved = localStorage.getItem('bagrestream_username');
